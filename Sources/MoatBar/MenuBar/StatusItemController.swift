@@ -11,6 +11,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     /// New data arrived while the menu was open.
     private var rebuildPending = false
     private let defaults = UserDefaults.standard
+    /// The Refresh row, kept across rebuilds so its spinner and status survive.
+    private let refreshRow = RefreshMenuRow(width: menuWidth)
     /// Opens the Settings window.
     var onSettings: (() -> Void)?
     /// Opens the Activity window, filtered to a verdict or `nil` for everything.
@@ -41,6 +43,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         self.statusItem.menu = self.menu
         self.statusItem.button?.imagePosition = .imageOnly
         store.onChange = { [weak self] in self?.storeChanged() }
+        self.refreshRow.onRefresh = { [weak self] in self?.manualRefresh() }
         self.updateIcon()
     }
 
@@ -114,7 +117,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             error: self.store.error,
             selectedHost: host,
             onSelectHost: { [weak self] host in self?.selectHost(host) },
-            onRefresh: { [weak self] in self?.store.refresh() },
+            refreshRow: self.refreshRow,
             onSettings: { [weak self] in self?.onSettings?() },
             onActivity: { [weak self] verdict in self?.onActivity?(verdict) }
         )
@@ -185,19 +188,65 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             return
         }
         let incoming = self.contentCache.removeValue(forKey: key) ?? self.builder(host: host).contentItems()
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        var outgoing: [NSMenuItem] = []
-        while self.menu.items.count > MenuBuilder.contentStart {
-            outgoing.append(self.menu.items[MenuBuilder.contentStart])
-            self.menu.removeItem(at: MenuBuilder.contentStart)
+        let outgoing = Self.withoutAnimation {
+            MenuBuilder.replaceContent(in: self.menu, with: incoming)
         }
-        for (offset, item) in incoming.enumerated() {
-            self.menu.insertItem(item, at: MenuBuilder.contentStart + offset)
-        }
-        CATransaction.commit()
         self.contentCache[self.shownTab] = outgoing
         self.shownTab = key
+    }
+
+    private static func withoutAnimation<T>(_ body: () -> T) -> T {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        return body()
+    }
+
+    // MARK: - Manual refresh
+
+    // Like CodexBar's persistent Refresh row: the click keeps the menu open, the
+    // row spins while moat is read, and the content updates in place.
+
+    private func manualRefresh() {
+        self.refreshRow.state = .refreshing
+        self.store.refresh { [weak self] result in
+            self?.finishManualRefresh(result)
+        }
+    }
+
+    private func finishManualRefresh(_ result: Result<Snapshot, MoatError>) {
+        switch result {
+        case .success:
+            self.refreshRow.state = .done(Date())
+        case let .failure(error):
+            self.refreshRow.state = .failed(error.message)
+        }
+        guard self.menuOpen else {
+            return
+        }
+        // Replacing the content under an open submenu would close it; leave
+        // that to when the menu closes.
+        guard self.pointerIsOutsideContent() else {
+            self.rebuildPending = true
+            return
+        }
+        let items = self.builder(host: self.validSelection()).contentItems()
+        Self.withoutAnimation {
+            MenuBuilder.replaceContent(in: self.menu, with: items)
+        }
+        self.rebuildPending = false
+        self.contentCache = [:]
+        self.warmTabs()
+    }
+
+    /// Whether the highlighted item, if any, is in the tabs or the footer.
+    private func pointerIsOutsideContent() -> Bool {
+        guard let highlighted = self.menu.highlightedItem,
+              let index = self.menu.items.firstIndex(of: highlighted)
+        else {
+            return true
+        }
+        return index < MenuBuilder.contentStart(in: self.menu) || index >= MenuBuilder.footerStart(in: self.menu)
     }
 
     /// Forget a tab whose agent moat no longer reports.

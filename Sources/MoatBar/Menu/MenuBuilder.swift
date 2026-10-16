@@ -10,7 +10,8 @@ struct MenuBuilder {
     let error: MoatError?
     let selectedHost: String?
     let onSelectHost: (String?) -> Void
-    let onRefresh: () -> Void
+    /// The persistent Refresh row; it lives in the footer across rebuilds.
+    let refreshRow: RefreshMenuRow
     let onSettings: () -> Void
     let onActivity: (Verdict?) -> Void
     var now = Date()
@@ -21,8 +22,10 @@ struct MenuBuilder {
     static let submenuWidth: CGFloat = 380
     /// Marks the tab row, which stays in place when the content changes.
     private static let tabsTag = "agent-tabs"
+    /// Marks the first footer item; the footer stays in place too.
+    private static let footerTag = "footer"
 
-    /// Build the whole menu: tabs, then everything below them.
+    /// Build the whole menu: tabs, the content, then the footer.
     func fill(_ menu: NSMenu) {
         menu.removeAllItems()
         // Every agent OpenMoat supports gets a tab, installed or not, so the
@@ -40,6 +43,7 @@ struct MenuBuilder {
             menu.addItem(.separator())
         }
         self.appendContent(to: menu)
+        self.addFooter(to: menu)
     }
 
     /// All, then every agent. The line under "All" is red when any agent lost
@@ -68,10 +72,34 @@ struct MenuBuilder {
     }
 
     /// Index of the first item below the tab bar.
-    static let contentStart = 2
+    static func contentStart(in menu: NSMenu) -> Int {
+        self.hasTabs(menu) ? 2 : 0
+    }
 
-    /// Everything below the tabs, built into detached items so they can be
-    /// cached and swapped in when a tab is clicked.
+    /// Index of the first footer item: the content ends just before it.
+    static func footerStart(in menu: NSMenu) -> Int {
+        menu.items.firstIndex { $0.representedObject as? String == self.footerTag } ?? menu.items.count
+    }
+
+    /// Replace the content between the tabs and the footer with `items`,
+    /// returning the items taken out. The tabs and footer, and whatever the
+    /// pointer is over in them, stay put.
+    @discardableResult
+    static func replaceContent(in menu: NSMenu, with items: [NSMenuItem]) -> [NSMenuItem] {
+        let start = self.contentStart(in: menu)
+        var outgoing: [NSMenuItem] = []
+        while self.footerStart(in: menu) > start {
+            outgoing.append(menu.items[start])
+            menu.removeItem(at: start)
+        }
+        for (offset, item) in items.enumerated() {
+            menu.insertItem(item, at: start + offset)
+        }
+        return outgoing
+    }
+
+    /// The content between the tabs and the footer, built into detached items
+    /// so it can be cached, swapped in on a tab click, or refreshed in place.
     func contentItems() -> [NSMenuItem] {
         let scratch = NSMenu()
         scratch.autoenablesItems = false
@@ -84,7 +112,6 @@ struct MenuBuilder {
     private func appendContent(to menu: NSMenu) {
         guard let snapshot = self.snapshot else {
             self.addUnavailable(to: menu)
-            self.addFooter(to: menu)
             return
         }
         self.addHeader(snapshot, to: menu)
@@ -99,7 +126,6 @@ struct MenuBuilder {
             self.addAgents(snapshot, to: menu)
         }
         self.addChecks(snapshot, to: menu)
-        self.addFooter(to: menu)
     }
 
     // MARK: - Header and problems
@@ -318,9 +344,18 @@ struct MenuBuilder {
     }
 
     private func addFooter(to menu: NSMenu) {
-        menu.addItem(.separator())
+        let separator = NSMenuItem.separator()
+        separator.representedObject = Self.footerTag
+        menu.addItem(separator)
         menu.addItem(ClosureMenuItem("Activity window…", key: "a") { self.onActivity(.deny) })
-        menu.addItem(ClosureMenuItem("Refresh", key: "r") { self.onRefresh() })
+        // A view item: clicking it keeps the menu open. ⌘R still reaches the
+        // item's action through its key equivalent.
+        let refresh = ClosureMenuItem("Refresh", key: "r") { [refreshRow = self.refreshRow] in
+            refreshRow.onRefresh?()
+        }
+        self.refreshRow.removeFromSuperview()
+        refresh.view = self.refreshRow
+        menu.addItem(refresh)
         menu.addItem(ClosureMenuItem("OpenMoat docs ↗") { Actions.open(DocsLink.home) })
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Settings…", key: ",") { self.onSettings() })
