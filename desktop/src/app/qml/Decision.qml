@@ -11,6 +11,11 @@ ColumnLayout {
     property var d: ({})
     readonly property color verdictColor: Theme.tone(d.verdict || "")
 
+    /// Text moat stored, safe to put inside styled text.
+    function html(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     Layout.fillWidth: true
     spacing: 0
 
@@ -90,24 +95,22 @@ ColumnLayout {
 
         Label {
             visible: (decision.d.told || "").length > 0
-            text: "<b>Agent was told:</b> " + escape(decision.d.told || "")
+            text: "<b>Agent was told:</b> " + decision.html(decision.d.told || "")
             textFormat: Text.StyledText
             color: Theme.text
             font.pixelSize: 12
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
-            function escape(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
         }
         Label {
             visible: (decision.d.why || "").length > 0
-            text: "<b>Why:</b> " + escape(decision.d.why || "")
+            text: "<b>Why:</b> " + decision.html(decision.d.why || "")
             textFormat: Text.StyledText
             color: Theme.text
             font.pixelSize: 12
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
             Layout.bottomMargin: 4
-            function escape(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
         }
     }
 
