@@ -10,7 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Test)
+# 6.4 is what Ubuntu 24.04 and Debian 12 ship; CI builds with it and with 6.7.
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Widgets Test)
 qt_standard_project_setup()
 
 option(MOATBAR_WARNINGS_AS_ERRORS "Fail the build on compiler warnings (GCC/Clang)" ON)

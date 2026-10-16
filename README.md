@@ -65,23 +65,80 @@ copy into Terminal.
 
 ## Install and run
 
-You need OpenMoat installed:
+There are no downloads yet; MoatBar is built from source. You need OpenMoat installed first
+(other ways to install it: [OpenMoat's README](https://github.com/crocodile-labs/openmoat#install)).
 
-```
+### macOS
+
+```bash
 brew install crocodile-labs/tap/moat
-```
-
-**macOS:** build MoatBar from source (Swift 5.7 or later) and open it.
-
-```
-make app
+git clone https://github.com/crocodile-labs/moatbar
+cd moatbar
+make app            # needs Swift 5.7 or later (Xcode or the Command Line Tools)
 open MoatBar.app
 ```
 
 `make app` falls back to building with `swiftc` directly when `swift build` can't read
 `Package.swift`; this happens on some Command Line Tools installs.
 
-**Linux and Windows:** the same tray menu in Qt 6, built with CMake. See [desktop/README.md](desktop/README.md). Every CI run renders the Linux and Windows menus offscreen and attaches the images to the run: open the run under Actions, then download `moatbar-linux-screenshots` or `moatbar-windows-screenshots`. That shows how the menu looks without a Linux or Windows machine.
+### Linux
+
+```bash
+brew install crocodile-labs/tap/moat
+
+# Build tools and Qt 6.4 or later, one line for your distribution
+sudo apt install build-essential cmake git qt6-base-dev     # Ubuntu 24.04+, Debian 12+
+sudo dnf install gcc-c++ cmake git qt6-qtbase-devel          # Fedora
+sudo pacman -S --needed base-devel cmake git qt6-base        # Arch
+
+git clone https://github.com/crocodile-labs/moatbar
+cd moatbar
+cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+./build/src/app/moatbar
+```
+
+CI runs the Ubuntu line exactly as written; the Fedora and Arch lines are not tested yet. On
+GNOME without Ubuntu's tray support (Fedora, for example), install the "AppIndicator and
+KStatusNotifierItem Support" extension, or MoatBar has no tray to sit in.
+
+### Windows
+
+In PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/crocodile-labs/openmoat/releases/latest/download/openmoat-installer.ps1 | iex"
+
+# Build tools: Git, CMake, Python (for the Qt installer) and the Visual C++ compiler
+winget install --id Git.Git
+winget install --id Kitware.CMake
+winget install --id Python.Python.3.12
+winget install --id Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --wait"
+```
+
+Open a new PowerShell window so the tools are on `PATH`, then:
+
+```powershell
+# Qt 6.7.3, without a Qt account
+python -m pip install aqtinstall
+python -m aqt install-qt windows desktop 6.7.3 win64_msvc2019_64 --outputdir C:\Qt
+
+git clone https://github.com/crocodile-labs/moatbar
+cd moatbar
+cmake -S desktop -B build -DCMAKE_PREFIX_PATH=C:\Qt\6.7.3\msvc2019_64
+cmake --build build --config Release
+C:\Qt\6.7.3\msvc2019_64\bin\windeployqt.exe build\src\app\Release\moatbar.exe
+.\build\src\app\Release\moatbar.exe
+```
+
+`windeployqt` copies Qt's DLLs next to `moatbar.exe`, so it starts from Explorer too. CI
+builds with the same Qt and compiler, but has not run these exact commands.
+
+### See the Linux and Windows menus without the machine
+
+Every CI run draws the Linux and Windows menus offscreen and keeps the images with the run:
+open the run under Actions, then download `moatbar-linux-screenshots` or
+`moatbar-windows-screenshots`. More in [desktop/README.md](desktop/README.md).
 
 ## How it works
 
