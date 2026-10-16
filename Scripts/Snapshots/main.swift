@@ -189,8 +189,10 @@ func scene(panels: [(NSView, CGFloat)], size: NSSize) -> NSView {
     root.wantsLayer = true
     let gradient = CAGradientLayer()
     gradient.frame = root.bounds
-    gradient.colors = [NSColor(calibratedRed: 0.36, green: 0.62, blue: 0.5, alpha: 1).cgColor,
-                       NSColor(calibratedRed: 0.11, green: 0.35, blue: 0.27, alpha: 1).cgColor]
+    gradient.colors = [
+        NSColor(calibratedRed: 0.36, green: 0.62, blue: 0.5, alpha: 1).cgColor,
+        NSColor(calibratedRed: 0.11, green: 0.35, blue: 0.27, alpha: 1).cgColor,
+    ]
     root.layer?.addSublayer(gradient)
     let bar = NSView(frame: NSRect(x: 0, y: size.height - 24, width: size.width, height: 24))
     bar.wantsLayer = true
@@ -299,6 +301,7 @@ for (index, (state, label)) in states.enumerated() {
     text.frame = NSRect(x: 150 * CGFloat(index), y: 8, width: 150, height: 18)
     strip.addSubview(text)
 }
+
 try png(strip).write(to: outDir.appendingPathComponent("icon-states.png"))
 
 print("wrote", outDir.path)
