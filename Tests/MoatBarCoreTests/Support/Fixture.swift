@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-
 @testable import MoatBarCore
 
 /// Reads a JSON fixture from `Tests/MoatBarCoreTests/Fixtures`.

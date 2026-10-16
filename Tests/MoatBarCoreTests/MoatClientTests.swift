@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-
 @testable import MoatBarCore
 
 final class MoatClientTests: XCTestCase {
@@ -86,7 +85,8 @@ final class MoatClientTests: XCTestCase {
         let out = try runner.run(sh, arguments: ["-c", "printf hello"], timeout: 5)
         XCTAssertEqual(String(decoding: out, as: UTF8.self), "hello")
 
-        XCTAssertThrowsError(try runner.run(sh, arguments: ["-c", "echo 'moat: no audit log' >&2; exit 3"], timeout: 5)) {
+        let failing = ["-c", "echo 'moat: no audit log' >&2; exit 3"]
+        XCTAssertThrowsError(try runner.run(sh, arguments: failing, timeout: 5)) {
             XCTAssertEqual($0 as? MoatError, .failed(command: "-c", message: "no audit log"))
         }
     }

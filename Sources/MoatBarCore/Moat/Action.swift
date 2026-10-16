@@ -52,7 +52,9 @@ public enum Action: Equatable {
 extension Action: Codable {
     private struct Key: CodingKey {
         var stringValue: String
-        var intValue: Int? { nil }
+        var intValue: Int? {
+            nil
+        }
 
         init(stringValue: String) {
             self.stringValue = stringValue

@@ -22,7 +22,11 @@ public enum IconState: Int, Comparable, CaseIterable {
     ///   - snapshot: the last good read, or `nil` when moat is missing or unreadable.
     ///   - seenUntilMs: the newest event time the person has already seen in the menu.
     ///   - needsAttention: a security check needs a look.
-    public static func decide(snapshot: Snapshot?, seenUntilMs: Int64?, needsAttention: Bool = false) -> IconState {
+    public static func decide(
+        snapshot: Snapshot?,
+        seenUntilMs: Int64?,
+        needsAttention: Bool = false
+    ) -> IconState {
         guard let snapshot else {
             return .unavailable
         }
