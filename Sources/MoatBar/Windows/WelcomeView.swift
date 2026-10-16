@@ -12,7 +12,7 @@ struct WelcomeView: View {
             if let logo = AppResources.image("logo-float") {
                 Image(nsImage: logo)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
                     .frame(width: 200)
                     .accessibilityLabel("OpenMoat")
             }
