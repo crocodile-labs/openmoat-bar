@@ -323,10 +323,7 @@ struct MenuBuilder {
         menu.addItem(ClosureMenuItem("OpenMoat docs ↗") { Actions.open(DocsLink.home) })
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Settings…", key: ",") { self.onSettings() })
-        menu.addItem(ClosureMenuItem("About MoatBar") {
-            NSApp.activate(ignoringOtherApps: true)
-            NSApp.orderFrontStandardAboutPanel(nil)
-        })
+        menu.addItem(ClosureMenuItem("About MoatBar") { Actions.showAbout() })
         menu.addItem(ClosureMenuItem("Quit MoatBar", key: "q") { NSApp.terminate(nil) })
     }
 
