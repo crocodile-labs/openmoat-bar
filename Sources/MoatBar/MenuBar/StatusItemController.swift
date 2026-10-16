@@ -11,6 +11,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let defaults = UserDefaults.standard
     /// Opens the Settings window.
     var onSettings: (() -> Void)?
+    /// Opens the Activity window, filtered to a verdict or `nil` for everything.
+    var onActivity: ((Verdict?) -> Void)?
 
     private enum Key {
         static let seenUntil = "seenUntilMs"
@@ -86,7 +88,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
                 self?.rebuild()
             },
             onRefresh: { [weak self] in self?.store.refresh() },
-            onSettings: { [weak self] in self?.onSettings?() }
+            onSettings: { [weak self] in self?.onSettings?() },
+            onActivity: { [weak self] verdict in self?.onActivity?(verdict) }
         )
         builder.fill(self.menu)
     }

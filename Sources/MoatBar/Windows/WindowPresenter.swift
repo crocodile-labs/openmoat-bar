@@ -5,7 +5,7 @@ import SwiftUI
 final class WindowPresenter {
     private var window: NSWindow?
 
-    func show(title: String, size: NSSize, content: some View) {
+    func show(title: String, size: NSSize, content: some View, resizable: Bool = false) {
         if let window = self.window {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
@@ -13,7 +13,7 @@ final class WindowPresenter {
         }
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.titled, .closable],
+            styleMask: resizable ? [.titled, .closable, .resizable, .miniaturizable] : [.titled, .closable],
             backing: .buffered,
             defer: false
         )

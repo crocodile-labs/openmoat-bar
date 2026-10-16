@@ -50,7 +50,12 @@ public struct MoatClient {
 
     /// Today's events (local midnight as moat counts it), oldest first.
     public func eventsToday() throws -> [Event] {
-        try self.decode([Event].self, ["show", "--since", "today", "--format", "json"])
+        try self.events(since: .today)
+    }
+
+    /// Events in a window, oldest first.
+    public func events(since window: TimeWindow) throws -> [Event] {
+        try self.decode([Event].self, ["show", "--since", window.rawValue, "--format", "json"])
     }
 
     /// Totals since `window`: `today`, `7d`, `30d`, ...

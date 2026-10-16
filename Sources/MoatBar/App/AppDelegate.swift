@@ -9,10 +9,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var watcher: AuditWatcher?
     private let welcomeWindow = WindowPresenter()
     private let settingsWindow = WindowPresenter()
+    private let activityWindow = WindowPresenter()
+    private let activity = ActivityModel()
 
     func applicationDidFinishLaunching(_: Notification) {
         let statusItem = StatusItemController(store: self.store)
         statusItem.onSettings = { [weak self] in self?.showSettings() }
+        statusItem.onActivity = { [weak self] verdict in self?.showActivity(verdict) }
         self.statusItem = statusItem
 
         self.store.onSnapshot = { [weak self] old, new in
@@ -50,6 +53,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onQuit: { NSApp.terminate(nil) }
         )
         self.welcomeWindow.show(title: "Welcome to MoatBar", size: NSSize(width: 460, height: 520), content: view)
+    }
+
+    /// Open the Activity window, filtered to `verdict` (`nil` for everything).
+    private func showActivity(_ verdict: Verdict?) {
+        self.activity.filter.verdict = verdict
+        self.activity.selectedID = nil
+        self.activity.load()
+        self.activityWindow.show(
+            title: "MoatBar Activity",
+            size: NSSize(width: 1040, height: 640),
+            content: ActivityView(model: self.activity),
+            resizable: true
+        )
     }
 
     private func showSettings() {
