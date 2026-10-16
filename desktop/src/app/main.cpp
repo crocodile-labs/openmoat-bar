@@ -4,11 +4,14 @@
 
 #include <QApplication>
 #include <QMessageBox>
+#include <QQuickStyle>
 #include <QSystemTrayIcon>
 
 using namespace Qt::StringLiterals;
 
 int main(int argc, char *argv[]) {
+    // Fusion draws the same on every desktop and follows its palette, light or dark.
+    QQuickStyle::setStyle(u"Fusion"_s);
     QApplication app(argc, argv);
     QApplication::setApplicationName(u"MoatBar"_s);
     QApplication::setApplicationDisplayName(u"MoatBar"_s);

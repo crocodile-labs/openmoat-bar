@@ -11,3 +11,7 @@ endfunction()
 moatbar_test(tst_json)
 moatbar_test(tst_snapshot)
 moatbar_test(tst_client)
+
+# The Quick View's model, from the same fixtures.
+moatbar_test(tst_quickview)
+target_link_libraries(tst_quickview PRIVATE moatbar_ui)

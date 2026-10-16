@@ -5,12 +5,19 @@
 //     moatbar_shots OUT_DIR
 
 #include "../tests/Fixtures.hpp"
+#include "app/QuickView.hpp"
+#include "app/QuickViewModel.hpp"
 #include "app/TrayIcon.hpp"
 #include "app/TrayMenu.hpp"
 
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
+#include <QEventLoop>
+#include <QPalette>
+#include <QQuickStyle>
+#include <QQuickWindow>
+#include <QTimer>
 #include <QImage>
 #include <QMenu>
 #include <QPainter>
@@ -122,9 +129,102 @@ std::optional<Snapshot> fixtureSnapshot(const QString &status) {
     return std::move(snapshot).value();
 }
 
+/// Let animations and layout finish.
+void settle(int ms = 400) {
+    QEventLoop loop;
+    QTimer::singleShot(ms, &loop, &QEventLoop::quit);
+    loop.exec();
+}
+
+bool call(QObject *root, const char *method, const std::optional<QString> &argument = std::nullopt) {
+    const bool ok = argument ? QMetaObject::invokeMethod(root, method, Q_ARG(QVariant, QVariant(*argument)))
+                             : QMetaObject::invokeMethod(root, method);
+    if (!ok) {
+        std::fprintf(stderr, "QuickView.qml has no %s()\n", method);
+    }
+    return ok;
+}
+
+QPalette darkPalette() {
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(0x20, 0x21, 0x24));
+    palette.setColor(QPalette::WindowText, QColor(0xe8, 0xea, 0xed));
+    palette.setColor(QPalette::Base, QColor(0x17, 0x18, 0x1a));
+    palette.setColor(QPalette::Text, QColor(0xe8, 0xea, 0xed));
+    palette.setColor(QPalette::Button, QColor(0x2d, 0x2e, 0x31));
+    palette.setColor(QPalette::ButtonText, QColor(0xe8, 0xea, 0xed));
+    palette.setColor(QPalette::Highlight, QColor(0x8a, 0xb4, 0xf8));
+    palette.setColor(QPalette::HighlightedText, QColor(0x20, 0x21, 0x24));
+    return palette;
+}
+
+/// Every page of the Quick View, drawn by the real QML from the fixtures.
+bool quickViewShots(const QDir &out, const Snapshot &protectedSnapshot, const Snapshot &unprotectedSnapshot) {
+    const QDateTime now = QDateTime::fromMSecsSinceEpoch(1792061000000);
+    QuickViewModel model;
+    QuickView view(model);
+    model.setData(protectedSnapshot, std::nullopt, now);
+    if (!view.load()) {
+        return false;
+    }
+    QQuickWindow *window = view.window();
+    window->show();
+    settle();
+
+    bool ok = true;
+    const auto shoot = [&](const QString &name) {
+        settle();
+        ok &= save(QPixmap::fromImage(window->grabWindow()), out, name);
+    };
+
+    shoot(u"quick-view.png"_s);
+
+    ok &= call(window, "openList", u"deny"_s);
+    shoot(u"quick-view-blocked.png"_s);
+
+    const QVariantList blocked = model.events(u"deny"_s);
+    if (blocked.isEmpty()) {
+        std::fprintf(stderr, "the fixture has no blocked calls\n");
+        ok = false;
+    } else {
+        ok &= call(window, "openDecision", blocked.first().toMap().value(u"id"_s).toString());
+        shoot(u"quick-view-decision.png"_s);
+    }
+
+    ok &= call(window, "openChecks");
+    shoot(u"quick-view-checks.png"_s);
+
+    ok &= call(window, "selectTab", u"claude-code"_s);
+    shoot(u"quick-view-agent.png"_s);
+    ok &= call(window, "selectTab", QString{});
+
+    model.setData(unprotectedSnapshot, std::nullopt, now);
+    shoot(u"quick-view-unprotected.png"_s);
+
+    model.setData(std::nullopt, MoatError{MoatError::Kind::NotInstalled, {}, {}}, now);
+    shoot(u"quick-view-moat-missing.png"_s);
+
+    // The same overview on a dark desktop.
+    const QPalette light = QGuiApplication::palette();
+    QGuiApplication::setPalette(darkPalette());
+    model.setData(protectedSnapshot, std::nullopt, now);
+    shoot(u"quick-view-dark.png"_s);
+    QGuiApplication::setPalette(light);
+
+    window->hide();
+    if (view.warningCount() > 0) {
+        std::fprintf(stderr, "%d QML warnings\n", view.warningCount());
+        ok = false;
+    }
+    return ok;
+}
+
 } // namespace
 
 int main(int argc, char *argv[]) {
+    // Software rendering, so the Quick View draws without a GPU (CI, offscreen).
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
+    QQuickStyle::setStyle(u"Fusion"_s);
     QApplication app(argc, argv);
     if (argc != 2) {
         std::fprintf(stderr, "usage: moatbar_shots OUT_DIR\n");
@@ -143,7 +243,8 @@ int main(int argc, char *argv[]) {
     }
 
     bool ok = true;
-    const TrayActions actions{[] {}, [] {}, [] {}};
+    // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
+    const TrayActions actions{.open = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
 
     QMenu menu;
     TrayMenu(&*protectedSnapshot, std::nullopt, actions).fill(menu);
@@ -168,5 +269,7 @@ int main(int argc, char *argv[]) {
     ok &= save(grabMenu(unavailableMenu), out, u"menu-moat-missing.png"_s);
 
     ok &= save(iconStrip(), out, u"tray-icons.png"_s);
+
+    ok &= quickViewShots(out, *protectedSnapshot, *unprotectedSnapshot);
     return ok ? 0 : 1;
 }

@@ -36,6 +36,8 @@ jobs:
             os: windows-2022
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    permissions:
+      contents: write # the ci-shots/* branches only
     steps:
       - uses: actions/checkout@v5
 
@@ -69,16 +71,40 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
+          # Qt's offscreen platform on Windows has no font list of its own.
+          if [ "$RUNNER_OS" = "Windows" ]; then export QT_QPA_FONTDIR="C:/Windows/Fonts"; fi
           shots=$(find build -type f \( -name moatbar_shots -o -name moatbar_shots.exe \) | head -n 1)
           test -n "$shots"
-          "$shots" screenshots
+          mkdir -p screenshots
+          # The log goes with the images, so a failure can be read from ci-shots/* too.
+          set -o pipefail
+          "$shots" screenshots 2>&1 | tee screenshots/shots.log
 
       - name: Keep the screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: moatbar-${{ matrix.name }}-screenshots
-          path: screenshots/*.png
+          path: screenshots/
           if-no-files-found: error
+
+      # Also on a branch of their own (ci-shots/linux, ci-shots/windows), so they
+      # can be read through the contents API by reviewers who can't download
+      # artifacts. Only for this repository's own branches.
+      - name: Publish the screenshots to ci-shots/${{ matrix.name }}
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          test -d screenshots || exit 0
+          cd screenshots
+          git init -q
+          git config user.name "moatbar-ci"
+          git config user.email "moatbar-ci@users.noreply.github.com"
+          git add -A .
+          git commit -q -m "Screenshots for ${{ github.event.pull_request.head.ref }} at ${{ github.event.pull_request.head.sha }}"
+          git push -q --force "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" HEAD:refs/heads/ci-shots/${{ matrix.name }}
 
   # The README's Linux commands as written: Ubuntu's own Qt (6.4), no extra installer.
   ubuntu-packages:
@@ -91,9 +117,12 @@ jobs:
       - name: Install what the README lists
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq build-essential cmake qt6-base-dev
+          sudo apt-get install -y -qq build-essential cmake qt6-base-dev qt6-declarative-dev \
+            qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates qml6-module-qtquick-window qml6-module-qtqml-workerscript
 
-      - name: Build and test
+      # The Quick View's QML must load on Qt 6.4 too: the screenshot tool fails on any QML warning.
+      - name: Build, test and draw the Quick View
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
@@ -101,3 +130,4 @@ jobs:
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
           test -x build/src/app/moatbar
+          build/tools/moatbar_shots screenshots
