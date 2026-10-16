@@ -29,7 +29,7 @@ QString shortPath(const QString &path, const QString &home) {
     if (path.size() > home.size() && path[home.size()] != u'/' && path[home.size()] != u'\\') {
         return path;
     }
-    return u"~"_s + path.mid(home.size());
+    return QString(u"~"_s + path.mid(home.size()));
 }
 
 QString oneLine(const QString &text, qsizetype length) {

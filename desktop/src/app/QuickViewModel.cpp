@@ -137,7 +137,7 @@ QVariantMap QuickViewModel::unavailable() const {
     }
     return {
         {u"title"_s, u"Couldn't read OpenMoat"_s},
-        {u"text"_s, m_error->message() + u". Your agents are still checked; only this view is out of date."_s},
+        {u"text"_s, QString(m_error->message() + u". Your agents are still checked; only this view is out of date."_s)},
         {u"note"_s, u"moat doctor shows what is wrong."_s},
         {u"tone"_s, u"warn"_s},
         {u"commandTitle"_s, u"Copy the check command"_s},
@@ -182,7 +182,7 @@ QVariantMap QuickViewModel::header() const {
     }
     out[u"updated"_s] = m_error ? u"Last good data %1 · %2"_s.arg(Format::clock(m_snapshot->takenAt), m_error->message())
                                 : u"Updated %1"_s.arg(Format::relative(m_snapshot->takenAt, m_now));
-    out[u"version"_s] = m_snapshot->moatVersion ? u"moat "_s + *m_snapshot->moatVersion : QString{};
+    out[u"version"_s] = m_snapshot->moatVersion ? QString(u"moat "_s + *m_snapshot->moatVersion) : QString{};
     return out;
 }
 
@@ -198,7 +198,7 @@ QVariantList QuickViewModel::problems() const {
         const QString why = agent.reason ? u"OpenMoat says: %1. "_s.arg(*agent.reason) : QString{};
         out << QVariantMap{
             {u"title"_s, u"%1 is not protected"_s.arg(agent.name)},
-            {u"text"_s, why + u"Its calls are not being checked."_s},
+            {u"text"_s, QString(why + u"Its calls are not being checked."_s)},
             {u"note"_s, u"Run moat in a terminal. It shows the change and asks first. "
                         u"This goes away on the next check."_s},
             {u"command"_s, CopyCommands::setUp()},
