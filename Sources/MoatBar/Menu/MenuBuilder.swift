@@ -58,18 +58,23 @@ struct MenuBuilder {
         }
     }
 
-    /// Replace everything below the tabs, keeping the tab view (and its
-    /// selection animation) in place. Returns false when there are no tabs.
-    @discardableResult
-    func replaceContent(in menu: NSMenu) -> Bool {
-        guard menu.items.first?.representedObject as? String == Self.tabsTag, menu.items.count >= 2 else {
-            return false
-        }
-        while menu.items.count > 2 {
-            menu.removeItem(at: 2)
-        }
-        self.appendContent(to: menu)
-        return true
+    /// Whether `menu` starts with the tab bar and its separator.
+    static func hasTabs(_ menu: NSMenu) -> Bool {
+        menu.items.first?.representedObject as? String == self.tabsTag && menu.items.count >= 2
+    }
+
+    /// Index of the first item below the tab bar.
+    static let contentStart = 2
+
+    /// Everything below the tabs, built into detached items so they can be
+    /// cached and swapped in when a tab is clicked.
+    func contentItems() -> [NSMenuItem] {
+        let scratch = NSMenu()
+        scratch.autoenablesItems = false
+        self.appendContent(to: scratch)
+        let items = scratch.items
+        scratch.removeAllItems()
+        return items
     }
 
     private func appendContent(to menu: NSMenu) {

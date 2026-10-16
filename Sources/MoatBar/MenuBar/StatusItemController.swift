@@ -60,6 +60,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         // Safe: AppKit has not started tracking yet.
         self.rebuild()
         self.menuOpen = true
+        self.warmTabs()
         self.store.refresh()
     }
 
@@ -107,11 +108,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         self.statusItem.button?.toolTip = state.accessibilityLabel
     }
 
-    private func builder() -> MenuBuilder {
+    private func builder(host: String?) -> MenuBuilder {
         MenuBuilder(
             snapshot: self.store.snapshot,
             error: self.store.error,
-            selectedHost: self.validSelection(),
+            selectedHost: host,
             onSelectHost: { [weak self] host in self?.selectHost(host) },
             onRefresh: { [weak self] in self?.store.refresh() },
             onSettings: { [weak self] in self?.onSettings?() },
@@ -120,28 +121,83 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 
     private func rebuild() {
-        self.builder().fill(self.menu)
+        self.contentCache = [:]
+        self.shownTab = Self.cacheKey(self.validSelection())
+        self.builder(host: self.validSelection()).fill(self.menu)
+    }
+
+    // MARK: - Tab switching
+
+    // Like CodexBar's switcher: every tab's content is built ahead of time while
+    // the menu is open, one tab per run loop turn, and a click swaps the ready
+    // items in. The outgoing items are parked for an instant switch back.
+
+    /// Built content below the tabs, by tab (`all` or a host id).
+    private var contentCache: [String: [NSMenuItem]] = [:]
+    /// The tab whose content is in the menu now.
+    private var shownTab = "all"
+
+    private static func cacheKey(_ host: String?) -> String {
+        host ?? "all"
+    }
+
+    /// Build the other tabs' content in the background of the open menu.
+    private func warmTabs() {
+        guard let agents = self.store.snapshot?.installedAgents, !agents.isEmpty else {
+            return
+        }
+        let hosts: [String?] = [nil] + agents.map(\.host)
+        for host in hosts {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.menuOpen else {
+                    return
+                }
+                let key = Self.cacheKey(host)
+                guard key != self.shownTab, self.contentCache[key] == nil else {
+                    return
+                }
+                self.contentCache[key] = self.builder(host: host).contentItems()
+            }
+        }
     }
 
     /// A tab click (or "Show … only"): the tab bar moves its selection pill in
-    /// place, then only the content below it is replaced. The replacement waits
-    /// one turn of the run loop so the pill animation starts first.
+    /// place, then the content below it is swapped for the cached content of
+    /// that tab. The swap waits one run loop turn so the pill animation starts
+    /// first, and runs with implicit animations off.
     private func selectHost(_ host: String?) {
         self.selectedHost = host
         if let bar = self.menu.items.first?.view as? AgentTabBar, bar.selected != host {
             bar.select(host, animated: true)
         }
         DispatchQueue.main.async { [weak self] in
-            guard let self else {
-                return
-            }
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            if !self.builder().replaceContent(in: self.menu) {
-                self.rebuild()
-            }
-            CATransaction.commit()
+            self?.swapContent(to: host)
         }
+    }
+
+    private func swapContent(to host: String?) {
+        guard MenuBuilder.hasTabs(self.menu) else {
+            self.rebuild()
+            return
+        }
+        let key = Self.cacheKey(host)
+        guard key != self.shownTab else {
+            return
+        }
+        let incoming = self.contentCache.removeValue(forKey: key) ?? self.builder(host: host).contentItems()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        var outgoing: [NSMenuItem] = []
+        while self.menu.items.count > MenuBuilder.contentStart {
+            outgoing.append(self.menu.items[MenuBuilder.contentStart])
+            self.menu.removeItem(at: MenuBuilder.contentStart)
+        }
+        for (offset, item) in incoming.enumerated() {
+            self.menu.insertItem(item, at: MenuBuilder.contentStart + offset)
+        }
+        CATransaction.commit()
+        self.contentCache[self.shownTab] = outgoing
+        self.shownTab = key
     }
 
     /// Forget a tab whose agent is no longer installed.

@@ -21,7 +21,13 @@ final class AgentTabBar: NSView {
     private let onSelect: (String?) -> Void
 
     private let pill = CALayer()
-    private var cells: [(icon: NSImageView, label: NSTextField, line: CALayer)] = []
+    private struct Cell {
+        let icon: NSImageView
+        let label: NSTextField
+        let line: CALayer
+    }
+
+    private var cells: [Cell] = []
 
     static let height: CGFloat = 58
     private static let inset: CGFloat = 10
@@ -67,7 +73,7 @@ final class AgentTabBar: NSView {
         self.addSubview(icon)
         self.addSubview(label)
         self.layer?.addSublayer(line)
-        self.cells.append((icon, label, line))
+        self.cells.append(Cell(icon: icon, label: label, line: line))
     }
 
     private func tabFrame(_ index: Int) -> NSRect {
