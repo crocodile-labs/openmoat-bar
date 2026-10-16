@@ -32,7 +32,8 @@ QT_QPA_PLATFORM=offscreen ./build/tools/moatbar_shots screenshots
 
 ## Build
 
-You need Qt 6.5 or later, CMake 3.21 and a C++20 compiler.
+You need Qt 6.4 or later, CMake 3.21 and a C++20 compiler. Install commands for each
+system are in the [main README](../README.md#install-and-run).
 
 ```
 cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
