@@ -28,3 +28,10 @@ target_link_libraries(moatbar_app PRIVATE moatbar_ui)
 moatbar_warnings(moatbar_app)
 
 install(TARGETS moatbar_app RUNTIME DESTINATION bin)
+if(UNIX AND NOT APPLE)
+    # The app menu entry and its icon, also what the AppImage is built from.
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../packaging/dev.openmoat.moatbar.desktop"
+        DESTINATION share/applications)
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../../docs/images/app-icon.png"
+        DESTINATION share/icons/hicolor/256x256/apps RENAME dev.openmoat.moatbar.png)
+endif()

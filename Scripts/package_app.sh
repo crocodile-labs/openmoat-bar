@@ -26,10 +26,19 @@ build_direct() {
     BIN="$out"
 }
 
+# MOATBAR_UNIVERSAL=1 builds one binary for Apple silicon and Intel (needs Xcode).
+SWIFT_FLAGS=(-c release)
+if [ "${MOATBAR_UNIVERSAL:-0}" = "1" ]; then
+    SWIFT_FLAGS+=(--arch arm64 --arch x86_64)
+fi
+
 if [ "${MOATBAR_DIRECT_BUILD:-0}" = "1" ]; then
     build_direct
-elif swift build -c release --product MoatBar; then
-    BIN="$(swift build -c release --show-bin-path)"
+elif swift build "${SWIFT_FLAGS[@]}" --product MoatBar; then
+    BIN="$(swift build "${SWIFT_FLAGS[@]}" --show-bin-path)"
+elif [ "${MOATBAR_UNIVERSAL:-0}" = "1" ]; then
+    echo "swift build failed; a universal build has no fallback." >&2
+    exit 1
 else
     echo "swift build failed; building with swiftc directly." >&2
     build_direct
