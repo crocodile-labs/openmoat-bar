@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.21)
+
+project(MoatBarDesktop
+    VERSION 0.1.0
+    DESCRIPTION "MoatBar for Linux and Windows: what OpenMoat does for your coding agents"
+    LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Test)
+qt_standard_project_setup()
+
+option(MOATBAR_WARNINGS_AS_ERRORS "Fail the build on compiler warnings (GCC/Clang)" ON)
+
+# Strict warnings for our own targets. Qt's headers come from imported targets,
+# which CMake treats as system headers, so they stay quiet.
+function(moatbar_warnings target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4 /permissive- /utf-8 /Zc:__cplusplus)
+    else()
+        target_compile_options(${target} PRIVATE
+            -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Woverloaded-virtual
+            $<$<BOOL:${MOATBAR_WARNINGS_AS_ERRORS}>:-Werror>)
+    endif()
+    target_compile_definitions(${target} PRIVATE
+        QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII QT_NO_URL_CAST_FROM_STRING QT_USE_QSTRINGBUILDER)
+endfunction()
+
+add_subdirectory(src/core)
+add_subdirectory(src/app)
+
+enable_testing()
+add_subdirectory(tests)

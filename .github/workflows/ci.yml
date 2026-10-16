@@ -1,9 +1,17 @@
 name: ci
 
 on:
+  # The macOS app. Changes only under desktop/ run the desktop workflow instead,
+  # so they don't spend macOS minutes.
   pull_request:
+    paths-ignore:
+      - "desktop/**"
+      - ".github/workflows/desktop.yml"
   push:
     branches: [main]
+    paths-ignore:
+      - "desktop/**"
+      - ".github/workflows/desktop.yml"
 
 concurrency:
   group: ci-${{ github.ref }}
