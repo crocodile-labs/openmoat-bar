@@ -11,6 +11,7 @@ struct MenuBuilder {
     let onSelectHost: (String?) -> Void
     let onRefresh: () -> Void
     let onSettings: () -> Void
+    let onActivity: (Verdict?) -> Void
     var now = Date()
 
     /// Longest list a verdict submenu shows; the rest is in the Activity window.
@@ -123,11 +124,9 @@ struct MenuBuilder {
             item.submenu = self.decision(event, snapshot: snapshot)
             menu.addItem(item)
         }
-        if events.count > Self.listLimit {
-            let more = NSMenuItem(title: "\(events.count - Self.listLimit) more", action: nil, keyEquivalent: "")
-            more.isEnabled = false
-            menu.addItem(more)
-        }
+        menu.addItem(.separator())
+        let more = events.count > Self.listLimit ? " (\(events.count - Self.listLimit) more)" : ""
+        menu.addItem(ClosureMenuItem("Show all in Activity…\(more)") { self.onActivity(verdict) })
         return menu
     }
 
@@ -245,6 +244,7 @@ struct MenuBuilder {
 
     private func addFooter(to menu: NSMenu) {
         menu.addItem(.separator())
+        menu.addItem(ClosureMenuItem("Activity window…", key: "a") { self.onActivity(.deny) })
         menu.addItem(ClosureMenuItem("Refresh", key: "r") { self.onRefresh() })
         menu.addItem(ClosureMenuItem("OpenMoat docs ↗") { Actions.open(DocsLink.home) })
         menu.addItem(.separator())
