@@ -10,8 +10,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private var menuOpen = false
     /// New data arrived while the menu was open.
     private var rebuildPending = false
-    /// The agent tab row's selection; kept across rebuilds.
-    private let tabs = TabState(selected: nil)
     private let defaults = UserDefaults.standard
     /// Opens the Settings window.
     var onSettings: (() -> Void)?
@@ -122,23 +120,28 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 
     private func rebuild() {
-        self.tabs.selected = self.validSelection()
-        self.builder().fill(self.menu, tabs: self.tabs)
+        self.builder().fill(self.menu)
     }
 
-    /// A tab click: the tab row animates its selection in place and only the
-    /// content below it is replaced, without implicit animations.
+    /// A tab click (or "Show … only"): the tab bar moves its selection pill in
+    /// place, then only the content below it is replaced. The replacement waits
+    /// one turn of the run loop so the pill animation starts first.
     private func selectHost(_ host: String?) {
         self.selectedHost = host
-        if self.tabs.selected != host {
-            self.tabs.selected = host
+        if let bar = self.menu.items.first?.view as? AgentTabBar, bar.selected != host {
+            bar.select(host, animated: true)
         }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        if !self.builder().replaceContent(in: self.menu) {
-            self.rebuild()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {
+                return
+            }
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            if !self.builder().replaceContent(in: self.menu) {
+                self.rebuild()
+            }
+            CATransaction.commit()
         }
-        CATransaction.commit()
     }
 
     /// Forget a tab whose agent is no longer installed.

@@ -23,15 +23,39 @@ struct MenuBuilder {
     private static let tabsTag = "agent-tabs"
 
     /// Build the whole menu: tabs, then everything below them.
-    func fill(_ menu: NSMenu, tabs: TabState) {
+    func fill(_ menu: NSMenu) {
         menu.removeAllItems()
         if let agents = self.snapshot?.installedAgents, !agents.isEmpty {
-            let item = hostedItem(AgentTabs(agents: agents, state: tabs, onSelect: self.onSelectHost))
+            let item = NSMenuItem()
+            item.view = AgentTabBar(
+                width: menuWidth,
+                tabs: Self.tabs(for: agents),
+                selected: self.selectedHost,
+                onSelect: self.onSelectHost
+            )
             item.representedObject = Self.tabsTag
             menu.addItem(item)
             menu.addItem(.separator())
         }
         self.appendContent(to: menu)
+    }
+
+    /// All, then each installed agent. The line under "All" is red when any
+    /// agent lost protection.
+    static func tabs(for agents: [Protection]) -> [AgentTabBar.Tab] {
+        let anyBroken = agents.contains { $0.level == .notProtected }
+        let all = AgentTabBar.Tab(
+            host: nil,
+            title: "All",
+            lineColor: anyBroken ? Level.notProtected.nsColor : Level.hookAndOsSandbox.nsColor
+        )
+        return [all] + agents.map { agent in
+            AgentTabBar.Tab(
+                host: agent.host,
+                title: agent.name == "Claude Code" ? "Claude" : agent.name,
+                lineColor: agent.level.nsColor
+            )
+        }
     }
 
     /// Replace everything below the tabs, keeping the tab view (and its

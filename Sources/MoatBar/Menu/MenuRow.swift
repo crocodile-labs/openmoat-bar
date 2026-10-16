@@ -8,19 +8,23 @@ final class MenuRowState: ObservableObject {
     @Published var highlighted = false
 }
 
-/// Colours for a row, normal or highlighted.
+/// Colours for a row. A highlighted row gets a light accent tint behind it and
+/// keeps its normal text colours, so it reads the same whether or not SwiftUI
+/// re-renders during menu tracking.
 enum RowStyle {
-    static func primary(_ highlighted: Bool) -> Color {
-        highlighted ? Color(nsColor: .selectedMenuItemTextColor) : Color(nsColor: .labelColor)
+    static func primary(_: Bool) -> Color {
+        Color(nsColor: .labelColor)
     }
 
-    static func secondary(_ highlighted: Bool) -> Color {
-        highlighted ? Color(nsColor: .selectedMenuItemTextColor).opacity(0.85) : Color(nsColor: .secondaryLabelColor)
+    static func secondary(_: Bool) -> Color {
+        Color(nsColor: .secondaryLabelColor)
     }
 
-    static func tint(_ highlighted: Bool, _ color: Color) -> Color {
-        highlighted ? Color(nsColor: .selectedMenuItemTextColor) : color
+    static func tint(_: Bool, _ color: Color) -> Color {
+        color
     }
+
+    static let highlight = NSColor.controlAccentColor.withAlphaComponent(0.2)
 }
 
 /// An `NSView` for a menu item that hosts SwiftUI, paints the selection itself,
@@ -60,7 +64,7 @@ final class HostedMenuRow: NSView {
             self.state.highlighted = highlighted
         }
         if highlighted {
-            NSColor.selectedContentBackgroundColor.setFill()
+            RowStyle.highlight.setFill()
             NSBezierPath(roundedRect: self.bounds.insetBy(dx: 5, dy: 0), xRadius: 4, yRadius: 4).fill()
         }
         super.draw(dirtyRect)
