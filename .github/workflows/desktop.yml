@@ -1,0 +1,63 @@
+name: desktop
+
+# MoatBar for Linux and Windows (desktop/): build and test on both.
+on:
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "Tests/MoatBarCoreTests/Fixtures/**"
+      - "Sources/MoatBar/Resources/**"
+      - ".github/workflows/desktop.yml"
+  push:
+    branches: [main]
+    paths:
+      - "desktop/**"
+      - "Tests/MoatBarCoreTests/Fixtures/**"
+      - "Sources/MoatBar/Resources/**"
+      - ".github/workflows/desktop.yml"
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-24.04
+          - name: windows
+            os: windows-2022
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Linux packages Qt needs
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 libegl1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+          cache: true
+
+      - name: Configure
+        run: cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --build-config Release --output-on-failure
