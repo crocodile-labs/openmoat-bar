@@ -10,6 +10,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private var menuOpen = false
     /// New data arrived while the menu was open.
     private var rebuildPending = false
+    /// The agent tab row's selection; kept across rebuilds.
+    private let tabs = TabState(selected: nil)
     private let defaults = UserDefaults.standard
     /// Opens the Settings window.
     var onSettings: (() -> Void)?
@@ -107,20 +109,36 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         self.statusItem.button?.toolTip = state.accessibilityLabel
     }
 
-    private func rebuild() {
-        let builder = MenuBuilder(
+    private func builder() -> MenuBuilder {
+        MenuBuilder(
             snapshot: self.store.snapshot,
             error: self.store.error,
             selectedHost: self.validSelection(),
-            onSelectHost: { [weak self] host in
-                self?.selectedHost = host
-                self?.rebuild()
-            },
+            onSelectHost: { [weak self] host in self?.selectHost(host) },
             onRefresh: { [weak self] in self?.store.refresh() },
             onSettings: { [weak self] in self?.onSettings?() },
             onActivity: { [weak self] verdict in self?.onActivity?(verdict) }
         )
-        builder.fill(self.menu)
+    }
+
+    private func rebuild() {
+        self.tabs.selected = self.validSelection()
+        self.builder().fill(self.menu, tabs: self.tabs)
+    }
+
+    /// A tab click: the tab row animates its selection in place and only the
+    /// content below it is replaced, without implicit animations.
+    private func selectHost(_ host: String?) {
+        self.selectedHost = host
+        if self.tabs.selected != host {
+            self.tabs.selected = host
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        if !self.builder().replaceContent(in: self.menu) {
+            self.rebuild()
+        }
+        CATransaction.commit()
     }
 
     /// Forget a tab whose agent is no longer installed.

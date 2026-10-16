@@ -29,8 +29,8 @@ extension Level {
 }
 
 /// A SwiftUI view as a menu item, sized to its content at the menu width.
-func hostedItem(_ view: some View) -> NSMenuItem {
-    let host = NSHostingView(rootView: view.frame(width: menuWidth - 28, alignment: .leading).padding(.horizontal, 14))
+func hostedItem(_ view: some View, width: CGFloat = menuWidth) -> NSMenuItem {
+    let host = NSHostingView(rootView: view.frame(width: width - 28, alignment: .leading).padding(.horizontal, 14))
     host.frame.size = host.fittingSize
     let item = NSMenuItem()
     item.view = host
@@ -39,12 +39,24 @@ func hostedItem(_ view: some View) -> NSMenuItem {
 
 // MARK: - Tabs
 
-/// Agent tabs: All, then each installed agent. The line under a tab is that
-/// agent's protection.
+/// The selected agent tab. The tab view stays in the menu while the content
+/// below it is replaced, so switching only moves the selection (as CodexBar's
+/// provider switcher does) instead of rebuilding the whole menu.
+final class TabState: ObservableObject {
+    @Published var selected: String?
+
+    init(selected: String?) {
+        self.selected = selected
+    }
+}
+
+/// Agent tabs: All, then each installed agent with its icon. The line under a
+/// tab is that agent's protection.
 struct AgentTabs: View {
     let agents: [Protection]
-    let selected: String?
+    @ObservedObject var state: TabState
     let onSelect: (String?) -> Void
+    @Namespace private var selection
 
     var body: some View {
         HStack(spacing: 4) {
@@ -61,18 +73,38 @@ struct AgentTabs: View {
     }
 
     private func tab(title: String, host: String?, color: Color) -> some View {
-        let on = host == self.selected
+        let on = host == self.state.selected
         return Button {
+            guard host != self.state.selected else {
+                return
+            }
+            withAnimation(.easeOut(duration: 0.18)) {
+                self.state.selected = host
+            }
             self.onSelect(host)
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
+                Group {
+                    if let host {
+                        AgentIcon(host: host, size: 15, color: on ? .white : .primary)
+                    } else {
+                        Image(systemName: "square.grid.2x2").font(.system(size: 13))
+                    }
+                }
+                .frame(height: 16)
                 Text(title).font(.system(size: 11, weight: on ? .semibold : .regular))
-                Capsule().fill(color).frame(height: 3).padding(.horizontal, 10)
+                Capsule().fill(color).frame(height: 3).padding(.horizontal, 12)
             }
             .padding(.vertical, 5)
             .frame(maxWidth: .infinity)
             .foregroundColor(on ? .white : .primary)
-            .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color.accentColor : Color.clear))
+            .background {
+                if on {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.accentColor)
+                        .matchedGeometryEffect(id: "tab", in: self.selection)
+                }
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

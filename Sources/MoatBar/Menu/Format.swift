@@ -36,64 +36,6 @@ enum Format {
         [.foregroundColor: NSColor.secondaryLabelColor, .font: NSFont.systemFont(ofSize: 11)]
     }
 
-    private static var mono: [NSAttributedString.Key: Any] {
-        [.font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)]
-    }
-
-    /// "Blocked   3" with the subtitle on a second line.
-    static func verdictRow(_ verdict: Verdict, count: Int) -> NSAttributedString {
-        let text = NSMutableAttributedString(
-            string: verdict.title,
-            attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold)]
-        )
-        text.append(NSAttributedString(
-            string: "  \(self.count(count))",
-            attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .semibold)]
-        ))
-        text.append(NSAttributedString(string: "\n\(verdict.subtitle)", attributes: self.secondary))
-        return text
-    }
-
-    /// The command on top, then rule · agent · folder · time.
-    static func eventRow(_ event: Event, agent: String) -> NSAttributedString {
-        let line = self.truncate(event.display, to: 60)
-        let isCommand = event.action?.shellCommand != nil
-        let text = NSMutableAttributedString(string: line, attributes: isCommand ? self.mono : [:])
-        var parts: [String] = []
-        if let rule = event.rule {
-            parts.append(rule)
-        }
-        parts.append(agent)
-        if let cwd = event.cwd {
-            parts.append(self.shortPath(cwd))
-        }
-        parts.append(self.clock(event.date))
-        text.append(NSAttributedString(string: "\n" + parts.joined(separator: " · "), attributes: self.secondary))
-        return text
-    }
-
-    static func agentRow(_ agent: Protection, counts: [Verdict: Int], lastCall: String?) -> NSAttributedString {
-        let text = NSMutableAttributedString(
-            string: agent.name,
-            attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold)]
-        )
-        var levelAttributes = self.secondary
-        if agent.level == .notProtected {
-            levelAttributes[.foregroundColor] = NSColor.systemRed
-        }
-        text.append(NSAttributedString(string: "  \(agent.level.label)", attributes: levelAttributes))
-        let calls = counts.values.reduce(0, +)
-        var line = "Blocked \(counts[.deny] ?? 0) · Asked \(counts[.ask] ?? 0) · \(self.count(calls)) calls"
-        if let lastCall {
-            line += " · \(lastCall)"
-        }
-        if agent.level == .notSetUp {
-            line = "Run moat in Terminal to protect it"
-        }
-        text.append(NSAttributedString(string: "\n" + line, attributes: self.secondary))
-        return text
-    }
-
     static func sessionRow(_ session: Session, now: Date) -> NSAttributedString {
         let folder = session.cwd.map(self.shortPath) ?? "No folder"
         let text = NSMutableAttributedString(
@@ -104,21 +46,6 @@ enum Format {
         let span = "\(self.clock(session.first)) – \(running ? "now" : self.clock(session.last))"
         let line = "\(span) · \(self.count(session.total)) calls · Blocked \(session.counts[.deny] ?? 0)"
         text.append(NSAttributedString(string: "\n" + line, attributes: self.secondary))
-        return text
-    }
-
-    /// "Security checks" with "N to look at" in orange, or "all fine".
-    static func checksRow(attention: Int) -> NSAttributedString {
-        let text = NSMutableAttributedString(
-            string: "Security checks",
-            attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold)]
-        )
-        var attributes = self.secondary
-        if attention > 0 {
-            attributes[.foregroundColor] = NSColor.systemOrange
-        }
-        let note = attention > 0 ? "  \(attention) to look at" : "  all fine"
-        text.append(NSAttributedString(string: note, attributes: attributes))
         return text
     }
 
@@ -151,14 +78,6 @@ enum Format {
     }
 
     // MARK: - Helpers
-
-    static func dot(_ color: NSColor) -> NSImage {
-        NSImage(size: NSSize(width: 9, height: 9), flipped: false) { rect in
-            color.setFill()
-            NSBezierPath(ovalIn: rect).fill()
-            return true
-        }
-    }
 
     /// `/Users/you/code/app` → `~/code/app`.
     static func shortPath(_ path: String) -> String {
