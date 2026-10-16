@@ -39,7 +39,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/MoatBar" "$APP/Contents/MacOS/MoatBar"
 # Images go straight into Contents/Resources, where AppResources finds them.
-cp Sources/MoatBar/Resources/*.png "$APP/Contents/Resources/"
+cp Sources/MoatBar/Resources/*.png Sources/MoatBar/Resources/AppIcon.icns "$APP/Contents/Resources/"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -50,6 +50,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDisplayName</key><string>MoatBar</string>
   <key>CFBundleIdentifier</key><string>dev.openmoat.moatbar</string>
   <key>CFBundleExecutable</key><string>MoatBar</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>

@@ -44,3 +44,7 @@ jobs:
       # The fallback for machines where SwiftPM can't read Package.swift.
       - name: Package without SwiftPM
         run: MOATBAR_DIRECT_BUILD=1 ./Scripts/package_app.sh
+
+      # The README screenshots are rendered from the app's views; keep that working.
+      - name: Render screenshots
+        run: ./Scripts/snapshots.sh

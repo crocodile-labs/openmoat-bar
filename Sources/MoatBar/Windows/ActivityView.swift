@@ -20,7 +20,11 @@ struct ActivityView: View {
             }
         }
         .frame(minWidth: 960, minHeight: 560)
-        .onAppear { self.model.load() }
+        .onAppear {
+            if self.model.readsOnAppear {
+                self.model.load()
+            }
+        }
     }
 
     // MARK: - Toolbar

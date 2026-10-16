@@ -1,44 +1,105 @@
-# MoatBar
+<p align="center">
+  <img src="docs/images/app-icon.png" width="128" alt="MoatBar">
+</p>
 
-See what [OpenMoat](https://github.com/crocodile-labs/openmoat) does for your coding agents, from the menu bar.
+<h1 align="center">MoatBar</h1>
 
-MoatBar is read-only. It shows which agents are protected, what was blocked today and why,
-and tells you when protection drops. It never allows anything or changes a rule: every fix
-is a command you copy into Terminal.
+<p align="center">
+  See what <a href="https://github.com/crocodile-labs/openmoat">OpenMoat</a> does for your coding agents, from the menu bar.
+</p>
+
+MoatBar shows which of your agents (Claude Code, Codex, Cursor) are protected, what OpenMoat
+blocked today and why, and tells you when protection drops.
+
+It is read-only. MoatBar never allows anything or changes a rule; every fix is a command you
+copy into Terminal.
 
 Status: in development. macOS 12 or later; Linux and Windows follow.
 
+![The MoatBar menu: Blocked, then the list of blocked calls, then one decision in full](docs/images/menu.png)
+
 ## What it shows
 
-- **The menu bar croc:** red when an agent lost protection, amber when a check needs a look,
-  a dot for new blocks, faded when moat is missing.
-- **The menu:**
-  - Agent tabs, today's calls per hour, and Blocked / Asked / Left to your agent / Allowed.
-  - Each list opens one decision: what ran, the rule, what the agent was told, and why.
-  - Each agent shows its protection, today's numbers and its sessions.
-- **Notifications:**
-  - Always sent when an agent stops being protected.
-  - Blocked calls notify only if you turn it on.
+**The menu**
+- Agent tabs with each agent's icon. The line under a tab is its protection.
+- Today's calls per hour, with blocks in red.
+- Blocked, Asked, Left to your agent and Allowed, with counts.
+  - Hover one for the list.
+  - Hover a call for the whole story: what ran, the rule, what the agent was told, and why. You can copy a `moat policy check` command or report a wrong block.
+- Each agent with its protection level, today's numbers and last call. Security checks cover each agent, the network proxy and moat itself.
 
-## Build and run
+<p align="center">
+  <img src="docs/images/agent-tab.png" width="390" alt="One agent's tab">
+</p>
 
-You need OpenMoat installed (`brew install crocodile-labs/tap/moat`) and Swift 5.7 or later.
+**The menu bar croc** changes with what needs you:
+
+![Menu bar icon states](docs/images/icon-states.png)
+
+| Icon | What it means |
+| --- | --- |
+| Plain | All protected, nothing new |
+| Dot | New blocks since you last looked |
+| Amber | A security check needs a look |
+| Red | An agent stopped being protected |
+| Faded | OpenMoat isn't installed or can't be read |
+
+**The Activity window** (⌘A) shows today, 7 days or 30 days:
+- Filter by agent, verdict and rule.
+- See one call in full.
+- Export the rows as JSON lines.
+
+![The Activity window](docs/images/activity.png)
+
+**Notifications** stay quiet:
+- MoatBar always tells you when an agent stops being protected.
+- Blocked calls notify only if you turn it on in Settings. Those notifications name the rule and the agent, never the command.
+- Calls your agent already asks you about never notify.
+
+**First launch** shows one welcome window, then the menu:
+
+<p align="center">
+  <img src="docs/images/welcome.png" width="460" alt="Welcome window">
+</p>
+
+## Install and run
+
+You need OpenMoat installed:
 
 ```
-make app              # builds MoatBar.app
+brew install crocodile-labs/tap/moat
+```
+
+Build MoatBar from source (Swift 5.7 or later) and open it:
+
+```
+make app
 open MoatBar.app
 ```
 
-`swift run MoatBar` also works for a quick look; notifications and open-at-login need the app bundle.
+`make app` falls back to building with `swiftc` directly when `swift build` can't read
+`Package.swift`; this happens on some Command Line Tools installs.
+
+## How it works
+
+MoatBar runs only these read-only moat commands and reads their JSON:
+- `moat status`
+- `moat show`
+- `moat report`
+- `moat proxy status`
+- `moat --version`
+
+It re-reads when OpenMoat's audit log changes (within 2 seconds), every minute, and when you open the menu. It writes nothing to `~/.moat`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Develop
 
 ```
 make build   make test   make lint   make format
+./Scripts/snapshots.sh   # re-render the screenshots above from the app's views
 ```
 
-Read [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) first.
+Read [AGENTS.md](AGENTS.md) first. The screenshots are rendered from the app's own views with made-up data.
 
 ## License
 
-MIT or Apache-2.0, at your option.
+MIT or Apache-2.0, at your option. The agent icons come from [CodexBar](https://github.com/steipete/CodexBar) (MIT); see `Sources/MoatBar/Resources/ICONS.md`.

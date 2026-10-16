@@ -30,6 +30,17 @@ final class ActivityModel: ObservableObject {
         return self.snapshot?.events.first { $0.id == id }
     }
 
+    /// Whether the window reads moat when it appears; off for previews.
+    private(set) var readsOnAppear = true
+
+    /// Show a snapshot without reading moat (README screenshots).
+    func show(_ snapshot: Snapshot) {
+        self.readsOnAppear = false
+        self.snapshot = snapshot
+        self.error = nil
+        self.selectedID = self.rows.first?.id
+    }
+
     func load() {
         self.loading = true
         let window = self.window

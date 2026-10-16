@@ -58,8 +58,11 @@ final class HostedMenuRow: NSView {
         return ceil(self.host.fittingSize.height)
     }
 
+    /// Draw as highlighted outside a live menu (README screenshots).
+    var previewHighlighted = false
+
     override func draw(_ dirtyRect: NSRect) {
-        let highlighted = self.enclosingMenuItem?.isHighlighted ?? false
+        let highlighted = self.previewHighlighted || (self.enclosingMenuItem?.isHighlighted ?? false)
         if highlighted != self.state.highlighted {
             self.state.highlighted = highlighted
         }
