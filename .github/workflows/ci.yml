@@ -40,3 +40,7 @@ jobs:
 
       - name: Test
         run: swift test
+
+      # The fallback for machines where SwiftPM can't read Package.swift.
+      - name: Package without SwiftPM
+        run: MOATBAR_DIRECT_BUILD=1 ./Scripts/package_app.sh
