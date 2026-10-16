@@ -151,12 +151,13 @@ git clone https://github.com/crocodile-labs/moatbar
 cd moatbar
 cmake -S desktop -B build -DCMAKE_PREFIX_PATH=C:\Qt\6.7.3\msvc2019_64
 cmake --build build --config Release
-C:\Qt\6.7.3\msvc2019_64\bin\windeployqt.exe build\src\app\Release\moatbar.exe
-.\build\src\app\Release\moatbar.exe
+cmake --install build --config Release --prefix MoatBar
+C:\Qt\6.7.3\msvc2019_64\bin\windeployqt.exe MoatBar\bin\moatbar.exe
+.\MoatBar\bin\moatbar.exe
 ```
 
-`windeployqt` copies Qt's DLLs next to `moatbar.exe`, so it starts from Explorer too. CI
-builds with the same Qt and compiler, but has not run these exact commands.
+`windeployqt` copies Qt's DLLs next to `moatbar.exe`, so it starts from Explorer too. The
+release workflow builds the same way, but the winget and aqtinstall steps are not tested.
 
 ### See the Linux and Windows menus without the machine
 
