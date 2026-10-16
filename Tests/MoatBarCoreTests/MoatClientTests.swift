@@ -83,7 +83,7 @@ final class MoatClientTests: XCTestCase {
         let runner = ProcessRunner()
 
         let out = try runner.run(sh, arguments: ["-c", "printf hello"], timeout: 5)
-        XCTAssertEqual(String(decoding: out, as: UTF8.self), "hello")
+        XCTAssertEqual(String(bytes: out, encoding: .utf8), "hello")
 
         let failing = ["-c", "echo 'moat: no audit log' >&2; exit 3"]
         XCTAssertThrowsError(try runner.run(sh, arguments: failing, timeout: 5)) {

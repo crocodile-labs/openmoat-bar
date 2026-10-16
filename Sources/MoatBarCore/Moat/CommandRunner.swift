@@ -46,7 +46,7 @@ public struct ProcessRunner: CommandRunner {
         let (out, err) = output.finish()
 
         guard process.terminationStatus == 0 else {
-            let text = String(decoding: err.isEmpty ? out : err, as: UTF8.self)
+            let text = String(bytes: err.isEmpty ? out : err, encoding: .utf8) ?? ""
             let first = text.split(separator: "\n").first.map(String.init)
                 ?? "exit \(process.terminationStatus)"
             let message = first.hasPrefix("moat: ") ? String(first.dropFirst(6)) : first

@@ -64,7 +64,7 @@ public struct MoatClient {
 
     /// `moat 0.5.3 (OpenMoat)` → `0.5.3`.
     public func version() throws -> String {
-        let text = try String(decoding: self.run(["--version"]), as: UTF8.self)
+        let text = try String(bytes: self.run(["--version"]), encoding: .utf8) ?? ""
         let words = text.split(separator: " ")
         guard words.count >= 2 else {
             throw MoatError.unreadable(command: "--version")
