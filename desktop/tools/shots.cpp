@@ -11,9 +11,11 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
+#include <QImage>
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
+#include <QSet>
 
 #include <array>
 #include <cstdio>
@@ -26,13 +28,35 @@ using namespace moatbar;
 
 namespace {
 
+/// How many different colours the image has, up to `limit`. A grab that drew
+/// nothing is one or two flat colours; text and icons give many.
+int colourCount(const QImage &image, int limit) {
+    QSet<QRgb> seen;
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            seen.insert(image.pixel(x, y));
+            if (seen.size() >= limit) {
+                return limit;
+            }
+        }
+    }
+    return static_cast<int>(seen.size());
+}
+
 bool save(const QPixmap &pixmap, const QDir &dir, const QString &name) {
     const QString path = dir.filePath(name);
     if (pixmap.isNull() || !pixmap.save(path)) {
         std::fprintf(stderr, "could not write %s\n", qPrintable(path));
         return false;
     }
-    std::printf("wrote %s\n", qPrintable(path));
+    constexpr int kEnoughColours = 16;
+    const int colours = colourCount(pixmap.toImage(), kEnoughColours);
+    std::printf("wrote %s (%dx%d, %s%d colours)\n", qPrintable(path), pixmap.width(), pixmap.height(),
+                colours >= kEnoughColours ? "at least " : "", colours);
+    if (colours < kEnoughColours) {
+        std::fprintf(stderr, "%s looks blank\n", qPrintable(path));
+        return false;
+    }
     return true;
 }
 
