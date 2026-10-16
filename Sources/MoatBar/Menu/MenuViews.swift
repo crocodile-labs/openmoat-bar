@@ -29,59 +29,12 @@ extension Level {
 }
 
 /// A SwiftUI view as a menu item, sized to its content at the menu width.
-func hostedItem(_ view: some View) -> NSMenuItem {
-    let host = NSHostingView(rootView: view.frame(width: menuWidth - 28, alignment: .leading).padding(.horizontal, 14))
+func hostedItem(_ view: some View, width: CGFloat = menuWidth) -> NSMenuItem {
+    let host = NSHostingView(rootView: view.frame(width: width - 28, alignment: .leading).padding(.horizontal, 14))
     host.frame.size = host.fittingSize
     let item = NSMenuItem()
     item.view = host
     return item
-}
-
-// MARK: - Tabs
-
-/// Agent tabs: All, then each installed agent. The line under a tab is that
-/// agent's protection.
-struct AgentTabs: View {
-    let agents: [Protection]
-    let selected: String?
-    let onSelect: (String?) -> Void
-
-    var body: some View {
-        HStack(spacing: 4) {
-            self.tab(title: "All", host: nil, color: self.allColor)
-            ForEach(self.agents, id: \.host) { agent in
-                self.tab(title: Self.shortName(agent.name), host: agent.host, color: agent.level.color)
-            }
-        }
-        .padding(.top, 6)
-    }
-
-    private var allColor: Color {
-        self.agents.contains { $0.level == .notProtected } ? Level.notProtected.color : Level.hookAndOsSandbox.color
-    }
-
-    private func tab(title: String, host: String?, color: Color) -> some View {
-        let on = host == self.selected
-        return Button {
-            self.onSelect(host)
-        } label: {
-            VStack(spacing: 4) {
-                Text(title).font(.system(size: 11, weight: on ? .semibold : .regular))
-                Capsule().fill(color).frame(height: 3).padding(.horizontal, 10)
-            }
-            .padding(.vertical, 5)
-            .frame(maxWidth: .infinity)
-            .foregroundColor(on ? .white : .primary)
-            .background(RoundedRectangle(cornerRadius: 8).fill(on ? Color.accentColor : Color.clear))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(title) tab")
-    }
-
-    static func shortName(_ name: String) -> String {
-        name == "Claude Code" ? "Claude" : name
-    }
 }
 
 // MARK: - Header

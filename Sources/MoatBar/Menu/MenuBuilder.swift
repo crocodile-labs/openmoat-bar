@@ -2,8 +2,9 @@ import AppKit
 import MoatBarCore
 import SwiftUI
 
-/// Builds the whole menu from one snapshot. Rows with › open a submenu beside
-/// them; nothing in the menu changes OpenMoat.
+/// Builds the menu from one snapshot. Rows with › open a submenu beside them;
+/// submenus are built the first time they open. Nothing in the menu changes
+/// OpenMoat.
 struct MenuBuilder {
     let snapshot: Snapshot?
     let error: MoatError?
@@ -16,19 +17,71 @@ struct MenuBuilder {
 
     /// Longest list a verdict submenu shows; the rest is in the Activity window.
     static let listLimit = 40
+    /// Width of list and decision submenus.
+    static let submenuWidth: CGFloat = 380
+    /// Marks the tab row, which stays in place when the content changes.
+    private static let tabsTag = "agent-tabs"
 
+    /// Build the whole menu: tabs, then everything below them.
     func fill(_ menu: NSMenu) {
         menu.removeAllItems()
+        if let agents = self.snapshot?.installedAgents, !agents.isEmpty {
+            let item = NSMenuItem()
+            item.view = AgentTabBar(
+                width: menuWidth,
+                tabs: Self.tabs(for: agents),
+                selected: self.selectedHost,
+                onSelect: self.onSelectHost
+            )
+            item.representedObject = Self.tabsTag
+            menu.addItem(item)
+            menu.addItem(.separator())
+        }
+        self.appendContent(to: menu)
+    }
+
+    /// All, then each installed agent. The line under "All" is red when any
+    /// agent lost protection.
+    static func tabs(for agents: [Protection]) -> [AgentTabBar.Tab] {
+        let anyBroken = agents.contains { $0.level == .notProtected }
+        let all = AgentTabBar.Tab(
+            host: nil,
+            title: "All",
+            lineColor: anyBroken ? Level.notProtected.nsColor : Level.hookAndOsSandbox.nsColor
+        )
+        return [all] + agents.map { agent in
+            AgentTabBar.Tab(
+                host: agent.host,
+                title: agent.name == "Claude Code" ? "Claude" : agent.name,
+                lineColor: agent.level.nsColor
+            )
+        }
+    }
+
+    /// Whether `menu` starts with the tab bar and its separator.
+    static func hasTabs(_ menu: NSMenu) -> Bool {
+        menu.items.first?.representedObject as? String == self.tabsTag && menu.items.count >= 2
+    }
+
+    /// Index of the first item below the tab bar.
+    static let contentStart = 2
+
+    /// Everything below the tabs, built into detached items so they can be
+    /// cached and swapped in when a tab is clicked.
+    func contentItems() -> [NSMenuItem] {
+        let scratch = NSMenu()
+        scratch.autoenablesItems = false
+        self.appendContent(to: scratch)
+        let items = scratch.items
+        scratch.removeAllItems()
+        return items
+    }
+
+    private func appendContent(to menu: NSMenu) {
         guard let snapshot = self.snapshot else {
             self.addUnavailable(to: menu)
             self.addFooter(to: menu)
             return
-        }
-        let agents = snapshot.installedAgents
-        if !agents.isEmpty {
-            let tabs = AgentTabs(agents: agents, selected: self.selectedHost, onSelect: self.onSelectHost)
-            menu.addItem(hostedItem(tabs))
-            menu.addItem(.separator())
         }
         self.addHeader(snapshot, to: menu)
         self.addProblems(snapshot, to: menu)
@@ -43,41 +96,6 @@ struct MenuBuilder {
         }
         self.addChecks(snapshot, to: menu)
         self.addFooter(to: menu)
-    }
-
-    // MARK: - Security checks
-
-    private func addChecks(_ snapshot: Snapshot, to menu: NSMenu) {
-        let checks = SecurityChecks.from(snapshot)
-        let attention = SecurityChecks.needingAttention(checks).count
-        let item = NSMenuItem()
-        item.attributedTitle = Format.checksRow(attention: attention)
-        let sub = NSMenu()
-        sub.autoenablesItems = false
-        let header = NSMenuItem(title: "Security checks", action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        sub.addItem(header)
-        sub.addItem(.separator())
-        for check in checks {
-            if let fix = check.fix {
-                let row = ClosureMenuItem("") { Actions.copy(fix) }
-                row.attributedTitle = Format.checkRow(check, copyHint: true)
-                row.toolTip = "Copies \(fix)"
-                sub.addItem(row)
-            } else {
-                let row = NSMenuItem()
-                row.attributedTitle = Format.checkRow(check, copyHint: false)
-                row.isEnabled = false
-                sub.addItem(row)
-            }
-        }
-        sub.addItem(.separator())
-        sub.addItem(ClosureMenuItem("Copy \(CopyCommands.doctor) for every check") {
-            Actions.copy(CopyCommands.doctor)
-        })
-        item.submenu = sub
-        menu.addItem(.separator())
-        menu.addItem(item)
     }
 
     // MARK: - Header and problems
@@ -126,54 +144,50 @@ struct MenuBuilder {
         )))
     }
 
-    // MARK: - Verdicts
+    // MARK: - Verdicts, lists and decisions
 
     private func addVerdicts(_ snapshot: Snapshot, to menu: NSMenu) {
         let counts = snapshot.counts(for: self.selectedHost)
         for verdict in [Verdict.deny, .ask, .deferred, .allow] {
-            let count = counts[verdict] ?? 0
-            let item = NSMenuItem()
-            item.attributedTitle = Format.verdictRow(verdict, count: count)
-            item.image = Format.dot(verdict.nsColor)
             let events = snapshot.list(verdict, for: self.selectedHost)
-            item.submenu = self.list(verdict, events: events, snapshot: snapshot)
-            menu.addItem(item)
+            let submenu = LazyMenu(width: Self.submenuWidth) { sub in
+                self.fillList(sub, verdict: verdict, events: events, snapshot: snapshot)
+            }
+            menu.addItem(rowItem(submenu: submenu) { state in
+                AnyView(VerdictRow(state: state, verdict: verdict, count: counts[verdict] ?? 0))
+            })
         }
     }
 
-    private func list(_ verdict: Verdict, events: [Event], snapshot: Snapshot) -> NSMenu {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
+    private func fillList(_ menu: NSMenu, verdict: Verdict, events: [Event], snapshot: Snapshot) {
         let header = NSMenuItem(title: "\(verdict.title) today · \(events.count)", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header)
-        menu.addItem(.separator())
         if events.isEmpty {
             let empty = NSMenuItem(title: "Nothing \(verdict.title.lowercased()) today", action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
-            return menu
+            return
         }
         for event in events.prefix(Self.listLimit) {
-            let item = NSMenuItem()
-            item.attributedTitle = Format.eventRow(event, agent: self.agentName(event.host, snapshot))
-            item.submenu = self.decision(event, snapshot: snapshot)
-            menu.addItem(item)
+            let agent = self.agentName(event.host, snapshot)
+            let decision = LazyMenu(width: Self.submenuWidth) { sub in
+                self.fillDecision(sub, event: event, agent: agent)
+            }
+            menu.addItem(rowItem(width: Self.submenuWidth, submenu: decision) { state in
+                AnyView(EventRow(state: state, event: event, agentName: agent))
+            })
         }
         menu.addItem(.separator())
         let more = events.count > Self.listLimit ? " (\(events.count - Self.listLimit) more)" : ""
         menu.addItem(ClosureMenuItem("Show all in Activity…\(more)") { self.onActivity(verdict) })
-        return menu
     }
 
-    private func decision(_ event: Event, snapshot: Snapshot) -> NSMenu {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        menu.addItem(hostedItem(DecisionView(
-            event: event,
-            agentName: self.agentName(event.host, snapshot),
-            time: Format.clock(event.date)
-        )))
+    private func fillDecision(_ menu: NSMenu, event: Event, agent: String) {
+        menu.addItem(hostedItem(
+            DecisionView(event: event, agentName: agent, time: Format.clock(event.date)),
+            width: Self.submenuWidth
+        ))
         menu.addItem(.separator())
         if let action = event.action, let check = CopyCommands.policyCheck(action) {
             menu.addItem(ClosureMenuItem("Copy check command") { Actions.copy(check) })
@@ -186,7 +200,7 @@ struct MenuBuilder {
         } else {
             menu.addItem(ClosureMenuItem("How OpenMoat decides ↗") { Actions.open(DocsLink.checkACommand) })
         }
-        return menu
+        menu.addItem(ClosureMenuItem("Show in Activity…") { self.onActivity(event.verdict) })
     }
 
     // MARK: - Agents
@@ -197,15 +211,13 @@ struct MenuBuilder {
         menu.addItem(header)
         for agent in snapshot.installedAgents {
             let counts = snapshot.counts(for: agent.host)
-            let item = NSMenuItem()
-            item.attributedTitle = Format.agentRow(
-                agent,
-                counts: counts,
-                lastCall: snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
-            )
-            item.image = Format.dot(agent.level.nsColor)
-            item.submenu = self.agentMenu(agent, snapshot: snapshot)
-            menu.addItem(item)
+            let lastCall = snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
+            let submenu = LazyMenu { sub in
+                self.fillAgent(sub, agent: agent, lastCall: lastCall)
+            }
+            menu.addItem(rowItem(submenu: submenu) { state in
+                AnyView(AgentRow(state: state, agent: agent, counts: counts, lastCall: lastCall))
+            })
         }
         if let proxy = snapshot.proxy {
             let item = NSMenuItem(title: "Network proxy: \(proxy.label)", action: nil, keyEquivalent: "")
@@ -214,45 +226,71 @@ struct MenuBuilder {
         }
     }
 
-    private func agentMenu(_ agent: Protection, snapshot: Snapshot) -> NSMenu {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        menu.addItem(hostedItem(AgentDetailView(
-            agent: agent,
-            lastCall: snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
-        )))
+    private func fillAgent(_ menu: NSMenu, agent: Protection, lastCall: String?) {
+        menu.addItem(hostedItem(AgentDetailView(agent: agent, lastCall: lastCall)))
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Show \(agent.name) only") { self.onSelectHost(agent.host) })
         if agent.level == .notSetUp || agent.level == .notProtected {
             menu.addItem(ClosureMenuItem("Copy set-up command (moat)") { Actions.copy(CopyCommands.setUp) })
         }
         menu.addItem(ClosureMenuItem("Known limits ↗") { Actions.open(DocsLink.limits) })
-        return menu
     }
 
     private func addAgentDetail(_ agent: Protection, snapshot: Snapshot, to menu: NSMenu) {
-        menu.addItem(hostedItem(AgentDetailView(
-            agent: agent,
-            lastCall: snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
-        )))
+        let lastCall = snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
+        menu.addItem(hostedItem(AgentDetailView(agent: agent, lastCall: lastCall)))
         let sessions = snapshot.sessions(for: agent.host)
-        let item = NSMenuItem()
-        item.attributedTitle = NSAttributedString(string: "Sessions today · \(sessions.count)")
-        let sub = NSMenu()
-        sub.autoenablesItems = false
-        if sessions.isEmpty {
-            let empty = NSMenuItem(title: "\(agent.name) hasn't run today", action: nil, keyEquivalent: "")
-            empty.isEnabled = false
-            sub.addItem(empty)
+        let sub = LazyMenu { sub in
+            if sessions.isEmpty {
+                let empty = NSMenuItem(title: "\(agent.name) hasn't run today", action: nil, keyEquivalent: "")
+                empty.isEnabled = false
+                sub.addItem(empty)
+            }
+            for session in sessions {
+                let row = NSMenuItem()
+                row.attributedTitle = Format.sessionRow(session, now: self.now)
+                row.isEnabled = false
+                sub.addItem(row)
+            }
         }
-        for session in sessions {
-            let row = NSMenuItem()
-            row.attributedTitle = Format.sessionRow(session, now: self.now)
-            row.isEnabled = false
-            sub.addItem(row)
+        menu.addItem(rowItem(submenu: sub) { state in
+            AnyView(ActionRow(state: state, title: "Sessions today", symbol: "clock", hint: "\(sessions.count)"))
+        })
+    }
+
+    // MARK: - Security checks
+
+    private func addChecks(_ snapshot: Snapshot, to menu: NSMenu) {
+        let checks = SecurityChecks.from(snapshot)
+        let attention = SecurityChecks.needingAttention(checks).count
+        let sub = LazyMenu(width: Self.submenuWidth) { sub in
+            let header = NSMenuItem(title: "Security checks", action: nil, keyEquivalent: "")
+            header.isEnabled = false
+            sub.addItem(header)
+            sub.addItem(.separator())
+            for check in checks {
+                if let fix = check.fix {
+                    let row = ClosureMenuItem("") { Actions.copy(fix) }
+                    row.attributedTitle = Format.checkRow(check, copyHint: true)
+                    row.toolTip = "Copies \(fix)"
+                    sub.addItem(row)
+                } else {
+                    let row = NSMenuItem()
+                    row.attributedTitle = Format.checkRow(check, copyHint: false)
+                    row.isEnabled = false
+                    sub.addItem(row)
+                }
+            }
+            sub.addItem(.separator())
+            sub.addItem(ClosureMenuItem("Copy \(CopyCommands.doctor) for every check") {
+                Actions.copy(CopyCommands.doctor)
+            })
         }
-        item.submenu = sub
-        menu.addItem(item)
+        menu.addItem(.separator())
+        let hint = attention > 0 ? "\(attention) to look at" : "all fine"
+        menu.addItem(rowItem(submenu: sub) { state in
+            AnyView(ActionRow(state: state, title: "Security checks", symbol: "checkmark.shield", hint: hint))
+        })
     }
 
     // MARK: - Unavailable and footer
