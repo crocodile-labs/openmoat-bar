@@ -75,29 +75,34 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then export QT_QPA_FONTDIR="C:/Windows/Fonts"; fi
           shots=$(find build -type f \( -name moatbar_shots -o -name moatbar_shots.exe \) | head -n 1)
           test -n "$shots"
-          "$shots" screenshots
+          mkdir -p screenshots
+          # The log goes with the images, so a failure can be read from ci-shots/* too.
+          set -o pipefail
+          "$shots" screenshots 2>&1 | tee screenshots/shots.log
 
       - name: Keep the screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: moatbar-${{ matrix.name }}-screenshots
-          path: screenshots/*.png
+          path: screenshots/
           if-no-files-found: error
 
       # Also on a branch of their own (ci-shots/linux, ci-shots/windows), so they
       # can be read through the contents API by reviewers who can't download
       # artifacts. Only for this repository's own branches.
       - name: Publish the screenshots to ci-shots/${{ matrix.name }}
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         shell: bash
         env:
           TOKEN: ${{ github.token }}
         run: |
+          test -d screenshots || exit 0
           cd screenshots
           git init -q
           git config user.name "moatbar-ci"
           git config user.email "moatbar-ci@users.noreply.github.com"
-          git add -- *.png
+          git add -A .
           git commit -q -m "Screenshots for ${{ github.event.pull_request.head.ref }} at ${{ github.event.pull_request.head.sha }}"
           git push -q --force "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" HEAD:refs/heads/ci-shots/${{ matrix.name }}
 
