@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-
 @testable import MoatBarCore
 
 final class ChangesTests: XCTestCase {
