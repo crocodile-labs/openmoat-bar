@@ -116,6 +116,8 @@ jobs:
           sha256sum linuxdeploy linuxdeploy-plugin-qt
           chmod +x linuxdeploy linuxdeploy-plugin-qt
           export QMAKE="$QT_ROOT_DIR/bin/qmake"
+          # The QML modules the Quick View imports (QtQuick, Controls, Layouts).
+          export QML_SOURCES_PATHS="$PWD/desktop/src/app/qml"
           # linuxdeploy finds its plugin on PATH.
           export PATH="$PWD:$PATH"
           ./linuxdeploy --appdir AppDir --plugin qt
@@ -123,6 +125,7 @@ jobs:
           env -u LD_LIBRARY_PATH ldd AppDir/usr/bin/moatbar | tee ldd.txt
           if grep 'not found' ldd.txt; then exit 1; fi
           grep -q 'AppDir/usr/.*libQt6Core' ldd.txt
+          test -d AppDir/usr/qml/QtQuick/Controls || { echo "QtQuick.Controls was not bundled"; exit 1; }
           mkdir dist
           tar -czf dist/MoatBar-linux-x86_64.tar.gz -C AppDir usr
 
@@ -166,7 +169,8 @@ jobs:
         run: |
           cmake --install build --config Release --prefix MoatBar
           $out = 'MoatBar\bin'
-          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler --no-opengl-sw "$out\moatbar.exe"
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler --no-opengl-sw --qmldir desktop\src\app\qml "$out\moatbar.exe"
+          if (-not (Test-Path "$out\qml\QtQuick\Controls")) { throw 'QtQuick.Controls was not bundled' }
           foreach ($dll in 'msvcp140.dll', 'msvcp140_1.dll', 'msvcp140_2.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
             if (-not (Test-Path "$out\$dll")) { Copy-Item "$env:WINDIR\System32\$dll" $out }
           }

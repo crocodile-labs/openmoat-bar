@@ -87,6 +87,16 @@ TrayMenu::TrayMenu(const Snapshot *snapshot, std::optional<MoatError> error, Tra
 
 void TrayMenu::fill(QMenu &menu) const {
     menu.clear();
+    // Desktops where a click on the icon opens this menu (GNOME's AppIndicator)
+    // still reach the Quick View from here.
+    if (m_actions.open) {
+        QAction *open = menu.addAction(appIcon(), u"Open MoatBar"_s);
+        QFont bold = open->font();
+        bold.setBold(true);
+        open->setFont(bold);
+        QObject::connect(open, &QAction::triggered, m_actions.open);
+        menu.addSeparator();
+    }
     if (m_snapshot == nullptr) {
         addUnavailable(menu);
     } else {

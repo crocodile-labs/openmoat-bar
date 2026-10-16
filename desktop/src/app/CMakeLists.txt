@@ -5,9 +5,35 @@ qt_add_library(moatbar_ui STATIC
     TrayIcon.hpp TrayIcon.cpp
     TrayMenu.hpp TrayMenu.cpp
     TrayController.hpp TrayController.cpp
+    QuickViewModel.hpp QuickViewModel.cpp
+    QuickView.hpp QuickView.cpp
 )
-target_link_libraries(moatbar_ui PUBLIC moatbar_core Qt6::Gui Qt6::Widgets)
+target_link_libraries(moatbar_ui PUBLIC moatbar_core Qt6::Gui Qt6::Widgets Qt6::Qml Qt6::Quick Qt6::QuickControls2)
 moatbar_warnings(moatbar_ui)
+
+# The Quick View's QML, loaded from qrc:/qml/.
+qt_add_resources(moatbar_ui "quick_view"
+    PREFIX "/"
+    FILES
+        qml/qmldir
+        qml/Theme.qml
+        qml/QuickView.qml
+        qml/AgentTabs.qml
+        qml/AgentIcon.qml
+        qml/AgentDetail.qml
+        qml/Header.qml
+        qml/Card.qml
+        qml/TodayChart.qml
+        qml/NavRow.qml
+        qml/EventRow.qml
+        qml/Decision.qml
+        qml/CopyRow.qml
+        qml/LinkRow.qml
+        qml/SectionHeader.qml
+        qml/PageHeader.qml
+        qml/Divider.qml
+        qml/Footer.qml
+)
 
 # The logo and agent icons are shared with the macOS app.
 set(MOATBAR_SHARED_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../../Sources/MoatBar/Resources")

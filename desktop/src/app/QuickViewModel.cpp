@@ -1,0 +1,464 @@
+#include "app/QuickViewModel.hpp"
+#include "core/Format.hpp"
+#include "core/SecurityChecks.hpp"
+#include "core/Text.hpp"
+
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QDir>
+#include <QFileInfo>
+#include <QGuiApplication>
+
+#include <algorithm>
+
+using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
+
+namespace moatbar {
+namespace {
+
+QString verdictKey(Verdict verdict) {
+    switch (verdict) {
+    case Verdict::Deny: return u"deny"_s;
+    case Verdict::Ask: return u"ask"_s;
+    case Verdict::Deferred: return u"deferred"_s;
+    case Verdict::Allow: return u"allow"_s;
+    }
+    return {};
+}
+
+std::optional<Verdict> verdictFromKey(QStringView key) {
+    for (const Verdict verdict : kVerdicts) {
+        if (verdictKey(verdict) == key) {
+            return verdict;
+        }
+    }
+    return std::nullopt;
+}
+
+/// The colour role QML draws a level in.
+QString levelTone(Level level) {
+    switch (level) {
+    case Level::HookAndOsSandbox: return u"ok"_s;
+    case Level::HookOnly: return u"warn"_s;
+    case Level::NotProtected: return u"bad"_s;
+    case Level::NotSetUp:
+    case Level::NotFound:
+    case Level::Unknown: return u"muted"_s;
+    }
+    return u"muted"_s;
+}
+
+QString checkTone(SecurityCheck::Kind kind) {
+    switch (kind) {
+    case SecurityCheck::Kind::Ok: return u"ok"_s;
+    case SecurityCheck::Kind::Info: return u"info"_s;
+    case SecurityCheck::Kind::Warning: return u"warn"_s;
+    case SecurityCheck::Kind::Problem: return u"bad"_s;
+    }
+    return u"info"_s;
+}
+
+bool needsSetUp(Level level) {
+    return level == Level::NotSetUp || level == Level::NotProtected;
+}
+
+QVariantMap countsMap(const VerdictCounts &counts) {
+    return {
+        {u"deny"_s, counts[Verdict::Deny]},
+        {u"ask"_s, counts[Verdict::Ask]},
+        {u"deferred"_s, counts[Verdict::Deferred]},
+        {u"allow"_s, counts[Verdict::Allow]},
+        {u"total"_s, counts.total()},
+    };
+}
+
+/// The last folder of a working directory: `openmoat` for `~/code/openmoat`.
+QString folderName(const std::optional<QString> &cwd) {
+    if (!cwd || cwd->isEmpty()) {
+        return {};
+    }
+    const QString name = QFileInfo(QDir::cleanPath(*cwd)).fileName();
+    return name.isEmpty() ? *cwd : name;
+}
+
+} // namespace
+
+QuickViewModel::QuickViewModel(QObject *parent) : QObject(parent), m_now(QDateTime::currentDateTime()) {
+    m_settle.setSingleShot(true);
+    connect(&m_settle, &QTimer::timeout, this, [this] { setRefresh(u"idle"_s, {}); });
+}
+
+void QuickViewModel::setData(const std::optional<Snapshot> &snapshot, const std::optional<MoatError> &error,
+                             const QDateTime &now) {
+    m_snapshot = snapshot;
+    m_error = error;
+    m_now = now;
+    // Forget a tab whose agent moat no longer reports.
+    if (!m_selectedHost.isEmpty() && (!m_snapshot || m_snapshot->agent(m_selectedHost) == nullptr)) {
+        m_selectedHost.clear();
+    }
+    ++m_revision;
+    emit changed();
+}
+
+void QuickViewModel::setSelectedHost(const QString &host) {
+    const QString valid = (m_snapshot && m_snapshot->agent(host) != nullptr) ? host : QString{};
+    if (valid == m_selectedHost) {
+        return;
+    }
+    m_selectedHost = valid;
+    ++m_revision;
+    emit changed();
+}
+
+QString QuickViewModel::agentName(const QString &host) const {
+    const Protection *agent = m_snapshot ? m_snapshot->agent(host) : nullptr;
+    return agent ? agent->name : host;
+}
+
+// MARK: - Unavailable, tabs, header, problems
+
+QVariantMap QuickViewModel::unavailable() const {
+    if (m_snapshot) {
+        return {};
+    }
+    if (!m_error || m_error->kind == MoatError::Kind::NotInstalled) {
+        return {
+            {u"title"_s, u"OpenMoat isn't installed"_s},
+            {u"text"_s, u"MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts."_s},
+            {u"note"_s, u"MoatBar looks for moat again every minute."_s},
+            {u"tone"_s, u"muted"_s},
+            {u"commandTitle"_s, u"Copy the install command"_s},
+            {u"command"_s, CopyCommands::install()},
+            {u"docs"_s, u"quickstart"_s},
+            {u"docsTitle"_s, u"Install guide"_s},
+        };
+    }
+    return {
+        {u"title"_s, u"Couldn't read OpenMoat"_s},
+        {u"text"_s, m_error->message() + u". Your agents are still checked; only this view is out of date."_s},
+        {u"note"_s, u"moat doctor shows what is wrong."_s},
+        {u"tone"_s, u"warn"_s},
+        {u"commandTitle"_s, u"Copy the check command"_s},
+        {u"command"_s, CopyCommands::doctor()},
+    };
+}
+
+QVariantList QuickViewModel::tabs() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList out;
+    out << QVariantMap{{u"host"_s, QString{}}, {u"name"_s, u"All"_s}, {u"tone"_s, QString{}}, {u"installed"_s, true}};
+    for (const Protection &agent : m_snapshot->status.agents) {
+        out << QVariantMap{
+            {u"host"_s, agent.host},
+            {u"name"_s, agent.name},
+            {u"tone"_s, levelTone(agent.level)},
+            {u"installed"_s, agent.level != Level::NotFound},
+        };
+    }
+    return out;
+}
+
+QVariantMap QuickViewModel::header() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantMap out;
+    if (const Protection *agent = m_snapshot->agent(host())) {
+        out[u"title"_s] = agent->name;
+        out[u"detail"_s] = levelLabel(agent->level);
+        out[u"tone"_s] = levelTone(agent->level);
+    } else {
+        const auto installed = m_snapshot->installedAgents();
+        const auto setUp =
+            std::ranges::count_if(installed, [](const Protection &a) { return a.level != Level::NotSetUp; });
+        const int protectedCount = m_snapshot->protectedCount();
+        out[u"title"_s] = u"All agents"_s;
+        out[u"detail"_s] = u"%1 of %2 protected"_s.arg(protectedCount).arg(std::max<qsizetype>(setUp, protectedCount));
+        out[u"tone"_s] = m_snapshot->unprotected().empty() ? u"ok"_s : u"bad"_s;
+    }
+    out[u"updated"_s] = m_error ? u"Last good data %1 · %2"_s.arg(Format::clock(m_snapshot->takenAt), m_error->message())
+                                : u"Updated %1"_s.arg(Format::relative(m_snapshot->takenAt, m_now));
+    out[u"version"_s] = m_snapshot->moatVersion ? u"moat "_s + *m_snapshot->moatVersion : QString{};
+    return out;
+}
+
+QVariantList QuickViewModel::problems() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList out;
+    for (const Protection &agent : m_snapshot->unprotected()) {
+        if (!m_selectedHost.isEmpty() && agent.host != m_selectedHost) {
+            continue;
+        }
+        const QString why = agent.reason ? u"OpenMoat says: %1. "_s.arg(*agent.reason) : QString{};
+        out << QVariantMap{
+            {u"title"_s, u"%1 is not protected"_s.arg(agent.name)},
+            {u"text"_s, why + u"Its calls are not being checked."_s},
+            {u"note"_s, u"Run moat in a terminal. It shows the change and asks first. "
+                        u"This goes away on the next check."_s},
+            {u"command"_s, CopyCommands::setUp()},
+        };
+    }
+    return out;
+}
+
+// MARK: - Today and verdicts
+
+QVariantMap QuickViewModel::today() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList hours;
+    int peak = 1;
+    for (const VerdictCounts &counts : m_snapshot->hourly(host(), m_now.timeZone())) {
+        hours << countsMap(counts);
+        peak = std::max(peak, counts.total());
+    }
+    return {
+        {u"hours"_s, hours},
+        {u"peak"_s, peak},
+        {u"total"_s, static_cast<int>(m_snapshot->eventsFor(host()).size())},
+        {u"sessions"_s, static_cast<int>(m_snapshot->sessions(host()).size())},
+        {u"currentHour"_s, m_now.time().hour()},
+    };
+}
+
+QVariantList QuickViewModel::verdicts() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    const VerdictCounts counts = m_snapshot->counts(host());
+    QVariantList out;
+    for (const Verdict verdict : kVerdicts) {
+        out << QVariantMap{
+            {u"key"_s, verdictKey(verdict)},
+            {u"title"_s, verdictTitle(verdict)},
+            {u"subtitle"_s, verdictSubtitle(verdict)},
+            {u"count"_s, counts[verdict]},
+            {u"countText"_s, Format::count(counts[verdict])},
+        };
+    }
+    return out;
+}
+
+QVariantMap QuickViewModel::eventRow(const Event &event) const {
+    return {
+        {u"id"_s, event.id},
+        {u"display"_s, Format::oneLine(event.display(), 80)},
+        {u"monospace"_s, event.action && event.action->shellCommand().has_value()},
+        {u"rule"_s, event.rule().value_or(QString{})},
+        {u"agent"_s, agentName(event.host)},
+        {u"host"_s, event.host},
+        {u"place"_s, folderName(event.cwd)},
+        {u"time"_s, Format::clock(event.time())},
+    };
+}
+
+QVariantList QuickViewModel::events(const QString &verdict) const {
+    const auto which = verdictFromKey(verdict);
+    if (!m_snapshot || !which) {
+        return {};
+    }
+    const auto events = m_snapshot->list(*which, host());
+    QVariantList out;
+    const auto shown = std::min<std::size_t>(events.size(), kListLimit);
+    for (std::size_t i = 0; i < shown; ++i) {
+        out << eventRow(events[i]);
+    }
+    return out;
+}
+
+int QuickViewModel::moreEvents(const QString &verdict) const {
+    const auto which = verdictFromKey(verdict);
+    if (!m_snapshot || !which) {
+        return 0;
+    }
+    const auto size = static_cast<int>(m_snapshot->list(*which, host()).size());
+    return std::max(0, size - kListLimit);
+}
+
+QVariantMap QuickViewModel::decision(const QString &id) const {
+    if (!m_snapshot) {
+        return {};
+    }
+    const auto it = std::ranges::find(m_snapshot->events, id, &Event::id);
+    if (it == m_snapshot->events.end()) {
+        return {};
+    }
+    const Event &event = *it;
+    const auto rule = event.rule();
+    const auto why = rule ? RuleText::why(*rule) : std::nullopt;
+    const auto check = event.action ? CopyCommands::policyCheck(*event.action) : std::nullopt;
+    return {
+        {u"id"_s, event.id},
+        {u"verdict"_s, verdictKey(event.verdict)},
+        {u"title"_s, verdictTitle(event.verdict)},
+        {u"rule"_s, rule.value_or(QString{})},
+        {u"agent"_s, agentName(event.host)},
+        {u"host"_s, event.host},
+        {u"time"_s, Format::clock(event.time())},
+        {u"tool"_s, event.tool},
+        {u"display"_s, event.display()},
+        {u"monospace"_s, event.action && event.action->shellCommand().has_value()},
+        {u"folder"_s, event.cwd ? Format::shortPath(*event.cwd, QDir::homePath()) : QString{}},
+        {u"told"_s, event.reason().value_or(QString{})},
+        {u"why"_s, why.value_or(QString{})},
+        {u"checkCommand"_s, check.value_or(QString{})},
+        {u"blocked"_s, event.verdict == Verdict::Deny || event.verdict == Verdict::Ask},
+    };
+}
+
+// MARK: - Agents, sessions, checks
+
+QVariantList QuickViewModel::agents() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList out;
+    for (const Protection &agent : m_snapshot->installedAgents()) {
+        const VerdictCounts counts = m_snapshot->counts(agent.host);
+        QString detail = u"Today: %1 calls · %2 blocked"_s.arg(counts.total()).arg(counts[Verdict::Deny]);
+        if (const auto last = m_snapshot->lastCall(agent.host)) {
+            detail += u" · last "_s + Format::relative(*last, m_now);
+        }
+        out << QVariantMap{
+            {u"host"_s, agent.host},
+            {u"name"_s, agent.name},
+            {u"level"_s, levelLabel(agent.level)},
+            {u"tone"_s, levelTone(agent.level)},
+            {u"detail"_s, detail},
+        };
+    }
+    return out;
+}
+
+QVariantMap QuickViewModel::agentDetail() const {
+    const Protection *agent = m_snapshot ? m_snapshot->agent(host()) : nullptr;
+    if (agent == nullptr) {
+        return {};
+    }
+    const auto last = m_snapshot->lastCall(agent->host);
+    return {
+        {u"host"_s, agent->host},
+        {u"name"_s, agent->name},
+        {u"level"_s, levelLabel(agent->level)},
+        {u"tone"_s, levelTone(agent->level)},
+        {u"reason"_s, agent->reason.value_or(QString{})},
+        {u"gaps"_s, agent->gaps},
+        {u"lastCall"_s, last ? Format::relative(*last, m_now) : QString{}},
+        {u"installed"_s, agent->level != Level::NotFound},
+        {u"setUpCommand"_s, needsSetUp(agent->level) ? CopyCommands::setUp() : QString{}},
+    };
+}
+
+QVariantList QuickViewModel::sessions() const {
+    if (!m_snapshot || m_selectedHost.isEmpty()) {
+        return {};
+    }
+    QVariantList out;
+    for (const Session &session : m_snapshot->sessions(host())) {
+        const QString folder = session.cwd ? Format::shortPath(*session.cwd, QDir::homePath()) : session.id;
+        out << QVariantMap{
+            {u"title"_s, folder},
+            {u"detail"_s, u"%1–%2 · %3 calls · %4 blocked"_s.arg(Format::clock(session.first), Format::clock(session.last))
+                              .arg(session.counts.total())
+                              .arg(session.counts[Verdict::Deny])},
+        };
+    }
+    return out;
+}
+
+QString QuickViewModel::proxy() const {
+    return (m_snapshot && m_snapshot->proxy) ? m_snapshot->proxy->label() : QString{};
+}
+
+QVariantList QuickViewModel::checks() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList out;
+    for (const SecurityCheck &check : securityChecks(*m_snapshot)) {
+        out << QVariantMap{
+            {u"id"_s, check.id},
+            {u"tone"_s, checkTone(check.kind)},
+            {u"title"_s, check.title},
+            {u"detail"_s, check.detail.value_or(QString{})},
+            {u"fix"_s, check.kind >= SecurityCheck::Kind::Info ? check.fix.value_or(QString{}) : QString{}},
+        };
+    }
+    return out;
+}
+
+QString QuickViewModel::checksHint() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    const auto attention = needingAttention(securityChecks(*m_snapshot)).size();
+    return attention > 0 ? u"%1 to look at"_s.arg(attention) : u"all fine"_s;
+}
+
+QString QuickViewModel::doctorCommand() const {
+    return CopyCommands::doctor();
+}
+
+// MARK: - Actions
+
+void QuickViewModel::refresh() {
+    if (!m_refreshHandler || m_refreshState == u"refreshing") {
+        return;
+    }
+    setRefresh(u"refreshing"_s, u"Reading moat…"_s);
+    m_refreshHandler();
+}
+
+void QuickViewModel::refreshFinished(const std::optional<MoatError> &error) {
+    if (m_refreshState != u"refreshing") {
+        return;
+    }
+    if (error) {
+        setRefresh(u"failed"_s, error->message());
+        m_settle.start(5s);
+    } else {
+        setRefresh(u"done"_s, u"Updated just now"_s);
+        m_settle.start(3s);
+    }
+}
+
+void QuickViewModel::setRefresh(const QString &state, const QString &text) {
+    m_refreshState = state;
+    m_refreshText = text;
+    emit refreshChanged();
+}
+
+void QuickViewModel::copy(const QString &text) {
+    if (auto *clipboard = QGuiApplication::clipboard()) {
+        clipboard->setText(text);
+    }
+}
+
+void QuickViewModel::openDocs(const QString &page) {
+    QUrl url;
+    if (page == u"blocked") {
+        url = DocsLink::blocked();
+    } else if (page == u"check") {
+        url = DocsLink::checkACommand();
+    } else if (page == u"quickstart") {
+        url = DocsLink::quickstart();
+    } else if (page == u"limits") {
+        url = DocsLink::limits();
+    } else {
+        url = DocsLink::home();
+    }
+    QDesktopServices::openUrl(url);
+}
+
+void QuickViewModel::reportWrongBlock(const QString &rule) {
+    QDesktopServices::openUrl(DocsLink::reportWrongBlock(rule.isEmpty() ? std::nullopt : std::optional{rule}));
+}
+
+} // namespace moatbar

@@ -12,6 +12,7 @@ namespace moatbar {
 /// What the menu can ask the app to do. Nothing here changes OpenMoat:
 /// copying, opening links, refreshing, quitting.
 struct TrayActions {
+    std::function<void()> open; ///< the Quick View
     std::function<void()> refresh;
     std::function<void()> about;
     std::function<void()> quit;

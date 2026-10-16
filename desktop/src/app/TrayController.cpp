@@ -4,7 +4,6 @@
 #include "core/SecurityChecks.hpp"
 
 #include <QApplication>
-#include <QCursor>
 #include <QMessageBox>
 
 using namespace Qt::StringLiterals;
@@ -17,21 +16,34 @@ const QString kSeenUntilKey = QStringLiteral("seenUntilMs");
 } // namespace
 
 TrayController::TrayController(SnapshotStore &store, QObject *parent)
-    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()) {
+    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model) {
     m_tray.setContextMenu(m_menu.get());
     m_menu->setToolTipsVisible(true);
     // The menu is never rebuilt while it is open: items removed under the
     // pointer close whatever submenu the person is in. Data that arrives while
     // it is open is applied when it closes.
     connect(m_menu.get(), &QMenu::aboutToHide, this, &TrayController::menuClosed);
-    // Windows opens the context menu on right click only; a left click opens it too.
+    // A click on the icon opens the Quick View; a right click, the menu.
     connect(&m_tray, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
-        if (reason == QSystemTrayIcon::Trigger) {
-            m_menu->popup(QCursor::pos());
+        if (reason != QSystemTrayIcon::Trigger && reason != QSystemTrayIcon::DoubleClick) {
+            return;
+        }
+        // Open and in front: close it. Open behind other windows: bring it up.
+        if (m_quickView.isVisible() && m_quickView.window()->isActive()) {
+            m_quickView.hide();
+        } else if (!m_quickView.justClosed()) {
+            openQuickView();
         }
     });
     connect(&m_store, &SnapshotStore::changed, this, &TrayController::storeChanged);
     connect(&m_store, &SnapshotStore::snapshotRead, this, &TrayController::snapshotRead);
+
+    m_model.setRefreshHandler([this] { m_store.refresh(); });
+    connect(&m_model, &QuickViewModel::aboutRequested, this, &TrayController::showAbout);
+    connect(&m_model, &QuickViewModel::quitRequested, qApp, &QCoreApplication::quit);
+    connect(&m_model, &QuickViewModel::viewClosed, this, &TrayController::markSeen);
+    m_model.setData(m_store.snapshot(), m_store.error());
+
     updateIcon();
     rebuildMenu();
 }
@@ -40,7 +52,17 @@ void TrayController::show() {
     m_tray.show();
 }
 
+void TrayController::openQuickView() {
+    // Fresh "x min ago" now, fresh data in a moment, as the macOS menu does on open.
+    m_model.setData(m_store.snapshot(), m_store.error());
+    m_quickView.show(m_tray.geometry());
+    m_store.refresh();
+}
+
 void TrayController::storeChanged() {
+    // The Quick View redraws in place; it has no submenus to close.
+    m_model.setData(m_store.snapshot(), m_store.error());
+    m_model.refreshFinished(m_store.error());
     updateIcon();
     if (m_menu->isVisible()) {
         m_rebuildPending = true;
@@ -70,6 +92,7 @@ void TrayController::rebuildMenu() {
     const std::optional<Snapshot> &snapshot = m_store.snapshot();
     const TrayMenu builder(snapshot ? &*snapshot : nullptr, m_store.error(),
                            TrayActions{
+                               .open = [this] { openQuickView(); },
                                .refresh = [this] { m_store.refresh(); },
                                .about = [this] { showAbout(); },
                                .quit = [] { QApplication::quit(); },
@@ -77,14 +100,18 @@ void TrayController::rebuildMenu() {
     builder.fill(*m_menu);
 }
 
-void TrayController::menuClosed() {
-    // Whatever was in the menu has now been seen.
+void TrayController::markSeen() {
+    // Whatever the menu or the Quick View showed has now been seen.
     if (const auto &snapshot = m_store.snapshot()) {
         if (const auto newest = snapshot->newestBlockMs()) {
             setSeenUntilMs(*newest);
         }
     }
     updateIcon();
+}
+
+void TrayController::menuClosed() {
+    markSeen();
     if (m_rebuildPending) {
         m_rebuildPending = false;
         // After the menu has finished closing.

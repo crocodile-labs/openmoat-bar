@@ -17,7 +17,7 @@ copy into Terminal.
 | Platform | Status |
 | --- | --- |
 | macOS 12 or later | In development: menu bar app, Activity window, Settings |
-| Linux, Windows | Early: tray icon and menu ([`desktop/`](desktop)); built and tested in CI on Ubuntu and Windows, not yet tried on a real desktop |
+| Linux, Windows | Early ([`desktop/`](desktop)): tray icon, the Quick View (the menu's content in a small window, opened by clicking the icon) and a plain tray menu. Activity, Welcome and Settings are still to come. Built and tested in CI on Ubuntu and Windows, not yet tried on a real desktop |
 
 ![The MoatBar menu: Blocked, then the list of blocked calls, then one decision in full](docs/images/menu.png)
 
@@ -110,10 +110,15 @@ open MoatBar.app
 ```bash
 brew install crocodile-labs/tap/moat
 
-# Build tools and Qt 6.4 or later, one line for your distribution
-sudo apt install build-essential cmake git qt6-base-dev     # Ubuntu 24.04+, Debian 12+
-sudo dnf install gcc-c++ cmake git qt6-qtbase-devel          # Fedora
-sudo pacman -S --needed base-devel cmake git qt6-base        # Arch
+# Build tools and Qt 6.4 or later with Qt Quick, for your distribution
+# Ubuntu 24.04+, Debian 12+:
+sudo apt install build-essential cmake git qt6-base-dev qt6-declarative-dev \
+  qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
+  qml6-module-qtquick-templates qml6-module-qtquick-window qml6-module-qtqml-workerscript
+# Fedora:
+sudo dnf install gcc-c++ cmake git qt6-qtbase-devel qt6-qtdeclarative-devel
+# Arch:
+sudo pacman -S --needed base-devel cmake git qt6-base qt6-declarative
 
 git clone https://github.com/crocodile-labs/moatbar
 cd moatbar

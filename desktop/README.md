@@ -13,9 +13,20 @@ app, through `moat … --format json`, and its tests use the Mac app's fixtures
 | Path | What |
 | --- | --- |
 | `src/core` | No GUI, Qt Core only: moat's JSON (`Models`, `Json`), the read-only `MoatClient`, `Snapshot` (every count the tray shows), `IconState`, `SecurityChecks`, `Text` (rule explanations, copyable commands, links) |
-| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu`, `TrayController` |
-| `tests` | Qt Test suites for `src/core` |
-| `tools` | `moatbar_shots`: draws the menu and tray icons from the fixtures into PNG files |
+| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window), `qml/` |
+| `tests` | Qt Test suites for `src/core` and `QuickViewModel` |
+| `tools` | `moatbar_shots`: draws the menu, the tray icons and every Quick View page from the fixtures into PNG files, and fails on any QML warning |
+
+## The Quick View
+
+Clicking the tray icon opens the Quick View: the macOS menu's content in a small window, in
+the same order. Agent tabs on top, then who is protected, problems, Today, Blocked / Asked /
+Left to your agent / Allowed (click one for its calls, click a call for the whole story),
+agents and security checks, then Refresh, docs, About and Quit. On Windows it is a flyout
+beside the taskbar that closes when you click elsewhere; on Linux a normal window. A right
+click on the icon still opens the plain tray menu, which also has "Open MoatBar" for desktops
+where a click opens the menu (GNOME's AppIndicator). Colours follow the desktop's palette, light
+or dark. Keys: Ctrl+R refresh, Esc back or close, Ctrl+Q quit.
 
 ## Status
 
