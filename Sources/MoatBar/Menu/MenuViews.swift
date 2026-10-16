@@ -43,24 +43,51 @@ struct HeaderView: View {
     let title: String
     let trailing: String
     let updated: String
+    /// Protection in a few words ("2 of 2 protected", "Hook + sandbox").
     let detail: String
+    /// The protection colour behind `detail`.
+    var detailColor: Color = .secondary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .firstTextBaseline) {
                 Text(self.title).font(.system(size: 15, weight: .bold))
                 Spacer()
                 Text(self.trailing).font(.system(size: 11)).foregroundColor(.secondary)
             }
             HStack {
-                Text(self.updated)
+                Text(self.updated).font(.system(size: 12)).foregroundColor(.secondary)
                 Spacer()
                 Text(self.detail)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(self.detailColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(self.detailColor.opacity(0.14)))
             }
-            .font(.system(size: 12))
-            .foregroundColor(.secondary)
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// A small uppercase label above a group of rows.
+struct SectionHeader: View {
+    let title: String
+    var trailing: String?
+
+    var body: some View {
+        HStack {
+            Text(self.title.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(0.6)
+            Spacer()
+            if let trailing = self.trailing {
+                Text(trailing).font(.system(size: 11))
+            }
+        }
+        .foregroundColor(.secondary)
+        .padding(.top, 6)
+        .padding(.bottom, 1)
     }
 }
 
@@ -131,14 +158,13 @@ struct TodayBar: View {
 // MARK: - Problem card
 
 /// A problem at the top of the menu: what happened, what it means, one fix.
+/// The fix to copy goes in a `CopyMenuRow` right below the card, so the menu
+/// stays open when it is copied.
 struct ProblemCard: View {
     let title: String
     let text: String
-    let command: String?
     let note: String
     var tint: Color = .init(nsColor: .systemRed)
-
-    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -147,20 +173,6 @@ struct ProblemCard: View {
                 Text(self.title).font(.system(size: 13, weight: .bold))
             }
             Text(self.text).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
-            if let command = self.command {
-                HStack {
-                    Text(command).font(.system(size: 12, design: .monospaced))
-                    Spacer()
-                    Button(self.copied ? "Copied" : "Copy") {
-                        Actions.copy(command)
-                        self.copied = true
-                    }
-                    .buttonStyle(.borderless)
-                    .font(.system(size: 12, weight: .semibold))
-                }
-                .padding(7)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor)))
-            }
             Text(self.note).font(.system(size: 11)).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -181,7 +193,11 @@ struct DecisionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(self.event.verdict.title).font(.system(size: 15, weight: .bold))
+                HStack(spacing: 6) {
+                    Circle().fill(self.event.verdict.color).frame(width: 9, height: 9)
+                    Text(self.event.verdict.title).font(.system(size: 15, weight: .bold))
+                        .foregroundColor(self.event.verdict.color)
+                }
                 Spacer()
                 if let rule = self.event.rule {
                     Text(rule)
@@ -240,6 +256,11 @@ struct AgentDetailView: View {
             }
             if let reason = self.agent.reason {
                 Text(reason).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+            }
+            if self.agent.level == .notFound {
+                Text("\(self.agent.name) isn't installed on this Mac. Once it is, run moat to protect it.")
+                    .font(.system(size: 12))
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if let lastCall = self.lastCall {
                 Text("Last call \(lastCall)").font(.system(size: 12)).foregroundColor(.secondary)

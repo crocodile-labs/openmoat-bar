@@ -143,7 +143,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
     /// Build the other tabs' content in the background of the open menu.
     private func warmTabs() {
-        guard let agents = self.store.snapshot?.installedAgents, !agents.isEmpty else {
+        guard let agents = self.store.snapshot?.status.agents, !agents.isEmpty else {
             return
         }
         let hosts: [String?] = [nil] + agents.map(\.host)
@@ -200,12 +200,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         self.shownTab = key
     }
 
-    /// Forget a tab whose agent is no longer installed.
+    /// Forget a tab whose agent moat no longer reports.
     private func validSelection() -> String? {
         guard let host = self.selectedHost else {
             return nil
         }
-        if let snapshot = self.store.snapshot, snapshot.installedAgents.contains(where: { $0.host == host }) {
+        if let snapshot = self.store.snapshot, snapshot.agent(host) != nil {
             return host
         }
         return nil
