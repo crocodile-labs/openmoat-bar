@@ -103,13 +103,16 @@ struct MenuBuilder {
     private func addHeader(_ snapshot: Snapshot, to menu: NSMenu) {
         let title: String
         let detail: String
+        let color: Color
         if let host = self.selectedHost, let agent = snapshot.agent(host) {
             title = agent.name
             detail = agent.level.label
+            color = agent.level.color
         } else {
             title = "All agents"
             let setUp = snapshot.installedAgents.filter { $0.level != .notSetUp }.count
             detail = "\(snapshot.protectedCount) of \(max(setUp, snapshot.protectedCount)) protected"
+            color = snapshot.unprotected.isEmpty ? Level.hookAndOsSandbox.color : Level.notProtected.color
         }
         let updated: String
         if let error = self.error {
@@ -118,7 +121,13 @@ struct MenuBuilder {
             updated = "Updated \(Format.relative(snapshot.takenAt, now: self.now))"
         }
         let version = snapshot.moatVersion.map { "moat \($0)" } ?? ""
-        menu.addItem(hostedItem(HeaderView(title: title, trailing: version, updated: updated, detail: detail)))
+        menu.addItem(hostedItem(HeaderView(
+            title: title,
+            trailing: version,
+            updated: updated,
+            detail: detail,
+            detailColor: color
+        )))
     }
 
     private func addProblems(_ snapshot: Snapshot, to menu: NSMenu) {
@@ -127,9 +136,9 @@ struct MenuBuilder {
             menu.addItem(hostedItem(ProblemCard(
                 title: "\(agent.name) is not protected",
                 text: "\(why)Its calls are not being checked.",
-                command: CopyCommands.setUp,
-                note: "Run it in Terminal. It shows the change and asks first. This goes away on the next check."
+                note: "Run moat in Terminal. It shows the change and asks first. This goes away on the next check."
             )))
+            menu.addItem(copyItem("Copy the fix", command: CopyCommands.setUp))
         }
     }
 
@@ -160,9 +169,8 @@ struct MenuBuilder {
     }
 
     private func fillList(_ menu: NSMenu, verdict: Verdict, events: [Event], snapshot: Snapshot) {
-        let header = NSMenuItem(title: "\(verdict.title) today · \(events.count)", action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        menu.addItem(header)
+        let header = SectionHeader(title: "\(verdict.title) today", trailing: Format.count(events.count))
+        menu.addItem(hostedItem(header, width: Self.submenuWidth))
         if events.isEmpty {
             let empty = NSMenuItem(title: "Nothing \(verdict.title.lowercased()) today", action: nil, keyEquivalent: "")
             empty.isEnabled = false
@@ -190,7 +198,7 @@ struct MenuBuilder {
         ))
         menu.addItem(.separator())
         if let action = event.action, let check = CopyCommands.policyCheck(action) {
-            menu.addItem(ClosureMenuItem("Copy check command") { Actions.copy(check) })
+            menu.addItem(copyItem("Copy check command", command: check, width: Self.submenuWidth))
         }
         if event.verdict == .deny || event.verdict == .ask {
             menu.addItem(ClosureMenuItem("Why was this blocked? ↗") { Actions.open(DocsLink.blocked) })
@@ -206,9 +214,7 @@ struct MenuBuilder {
     // MARK: - Agents
 
     private func addAgents(_ snapshot: Snapshot, to menu: NSMenu) {
-        let header = NSMenuItem(title: "Agents", action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        menu.addItem(header)
+        menu.addItem(hostedItem(SectionHeader(title: "Agents")))
         for agent in snapshot.installedAgents {
             let counts = snapshot.counts(for: agent.host)
             let lastCall = snapshot.lastCall(for: agent.host).map { Format.relative($0, now: self.now) }
@@ -231,7 +237,7 @@ struct MenuBuilder {
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Show \(agent.name) only") { self.onSelectHost(agent.host) })
         if agent.level == .notSetUp || agent.level == .notProtected {
-            menu.addItem(ClosureMenuItem("Copy set-up command (moat)") { Actions.copy(CopyCommands.setUp) })
+            menu.addItem(copyItem("Copy the set-up command", command: CopyCommands.setUp))
         }
         menu.addItem(ClosureMenuItem("Known limits ↗") { Actions.open(DocsLink.limits) })
     }
@@ -264,27 +270,18 @@ struct MenuBuilder {
         let checks = SecurityChecks.from(snapshot)
         let attention = SecurityChecks.needingAttention(checks).count
         let sub = LazyMenu(width: Self.submenuWidth) { sub in
-            let header = NSMenuItem(title: "Security checks", action: nil, keyEquivalent: "")
-            header.isEnabled = false
-            sub.addItem(header)
-            sub.addItem(.separator())
+            sub.addItem(hostedItem(SectionHeader(title: "Security checks"), width: Self.submenuWidth))
             for check in checks {
-                if let fix = check.fix {
-                    let row = ClosureMenuItem("") { Actions.copy(fix) }
-                    row.attributedTitle = Format.checkRow(check, copyHint: true)
-                    row.toolTip = "Copies \(fix)"
-                    sub.addItem(row)
-                } else {
-                    let row = NSMenuItem()
-                    row.attributedTitle = Format.checkRow(check, copyHint: false)
-                    row.isEnabled = false
-                    sub.addItem(row)
+                let row = NSMenuItem()
+                row.attributedTitle = Format.checkRow(check)
+                row.isEnabled = false
+                sub.addItem(row)
+                if let fix = check.fix, check.kind >= .info {
+                    sub.addItem(copyItem("Copy the fix", command: fix, width: Self.submenuWidth))
                 }
             }
             sub.addItem(.separator())
-            sub.addItem(ClosureMenuItem("Copy \(CopyCommands.doctor) for every check") {
-                Actions.copy(CopyCommands.doctor)
-            })
+            sub.addItem(copyItem("Copy for every check", command: CopyCommands.doctor, width: Self.submenuWidth))
         }
         menu.addItem(.separator())
         let hint = attention > 0 ? "\(attention) to look at" : "all fine"
@@ -300,19 +297,19 @@ struct MenuBuilder {
             menu.addItem(hostedItem(ProblemCard(
                 title: "OpenMoat isn't installed",
                 text: "MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts.",
-                command: CopyCommands.install,
                 note: "MoatBar looks for moat again every minute.",
                 tint: Color(nsColor: .secondaryLabelColor)
             )))
+            menu.addItem(copyItem("Copy the install command", command: CopyCommands.install))
             menu.addItem(ClosureMenuItem("Install guide ↗") { Actions.open(DocsLink.quickstart) })
         } else if let error = self.error {
             menu.addItem(hostedItem(ProblemCard(
                 title: "Couldn't read OpenMoat",
                 text: "\(error.message). Your agents are still checked; only this view is out of date.",
-                command: CopyCommands.doctor,
                 note: "moat doctor shows what is wrong.",
                 tint: Color(nsColor: .systemOrange)
             )))
+            menu.addItem(copyItem("Copy the check command", command: CopyCommands.doctor))
         }
     }
 

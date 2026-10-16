@@ -50,7 +50,7 @@ enum Format {
     }
 
     /// "✓ title" with the detail and, when there is a fix, "Click to copy …".
-    static func checkRow(_ check: SecurityCheck, copyHint: Bool) -> NSAttributedString {
+    static func checkRow(_ check: SecurityCheck) -> NSAttributedString {
         let (symbol, color): (String, NSColor)
         switch check.kind {
         case .ok: (symbol, color) = ("✓", .systemGreen)
@@ -63,16 +63,8 @@ enum Format {
             attributes: [.foregroundColor: color, .font: NSFont.systemFont(ofSize: 13, weight: .bold)]
         )
         text.append(NSAttributedString(string: check.title, attributes: [.font: NSFont.systemFont(ofSize: 13)]))
-        var lines: [String] = []
         if let detail = check.detail {
-            lines.append(detail)
-        }
-        if copyHint, let fix = check.fix {
-            lines.append("Click to copy: \(fix)")
-        }
-        if !lines.isEmpty {
-            let body = "\n   " + lines.joined(separator: "\n   ")
-            text.append(NSAttributedString(string: body, attributes: self.secondary))
+            text.append(NSAttributedString(string: "\n   " + detail, attributes: self.secondary))
         }
         return text
     }
