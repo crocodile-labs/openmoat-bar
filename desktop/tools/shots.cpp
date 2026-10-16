@@ -15,7 +15,6 @@
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
-#include <QSet>
 
 #include <array>
 #include <cstdio>
@@ -28,19 +27,21 @@ using namespace moatbar;
 
 namespace {
 
-/// How many different colours the image has, up to `limit`. A grab that drew
-/// nothing is one or two flat colours; text and icons give many.
-int colourCount(const QImage &image, int limit) {
-    QSet<QRgb> seen;
+/// Per mille of the pixels that differ from the top-left one, the background.
+/// A grab that drew nothing is close to zero; text and icons are not. (Colour
+/// counts don't work: Windows draws offscreen text without antialiasing.)
+int drawnPerMille(const QImage &image) {
+    if (image.isNull()) {
+        return 0;
+    }
+    const QRgb background = image.pixel(0, 0);
+    qint64 drawn = 0;
     for (int y = 0; y < image.height(); ++y) {
         for (int x = 0; x < image.width(); ++x) {
-            seen.insert(image.pixel(x, y));
-            if (seen.size() >= limit) {
-                return limit;
-            }
+            drawn += image.pixel(x, y) != background ? 1 : 0;
         }
     }
-    return static_cast<int>(seen.size());
+    return static_cast<int>(drawn * 1000 / (qint64{image.width()} * image.height()));
 }
 
 bool save(const QPixmap &pixmap, const QDir &dir, const QString &name) {
@@ -49,11 +50,11 @@ bool save(const QPixmap &pixmap, const QDir &dir, const QString &name) {
         std::fprintf(stderr, "could not write %s\n", qPrintable(path));
         return false;
     }
-    constexpr int kEnoughColours = 16;
-    const int colours = colourCount(pixmap.toImage(), kEnoughColours);
-    std::printf("wrote %s (%dx%d, %s%d colours)\n", qPrintable(path), pixmap.width(), pixmap.height(),
-                colours >= kEnoughColours ? "at least " : "", colours);
-    if (colours < kEnoughColours) {
+    const int drawn = drawnPerMille(pixmap.toImage());
+    std::printf("wrote %s (%dx%d, %d.%d%% drawn)\n", qPrintable(path), pixmap.width(), pixmap.height(), drawn / 10,
+                drawn % 10);
+    constexpr int kBlankPerMille = 5;
+    if (drawn < kBlankPerMille) {
         std::fprintf(stderr, "%s looks blank\n", qPrintable(path));
         return false;
     }
