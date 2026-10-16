@@ -281,7 +281,9 @@ struct AgentDetailView: View {
             HStack {
                 Text(self.agent.name).font(.system(size: 15, weight: .bold))
                 Spacer()
-                Text(self.agent.level.label).font(.system(size: 12, weight: .semibold)).foregroundColor(self.agent.level.color)
+                Text(self.agent.level.label)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(self.agent.level.color)
             }
             if let reason = self.agent.reason {
                 Text(reason).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)

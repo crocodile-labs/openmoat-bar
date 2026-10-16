@@ -57,7 +57,8 @@ enum Format {
     /// The command on top, then rule · agent · folder · time.
     static func eventRow(_ event: Event, agent: String) -> NSAttributedString {
         let line = self.truncate(event.display, to: 60)
-        let text = NSMutableAttributedString(string: line, attributes: event.action?.shellCommand != nil ? self.mono : [:])
+        let isCommand = event.action?.shellCommand != nil
+        let text = NSMutableAttributedString(string: line, attributes: isCommand ? self.mono : [:])
         var parts: [String] = []
         if let rule = event.rule {
             parts.append(rule)

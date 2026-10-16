@@ -24,7 +24,8 @@ struct MenuBuilder {
         }
         let agents = snapshot.installedAgents
         if !agents.isEmpty {
-            menu.addItem(hostedItem(AgentTabs(agents: agents, selected: self.selectedHost, onSelect: self.onSelectHost)))
+            let tabs = AgentTabs(agents: agents, selected: self.selectedHost, onSelect: self.onSelectHost)
+            menu.addItem(hostedItem(tabs))
             menu.addItem(.separator())
         }
         self.addHeader(snapshot, to: menu)
@@ -96,7 +97,8 @@ struct MenuBuilder {
             let item = NSMenuItem()
             item.attributedTitle = Format.verdictRow(verdict, count: count)
             item.image = Format.dot(verdict.nsColor)
-            item.submenu = self.list(verdict, events: snapshot.list(verdict, for: self.selectedHost), snapshot: snapshot)
+            let events = snapshot.list(verdict, for: self.selectedHost)
+            item.submenu = self.list(verdict, events: events, snapshot: snapshot)
             menu.addItem(item)
         }
     }
