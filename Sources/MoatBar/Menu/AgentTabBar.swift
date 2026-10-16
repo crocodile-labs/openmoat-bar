@@ -116,8 +116,8 @@ final class AgentTabBar: NSView {
 
     // MARK: - Mouse
 
-    // A menu sends the click to the item's view; take both halves of it so the
-    // menu does not treat it as choosing an item and close.
+    /// A menu sends the click to the item's view; take both halves of it so the
+    /// menu does not treat it as choosing an item and close.
     override func mouseDown(with _: NSEvent) {}
 
     override func mouseUp(with event: NSEvent) {
