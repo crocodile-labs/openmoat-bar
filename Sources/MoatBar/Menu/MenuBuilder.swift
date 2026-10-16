@@ -25,7 +25,9 @@ struct MenuBuilder {
     /// Build the whole menu: tabs, then everything below them.
     func fill(_ menu: NSMenu) {
         menu.removeAllItems()
-        if let agents = self.snapshot?.installedAgents, !agents.isEmpty {
+        // Every agent OpenMoat supports gets a tab, installed or not, so the
+        // row reads the same on every Mac.
+        if let agents = self.snapshot?.status.agents, !agents.isEmpty {
             let item = NSMenuItem()
             item.view = AgentTabBar(
                 width: menuWidth,
@@ -40,20 +42,22 @@ struct MenuBuilder {
         self.appendContent(to: menu)
     }
 
-    /// All, then each installed agent. The line under "All" is red when any
-    /// agent lost protection.
+    /// All, then every agent. The line under "All" is red when any agent lost
+    /// protection; an agent that isn't installed is drawn faded.
     static func tabs(for agents: [Protection]) -> [AgentTabBar.Tab] {
         let anyBroken = agents.contains { $0.level == .notProtected }
         let all = AgentTabBar.Tab(
             host: nil,
             title: "All",
-            lineColor: anyBroken ? Level.notProtected.nsColor : Level.hookAndOsSandbox.nsColor
+            lineColor: anyBroken ? Level.notProtected.nsColor : Level.hookAndOsSandbox.nsColor,
+            faded: false
         )
         return [all] + agents.map { agent in
             AgentTabBar.Tab(
                 host: agent.host,
                 title: agent.name == "Claude Code" ? "Claude" : agent.name,
-                lineColor: agent.level.nsColor
+                lineColor: agent.level.nsColor,
+                faded: agent.level == .notFound
             )
         }
     }

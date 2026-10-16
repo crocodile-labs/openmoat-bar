@@ -257,6 +257,11 @@ struct AgentDetailView: View {
             if let reason = self.agent.reason {
                 Text(reason).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
             }
+            if self.agent.level == .notFound {
+                Text("\(self.agent.name) isn't installed on this Mac. Once it is, run moat to protect it.")
+                    .font(.system(size: 12))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if let lastCall = self.lastCall {
                 Text("Last call \(lastCall)").font(.system(size: 12)).foregroundColor(.secondary)
             }
