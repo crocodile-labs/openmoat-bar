@@ -218,7 +218,7 @@ let builder = MenuBuilder(
     error: nil,
     selectedHost: nil,
     onSelectHost: { _ in },
-    onRefresh: {},
+    refreshRow: RefreshMenuRow(width: menuWidth),
     onSettings: {},
     onActivity: { _ in },
     now: now
@@ -255,7 +255,7 @@ let agentBuilder = MenuBuilder(
     error: nil,
     selectedHost: "claude-code",
     onSelectHost: { _ in },
-    onRefresh: {},
+    refreshRow: RefreshMenuRow(width: menuWidth),
     onSettings: {},
     onActivity: { _ in },
     now: now

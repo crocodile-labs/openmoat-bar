@@ -3,7 +3,15 @@ import MoatBarCore
 
 /// Holds the latest read of moat and refreshes it. Reads run off the main
 /// thread, one at a time; results are applied on the main thread.
+///
+/// Requests that arrive while a read is running are coalesced: they all wait
+/// for one more read, so a burst of audit-log changes and a manual refresh
+/// never stack up reads.
 final class SnapshotStore {
+    /// Called once a read that covers the request has been applied, with that
+    /// read's outcome.
+    typealias Completion = (Result<Snapshot, MoatError>) -> Void
+
     /// The last good read. Kept on screen when a later read fails, except when
     /// moat disappears.
     private(set) var snapshot: Snapshot?
@@ -15,9 +23,14 @@ final class SnapshotStore {
     var onSnapshot: ((_ old: Snapshot?, _ new: Snapshot) -> Void)?
 
     private let queue = DispatchQueue(label: "dev.openmoat.moatbar.read", qos: .utility)
-    private var reading = false
-    private var again = false
     private var timer: Timer?
+
+    /// The read in flight, if any.
+    private var reading = false
+    /// Requests waiting for the read in flight to finish.
+    private var waitingForCurrent: [Completion] = []
+    /// Requests that arrived during the read in flight; they need a fresh one.
+    private var waitingForNext: [Completion]?
 
     /// How often moat status is read even when nothing else changes, so a
     /// removed hook shows up within a minute.
@@ -38,23 +51,39 @@ final class SnapshotStore {
         self.timer = nil
     }
 
-    /// Read moat now. A call while a read is running queues one more read.
-    func refresh() {
+    /// Read moat. `completion` runs on the main thread after a read that
+    /// started after this call has been applied.
+    func refresh(completion: Completion? = nil) {
         guard !self.reading else {
-            self.again = true
+            var next = self.waitingForNext ?? []
+            if let completion {
+                next.append(completion)
+            }
+            self.waitingForNext = next
             return
         }
         self.reading = true
-        self.queue.async {
+        if let completion {
+            self.waitingForCurrent.append(completion)
+        }
+        self.queue.async { [weak self] in
             let result = Self.read()
             DispatchQueue.main.async {
-                self.apply(result)
-                self.reading = false
-                if self.again {
-                    self.again = false
-                    self.refresh()
-                }
+                self?.finish(result)
             }
+        }
+    }
+
+    private func finish(_ result: Result<Snapshot, MoatError>) {
+        self.apply(result)
+        let done = self.waitingForCurrent
+        self.waitingForCurrent = []
+        self.reading = false
+        done.forEach { $0(result) }
+        if let next = self.waitingForNext {
+            self.waitingForNext = nil
+            self.waitingForCurrent = next
+            self.refresh()
         }
     }
 
