@@ -15,6 +15,20 @@ app, through `moat … --format json`, and its tests use the Mac app's fixtures
 | `src/core` | No GUI, Qt Core only: moat's JSON (`Models`, `Json`), the read-only `MoatClient`, `Snapshot` (every count the tray shows), `IconState`, `SecurityChecks`, `Text` (rule explanations, copyable commands, links) |
 | `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu`, `TrayController` |
 | `tests` | Qt Test suites for `src/core` |
+| `tools` | `moatbar_shots`: draws the menu and tray icons from the fixtures into PNG files |
+
+## Status
+
+Builds and passes its tests on Ubuntu 24.04 and Windows Server 2022 in CI. It has not been
+tried on a real Linux or Windows desktop yet.
+
+To see the menu without either machine: every CI run draws it offscreen and keeps the images
+with the run. Open the run under Actions and download `moatbar-linux-screenshots` or
+`moatbar-windows-screenshots`. To draw them yourself:
+
+```
+QT_QPA_PLATFORM=offscreen ./build/tools/moatbar_shots screenshots
+```
 
 ## Build
 

@@ -269,7 +269,7 @@ let agentScene = scene(
 )
 try png(agentScene).write(to: outDir.appendingPathComponent("agent-tab.png"))
 
-// MARK: - Welcome, Activity, icon states
+// MARK: - Welcome, Activity
 
 let welcome = NSHostingView(rootView: WelcomeView(preferences: Preferences.shared, onOpenMenu: {}, onQuit: {})
     .background(Color(nsColor: .windowBackgroundColor)))
@@ -282,26 +282,5 @@ let activityRoot = ActivityView(model: activity).background(Color(nsColor: .wind
 let activityView = NSHostingView(rootView: activityRoot)
 activityView.frame = NSRect(x: 0, y: 0, width: 1040, height: 600)
 try png(activityView).write(to: outDir.appendingPathComponent("activity.png"))
-
-let states: [(IconState, String)] = [
-    (.quiet, "All protected"), (.newBlocks, "New blocks"), (.attention, "Needs a look"),
-    (.unprotected, "Not protected"), (.unavailable, "moat missing"),
-]
-let strip = NSView(frame: NSRect(x: 0, y: 0, width: 150 * CGFloat(states.count), height: 70))
-strip.wantsLayer = true
-strip.layer?.backgroundColor = NSColor(calibratedRed: 0.11, green: 0.35, blue: 0.27, alpha: 1).cgColor
-for (index, (state, label)) in states.enumerated() {
-    let image = NSImageView(image: IconRenderer.image(for: state))
-    image.frame = NSRect(x: 150 * CGFloat(index) + 50, y: 32, width: image.image?.size.width ?? 44, height: 22)
-    strip.addSubview(image)
-    let text = NSTextField(labelWithString: label)
-    text.textColor = .white
-    text.font = .systemFont(ofSize: 12, weight: .medium)
-    text.alignment = .center
-    text.frame = NSRect(x: 150 * CGFloat(index), y: 8, width: 150, height: 18)
-    strip.addSubview(text)
-}
-
-try png(strip).write(to: outDir.appendingPathComponent("icon-states.png"))
 
 print("wrote", outDir.path)

@@ -1,6 +1,4 @@
-# Qt Test suites. They read the macOS app's fixtures
-# (Tests/MoatBarCoreTests/Fixtures), so both apps are held to the same moat JSON.
-set(MOATBAR_FIXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Tests/MoatBarCoreTests/Fixtures")
+# Qt Test suites. They read the shared fixtures (MOATBAR_FIXTURES_DIR).
 
 function(moatbar_test name)
     qt_add_executable(${name} ${name}.cpp Fixtures.hpp)
