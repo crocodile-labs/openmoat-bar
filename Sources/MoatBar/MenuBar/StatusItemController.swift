@@ -8,6 +8,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let menu = NSMenu()
     private var menuOpen = false
+    /// New data arrived while the menu was open.
+    private var rebuildPending = false
     private let defaults = UserDefaults.standard
     /// Opens the Settings window.
     var onSettings: (() -> Void)?
@@ -49,9 +51,15 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
     // MARK: - NSMenuDelegate
 
+    // The menu is never rebuilt while it is open: removing items under the
+    // cursor closes whatever submenu the person is moving into. Data that
+    // arrives while it is open is applied after it closes (CodexBar defers
+    // parent rebuilds during menu tracking the same way).
+
     func menuWillOpen(_: NSMenu) {
-        self.menuOpen = true
+        // Safe: AppKit has not started tracking yet.
         self.rebuild()
+        self.menuOpen = true
         self.store.refresh()
     }
 
@@ -61,13 +69,29 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             self.seenUntilMs = newest
         }
         self.updateIcon()
+        if self.rebuildPending {
+            self.rebuildPending = false
+            // After the close animation, so the next open shows the new data.
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.closedRebuildDelay) { [weak self] in
+                guard let self, !self.menuOpen else {
+                    return
+                }
+                self.rebuild()
+            }
+        }
     }
 
     // MARK: - Updates
 
+    /// Wait this long after the menu closes before rebuilding it.
+    private static let closedRebuildDelay: TimeInterval = 0.35
+
     private func storeChanged() {
         self.updateIcon()
         if self.menuOpen {
+            self.rebuildPending = true
+        } else {
+            // Prepare the closed menu so it opens with fresh data.
             self.rebuild()
         }
     }
