@@ -65,8 +65,32 @@ copy into Terminal.
 
 ## Install and run
 
-There are no downloads yet; MoatBar is built from source. You need OpenMoat installed first
-(other ways to install it: [OpenMoat's README](https://github.com/crocodile-labs/openmoat#install)).
+You need OpenMoat installed first ([how](https://github.com/crocodile-labs/openmoat#install)).
+
+### One command
+
+There is no release yet. From the first release on, one command installs or updates MoatBar
+for your user, like OpenMoat's installer:
+
+```bash
+# macOS and Linux
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.sh | sh
+```
+
+```powershell
+# Windows
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.ps1 | iex"
+```
+
+The installer checks the download against the release's `SHA256SUMS`, then puts MoatBar in:
+
+| System | Where | Remove it |
+| --- | --- | --- |
+| macOS (Apple silicon and Intel) | `~/Applications/MoatBar.app` | `rm -rf ~/Applications/MoatBar.app` |
+| Linux x86_64 | `~/.local/share/moatbar`, the `moatbar` command in `~/.local/bin`, an app menu entry | `rm -rf ~/.local/share/moatbar ~/.local/bin/moatbar ~/.local/share/applications/dev.openmoat.moatbar.desktop` |
+| Windows x64 | `%LOCALAPPDATA%\Programs\MoatBar` and a Start menu entry | Delete that folder and the MoatBar Start menu entry |
+
+Until then, or to build it yourself:
 
 ### macOS
 

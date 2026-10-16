@@ -1,0 +1,234 @@
+name: release
+
+# Builds MoatBar for macOS, Linux and Windows, installs each build with its
+# installer script, and on a v* tag puts everything in a DRAFT pre-release.
+# Nothing is published until someone presses Publish on that draft.
+on:
+  push:
+    tags: ["v*"]
+  # Dry runs: builds and installer checks, no release.
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "Scripts/package_app.sh"
+      - "Scripts/moatbar-installer.*"
+      - "desktop/packaging/**"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: version
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: v
+        name: Version from the tag, checked against desktop/CMakeLists.txt
+        run: |
+          project=$(grep -oP 'VERSION \K[0-9]+\.[0-9]+\.[0-9]+' desktop/CMakeLists.txt | head -n 1)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#v}"
+            if [ "$version" != "$project" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match desktop/CMakeLists.txt VERSION $project"
+              exit 1
+            fi
+          else
+            version="$project"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  macos:
+    name: macOS
+    needs: version
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build MoatBar.app (Apple silicon and Intel)
+        env:
+          MOATBAR_VERSION: ${{ needs.version.outputs.version }}
+          MOATBAR_UNIVERSAL: "1"
+        run: |
+          ./Scripts/package_app.sh
+          lipo -archs MoatBar.app/Contents/MacOS/MoatBar | tee /dev/stderr | grep -q 'x86_64 arm64\|arm64 x86_64'
+          codesign --verify --deep --strict MoatBar.app
+          mkdir dist
+          ditto -c -k --keepParent MoatBar.app dist/MoatBar-macos.zip
+
+      - name: Install with the installer script
+        run: |
+          cd dist && shasum -a 256 MoatBar-macos.zip > SHA256SUMS && cd ..
+          MOATBAR_DIST_DIR="$PWD/dist" sh Scripts/moatbar-installer.sh
+          test -x "$HOME/Applications/MoatBar.app/Contents/MacOS/MoatBar"
+          rm dist/SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-macos
+          path: dist/*
+          if-no-files-found: error
+
+  linux:
+    name: Linux
+    needs: version
+    # The oldest supported runner, so the build runs on older distributions too.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Packages Qt needs
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 libegl1 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build --parallel
+          DESTDIR="$PWD/AppDir" cmake --install build
+
+      # linuxdeploy copies Qt and every library moatbar needs into AppDir and
+      # points the binary at them, so it runs without Qt installed.
+      - name: Bundle Qt
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: |
+          base=https://github.com/linuxdeploy
+          curl -fLsS -o linuxdeploy "$base/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          curl -fLsS -o linuxdeploy-plugin-qt "$base/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+          sha256sum linuxdeploy linuxdeploy-plugin-qt
+          chmod +x linuxdeploy linuxdeploy-plugin-qt
+          export QMAKE="$QT_ROOT_DIR/bin/qmake"
+          # linuxdeploy finds its plugin on PATH.
+          export PATH="$PWD:$PATH"
+          ./linuxdeploy --appdir AppDir --plugin qt
+          ldd AppDir/usr/bin/moatbar | tee ldd.txt
+          if grep 'not found' ldd.txt; then exit 1; fi
+          grep -q 'AppDir/usr/.*libQt6Core' ldd.txt
+          mkdir dist
+          tar -czf dist/MoatBar-linux-x86_64.tar.gz -C AppDir usr
+
+      - name: Install with the installer script
+        run: |
+          (cd dist && sha256sum MoatBar-linux-x86_64.tar.gz > SHA256SUMS)
+          MOATBAR_DIST_DIR="$PWD/dist" sh Scripts/moatbar-installer.sh
+          test -x "$HOME/.local/bin/moatbar"
+          grep -q "^Exec=$HOME/.local/share/moatbar/usr/bin/moatbar$" "$HOME/.local/share/applications/dev.openmoat.moatbar.desktop"
+          rm dist/SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-linux
+          path: dist/*
+          if-no-files-found: error
+
+  windows:
+    name: Windows
+    needs: version
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S desktop -B build
+          cmake --build build --config Release --parallel
+
+      # Qt's DLLs and the Visual C++ runtime next to moatbar.exe, so it runs on a
+      # machine with nothing else installed.
+      - name: Bundle Qt
+        shell: pwsh
+        run: |
+          $out = 'MoatBar'
+          New-Item -ItemType Directory $out | Out-Null
+          Copy-Item build\src\app\Release\moatbar.exe $out
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler --no-opengl-sw "$out\moatbar.exe"
+          foreach ($dll in 'msvcp140.dll', 'msvcp140_1.dll', 'msvcp140_2.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
+            if (-not (Test-Path "$out\$dll")) { Copy-Item "$env:WINDIR\System32\$dll" $out }
+          }
+          Get-ChildItem $out | Select-Object Name, Length
+          New-Item -ItemType Directory dist | Out-Null
+          Compress-Archive -Path "$out\*" -DestinationPath dist\MoatBar-windows-x64.zip
+
+      - name: Install with the installer script
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash -Algorithm SHA256 dist\MoatBar-windows-x64.zip).Hash.ToLower()
+          "$hash  MoatBar-windows-x64.zip" | Set-Content dist\SHA256SUMS
+          $env:MOATBAR_DIST_DIR = "$PWD\dist"
+          ./Scripts/moatbar-installer.ps1
+          if (-not (Test-Path "$env:LOCALAPPDATA\Programs\MoatBar\Qt6Core.dll")) { throw 'Qt6Core.dll missing' }
+          if (-not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\MoatBar.lnk")) { throw 'no shortcut' }
+          Remove-Item dist\SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-windows
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: draft release
+    if: github.ref_type == 'tag'
+    needs: [version, macos, linux, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          cp Scripts/moatbar-installer.sh Scripts/moatbar-installer.ps1 dist/
+          (cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS)
+          cat > notes.md <<'NOTES'
+          MoatBar shows what OpenMoat does for your coding agents: which agents are protected, what was blocked and why. Read-only.
+
+          **macOS and Linux**
+
+          ```bash
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.sh | sh
+          ```
+
+          **Windows** (PowerShell)
+
+          ```powershell
+          powershell -ExecutionPolicy Bypass -c "irm https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.ps1 | iex"
+          ```
+
+          The installers check every download against `SHA256SUMS`. You need OpenMoat installed too.
+          NOTES
+          gh release create "v$VERSION" dist/* --draft --prerelease --title "MoatBar $VERSION" --notes-file notes.md

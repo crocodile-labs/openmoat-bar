@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MoatBar
+Comment=See what OpenMoat does for your coding agents. Read-only.
+Exec=moatbar
+Icon=dev.openmoat.moatbar
+Categories=Utility;
+Terminal=false
+StartupNotify=false
