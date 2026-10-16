@@ -73,7 +73,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 
     private func updateIcon() {
-        let state = IconState.decide(snapshot: self.store.snapshot, seenUntilMs: self.seenUntilMs)
+        let attention = self.store.snapshot.map { !SecurityChecks.needingAttention(SecurityChecks.from($0)).isEmpty }
+        let state = IconState.decide(
+            snapshot: self.store.snapshot,
+            seenUntilMs: self.seenUntilMs,
+            needsAttention: attention ?? false
+        )
         self.statusItem.button?.image = IconRenderer.image(for: state)
         self.statusItem.button?.toolTip = state.accessibilityLabel
     }
