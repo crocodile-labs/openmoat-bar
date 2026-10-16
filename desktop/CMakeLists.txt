@@ -29,8 +29,13 @@ function(moatbar_warnings target)
         QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII QT_NO_URL_CAST_FROM_STRING QT_USE_QSTRINGBUILDER)
 endfunction()
 
+# The macOS app's fixtures (Tests/MoatBarCoreTests/Fixtures), shared by the
+# tests and the screenshot tool so both apps are held to the same moat JSON.
+set(MOATBAR_FIXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Tests/MoatBarCoreTests/Fixtures")
+
 add_subdirectory(src/core)
 add_subdirectory(src/app)
+add_subdirectory(tools)
 
 enable_testing()
 add_subdirectory(tests)

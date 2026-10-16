@@ -61,3 +61,21 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --build-config Release --output-on-failure
+
+      # The menu and tray icons drawn offscreen from the fixtures, kept with the
+      # run so they can be looked at without a Linux or Windows machine.
+      - name: Screenshots
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          shots=$(find build -type f \( -name moatbar_shots -o -name moatbar_shots.exe \) | head -n 1)
+          test -n "$shots"
+          "$shots" screenshots
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: moatbar-${{ matrix.name }}-screenshots
+          path: screenshots/*.png
+          if-no-files-found: error
