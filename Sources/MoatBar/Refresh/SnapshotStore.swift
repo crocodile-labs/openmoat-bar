@@ -11,6 +11,8 @@ final class SnapshotStore {
     private(set) var error: MoatError?
     /// Called on the main thread after every read.
     var onChange: (() -> Void)?
+    /// Called on the main thread after every good read, with the read before it.
+    var onSnapshot: ((_ old: Snapshot?, _ new: Snapshot) -> Void)?
 
     private let queue = DispatchQueue(label: "dev.openmoat.moatbar.read", qos: .utility)
     private var reading = false
@@ -72,8 +74,10 @@ final class SnapshotStore {
     private func apply(_ result: Result<Snapshot, MoatError>) {
         switch result {
         case let .success(snapshot):
+            let old = self.snapshot
             self.snapshot = snapshot
             self.error = nil
+            self.onSnapshot?(old, snapshot)
         case let .failure(error):
             self.error = error
             if error == .notInstalled {
