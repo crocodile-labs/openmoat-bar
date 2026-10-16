@@ -9,6 +9,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let menu = NSMenu()
     private var menuOpen = false
     private let defaults = UserDefaults.standard
+    /// Opens the Settings window.
+    var onSettings: (() -> Void)?
 
     private enum Key {
         static let seenUntil = "seenUntilMs"
@@ -36,6 +38,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         self.statusItem.button?.imagePosition = .imageOnly
         store.onChange = { [weak self] in self?.storeChanged() }
         self.updateIcon()
+    }
+
+    /// Drop the menu as if the croc was clicked.
+    func openMenu() {
+        self.statusItem.button?.performClick(nil)
     }
 
     // MARK: - NSMenuDelegate
@@ -78,7 +85,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
                 self?.selectedHost = host
                 self?.rebuild()
             },
-            onRefresh: { [weak self] in self?.store.refresh() }
+            onRefresh: { [weak self] in self?.store.refresh() },
+            onSettings: { [weak self] in self?.onSettings?() }
         )
         builder.fill(self.menu)
     }

@@ -1,4 +1,4 @@
-.PHONY: build test lint format check clean
+.PHONY: build test lint format check app clean
 
 build:
 	swift build
@@ -17,5 +17,9 @@ format:
 
 check: lint build test
 
+# MoatBar.app in the repository root.
+app:
+	./Scripts/package_app.sh
+
 clean:
-	rm -rf .build
+	rm -rf .build MoatBar.app
