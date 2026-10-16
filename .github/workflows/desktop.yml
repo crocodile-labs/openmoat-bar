@@ -71,6 +71,8 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
+          # Qt's offscreen platform on Windows has no font list of its own.
+          if [ "$RUNNER_OS" = "Windows" ]; then export QT_QPA_FONTDIR="C:/Windows/Fonts"; fi
           shots=$(find build -type f \( -name moatbar_shots -o -name moatbar_shots.exe \) | head -n 1)
           test -n "$shots"
           "$shots" screenshots

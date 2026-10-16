@@ -2,6 +2,8 @@
 #include "app/TrayIcon.hpp"
 
 #include <QGuiApplication>
+#include <QImage>
+#include <QPainter>
 #include <QQmlContext>
 #include <QScreen>
 
@@ -25,6 +27,31 @@ QString agentResource(QStringView host) {
     return {};
 }
 
+/// The image without its transparent border, scaled to fit a `size` square.
+/// The agent icons and the croc have wide transparent margins, which at 16 px
+/// leave a speck.
+QPixmap fitted(const QPixmap &source, const QSize &size) {
+    const QImage image = source.toImage().convertToFormat(QImage::Format_ARGB32);
+    QRect used;
+    for (int y = 0; y < image.height(); ++y) {
+        const auto *line = reinterpret_cast<const QRgb *>(image.constScanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            if (qAlpha(line[x]) > 8) {
+                used |= QRect(x, y, 1, 1);
+            }
+        }
+    }
+    if (used.isEmpty()) {
+        return {};
+    }
+    const QPixmap cropped = source.copy(used).scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPixmap out(size);
+    out.fill(Qt::transparent);
+    QPainter painter(&out);
+    painter.drawPixmap((size.width() - cropped.width()) / 2, (size.height() - cropped.height()) / 2, cropped);
+    return out;
+}
+
 } // namespace
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
@@ -32,12 +59,12 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
     QPixmap pixmap;
     const QStringList parts = id.split(u'/');
     if (parts.value(0) == u"logo") {
-        pixmap = appIcon().pixmap(want);
+        pixmap = fitted(appIcon().pixmap(256), want);
     } else if (parts.value(0) == u"agent" && parts.size() == 3) {
         const QString resource = agentResource(parts[1]);
         const QColor color(u"#"_s + parts[2]);
         if (!resource.isEmpty() && color.isValid()) {
-            pixmap = tintedIcon(resource, color).pixmap(want);
+            pixmap = fitted(tintedIcon(resource, color).pixmap(256), want);
         }
     }
     if (size != nullptr) {

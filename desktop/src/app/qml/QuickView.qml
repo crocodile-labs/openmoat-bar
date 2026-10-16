@@ -18,7 +18,7 @@ ApplicationWindow {
 
     title: "MoatBar"
     width: 380
-    height: 640
+    height: 720
     minimumWidth: 340
     minimumHeight: 420
     flags: flyout ? (Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) : Qt.Window
@@ -330,7 +330,7 @@ ApplicationWindow {
                     spacing: 0
 
                     PageHeader {
-                        title: page.d.title || "Gone"
+                        title: page.d.id !== undefined ? "Call details" : "Gone"
                         onBack: root.back()
                     }
                     Label {

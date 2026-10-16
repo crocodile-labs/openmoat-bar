@@ -7,6 +7,8 @@ Image {
     property color color: Theme.secondary
     property int size: 16
 
+    implicitWidth: size
+    implicitHeight: size
     width: size
     height: size
     sourceSize: Qt.size(size * 2, size * 2)
