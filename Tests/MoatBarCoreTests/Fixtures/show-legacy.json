@@ -1,0 +1,21 @@
+[
+  {
+    "id": 31,
+    "ts_ms": 1792054800000,
+    "host": "codex",
+    "session_id": "s-old",
+    "tool": "apply_patch",
+    "action": {"patch": {"writes": ["src/a.rs", "src/b.rs"]}},
+    "verdict": "a-verdict-from-the-future",
+    "rules": ["project-fs"]
+  },
+  {
+    "id": "32",
+    "ts_ms": 1792054801000,
+    "host": "claude-code",
+    "session_id": "s-old",
+    "tool": "Frobnicate",
+    "action": {"frobnicate": {"x": 1}},
+    "verdict": "allow"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "since_ms": 1791450000000,
+  "total": 8421,
+  "allowed": 7012,
+  "deferred": 1350,
+  "asked": 21,
+  "denied": 38,
+  "sessions": 64,
+  "by_host": {
+    "claude-code": 5120,
+    "codex": 3301
+  },
+  "top_rules": [
+    ["secrets-paths", 22],
+    ["destructive", 9],
+    ["git-internals", 7]
+  ],
+  "active_hours": 41
+}

@@ -1,0 +1,61 @@
+# SwiftLint configuration for MoatBar. CI runs `swiftlint --strict`.
+
+included:
+  - Sources
+  - Tests
+
+excluded:
+  - .build
+  - .swiftpm
+  - "**/Fixtures"
+
+opt_in_rules:
+  - array_init
+  - closure_spacing
+  - contains_over_first_not_nil
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fatal_error_message
+  - first_where
+  - last_where
+  - sorted_first_last
+  - redundant_nil_coalescing
+  - overridden_super_call
+  - private_outlet
+
+disabled_rules:
+  # SwiftFormat owns layout.
+  - trailing_comma
+  - opening_brace
+  - vertical_whitespace
+  # Short names (x, y, f) are fine inside small closures and decoders.
+  - identifier_name
+  # Some enums keep a case per line for short, compact switches.
+  - statement_position
+  - todo
+
+force_cast: error
+force_try: error
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+type_body_length:
+  warning: 400
+  error: 800
+
+file_length:
+  warning: 600
+  error: 1000
+
+function_body_length:
+  warning: 80
+  error: 150
+
+cyclomatic_complexity:
+  warning: 20
+  error: 40

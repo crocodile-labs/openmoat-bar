@@ -1,0 +1,8 @@
+{
+  "path": "/home/you/.config/systemd/user/openmoat-proxy.service",
+  "service": "systemd user unit",
+  "state": {
+    "state": "unknown",
+    "details": "systemctl --user has no user bus"
+  }
+}

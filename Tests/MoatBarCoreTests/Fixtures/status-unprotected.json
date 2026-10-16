@@ -1,0 +1,25 @@
+{
+  "agents": [
+    {
+      "gaps": "",
+      "host": "claude-code",
+      "level": "not-protected",
+      "name": "Claude Code",
+      "reason": "hook missing"
+    },
+    {
+      "gaps": "",
+      "host": "codex",
+      "level": "hook-and-os-sandbox",
+      "name": "Codex",
+      "reason": null
+    },
+    {
+      "gaps": "",
+      "host": "cursor",
+      "level": "a-level-from-the-future",
+      "name": "Cursor",
+      "reason": null
+    }
+  ]
+}
