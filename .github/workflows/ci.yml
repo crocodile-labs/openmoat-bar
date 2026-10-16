@@ -28,11 +28,12 @@ jobs:
           swiftformat --version
           swiftlint version
 
+      # Plain reporters so the log names file and line for every finding.
       - name: Format
-        run: swiftformat --lint --reporter github-actions-log .
+        run: swiftformat --lint .
 
       - name: Lint
-        run: swiftlint --strict --reporter github-actions-logging
+        run: swiftlint --strict
 
       - name: Build
         run: swift build -c release

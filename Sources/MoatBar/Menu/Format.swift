@@ -110,12 +110,11 @@ enum Format {
     // MARK: - Helpers
 
     static func dot(_ color: NSColor) -> NSImage {
-        let image = NSImage(size: NSSize(width: 9, height: 9), flipped: false) { rect in
+        NSImage(size: NSSize(width: 9, height: 9), flipped: false) { rect in
             color.setFill()
             NSBezierPath(ovalIn: rect).fill()
             return true
         }
-        return image
     }
 
     /// `/Users/you/code/app` → `~/code/app`.

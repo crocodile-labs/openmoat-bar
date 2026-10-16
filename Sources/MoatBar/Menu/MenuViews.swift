@@ -29,7 +29,7 @@ extension Level {
 }
 
 /// A SwiftUI view as a menu item, sized to its content at the menu width.
-func hostedItem<V: View>(_ view: V) -> NSMenuItem {
+func hostedItem(_ view: some View) -> NSMenuItem {
     let host = NSHostingView(rootView: view.frame(width: menuWidth - 28, alignment: .leading).padding(.horizontal, 14))
     host.frame.size = host.fittingSize
     let item = NSMenuItem()
