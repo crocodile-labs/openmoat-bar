@@ -1,0 +1,7 @@
+{
+  "path": "/Users/you/Library/LaunchAgents/dev.openmoat.proxy.plist",
+  "service": "launchd user agent",
+  "state": {
+    "state": "running"
+  }
+}

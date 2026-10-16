@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: build · test · lint
+    # One macOS job only: this repo is private and macOS minutes are expensive.
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools
+        run: |
+          swift --version
+          brew install swiftformat swiftlint >/dev/null || brew upgrade swiftformat swiftlint >/dev/null || true
+          swiftformat --version
+          swiftlint version
+
+      - name: Format
+        run: swiftformat --lint --reporter github-actions-log .
+
+      - name: Lint
+        run: swiftlint --strict --reporter github-actions-logging
+
+      - name: Build
+        run: swift build -c release
+
+      - name: Test
+        run: swift test

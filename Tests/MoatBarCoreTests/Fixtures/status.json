@@ -1,0 +1,25 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code",
+      "reason": null
+    },
+    {
+      "gaps": "web search and hosted tools are not hooked; asks become denies; calls run unchecked if the hook binary is missing or crashes",
+      "host": "codex",
+      "level": "hook-only",
+      "name": "Codex",
+      "reason": "the sandbox profile is older than the policy"
+    },
+    {
+      "gaps": "commands Cursor runs outside its sandbox are not confined",
+      "host": "cursor",
+      "level": "not-found",
+      "name": "Cursor",
+      "reason": null
+    }
+  ]
+}

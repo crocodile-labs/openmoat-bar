@@ -1,0 +1,37 @@
+# SwiftFormat configuration for MoatBar. Run `make format`; CI runs `make lint`.
+
+--swiftversion 5.7
+
+# Members are referenced as self.x so state reads stand out in UI code.
+--self insert
+--importgrouping testable-bottom
+--extensionacl on-declarations
+
+# Indentation and width
+--indent 4
+--indentcase false
+--ifdef no-indent
+--maxwidth 120
+--linebreaks lf
+
+# Whitespace
+--trimwhitespace always
+--emptybraces no-space
+--ranges no-space
+
+# Wrapping
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--closingparen balanced
+
+# Organization
+--extensionmark "MARK: - %t + %p"
+--markextensions always
+
+# Other
+--stripunusedargs closure-only
+--header ignore
+--disable wrapMultilineStatementBraces,redundantReturn,redundantType,blankLinesAtStartOfScope,trailingCommas,wrapSwitchCases,organizeDeclarations,preferKeyPath,hoistPatternLet,andOperator
+
+--exclude .build,.swiftpm
