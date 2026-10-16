@@ -107,6 +107,49 @@ enum Format {
         return text
     }
 
+    /// "Security checks" with "N to look at" in orange, or "all fine".
+    static func checksRow(attention: Int) -> NSAttributedString {
+        let text = NSMutableAttributedString(
+            string: "Security checks",
+            attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold)]
+        )
+        var attributes = self.secondary
+        if attention > 0 {
+            attributes[.foregroundColor] = NSColor.systemOrange
+        }
+        let note = attention > 0 ? "  \(attention) to look at" : "  all fine"
+        text.append(NSAttributedString(string: note, attributes: attributes))
+        return text
+    }
+
+    /// "✓ title" with the detail and, when there is a fix, "Click to copy …".
+    static func checkRow(_ check: SecurityCheck, copyHint: Bool) -> NSAttributedString {
+        let (symbol, color): (String, NSColor)
+        switch check.kind {
+        case .ok: (symbol, color) = ("✓", .systemGreen)
+        case .info: (symbol, color) = ("i", .systemBlue)
+        case .warning: (symbol, color) = ("!", .systemOrange)
+        case .problem: (symbol, color) = ("!", .systemRed)
+        }
+        let text = NSMutableAttributedString(
+            string: "\(symbol)  ",
+            attributes: [.foregroundColor: color, .font: NSFont.systemFont(ofSize: 13, weight: .bold)]
+        )
+        text.append(NSAttributedString(string: check.title, attributes: [.font: NSFont.systemFont(ofSize: 13)]))
+        var lines: [String] = []
+        if let detail = check.detail {
+            lines.append(detail)
+        }
+        if copyHint, let fix = check.fix {
+            lines.append("Click to copy: \(fix)")
+        }
+        if !lines.isEmpty {
+            let body = "\n   " + lines.joined(separator: "\n   ")
+            text.append(NSAttributedString(string: body, attributes: self.secondary))
+        }
+        return text
+    }
+
     // MARK: - Helpers
 
     static func dot(_ color: NSColor) -> NSImage {

@@ -41,7 +41,43 @@ struct MenuBuilder {
         } else {
             self.addAgents(snapshot, to: menu)
         }
+        self.addChecks(snapshot, to: menu)
         self.addFooter(to: menu)
+    }
+
+    // MARK: - Security checks
+
+    private func addChecks(_ snapshot: Snapshot, to menu: NSMenu) {
+        let checks = SecurityChecks.from(snapshot)
+        let attention = SecurityChecks.needingAttention(checks).count
+        let item = NSMenuItem()
+        item.attributedTitle = Format.checksRow(attention: attention)
+        let sub = NSMenu()
+        sub.autoenablesItems = false
+        let header = NSMenuItem(title: "Security checks", action: nil, keyEquivalent: "")
+        header.isEnabled = false
+        sub.addItem(header)
+        sub.addItem(.separator())
+        for check in checks {
+            if let fix = check.fix {
+                let row = ClosureMenuItem("") { Actions.copy(fix) }
+                row.attributedTitle = Format.checkRow(check, copyHint: true)
+                row.toolTip = "Copies \(fix)"
+                sub.addItem(row)
+            } else {
+                let row = NSMenuItem()
+                row.attributedTitle = Format.checkRow(check, copyHint: false)
+                row.isEnabled = false
+                sub.addItem(row)
+            }
+        }
+        sub.addItem(.separator())
+        sub.addItem(ClosureMenuItem("Copy \(CopyCommands.doctor) for every check") {
+            Actions.copy(CopyCommands.doctor)
+        })
+        item.submenu = sub
+        menu.addItem(.separator())
+        menu.addItem(item)
     }
 
     // MARK: - Header and problems

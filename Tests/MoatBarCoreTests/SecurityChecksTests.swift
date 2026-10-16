@@ -1,0 +1,39 @@
+import Foundation
+import XCTest
+@testable import MoatBarCore
+
+final class SecurityChecksTests: XCTestCase {
+    private func snapshot(_ status: String, proxy: ProxyState?) throws -> Snapshot {
+        try Snapshot(status: Fixture.decode(StatusReport.self, status), events: [], proxy: proxy, moatVersion: "0.5.3")
+    }
+
+    func test_worstFirst_withFixes() throws {
+        let checks = try SecurityChecks.from(self.snapshot("status", proxy: .stopped))
+
+        XCTAssertEqual(checks.map(\.id), ["proxy", "agent-codex", "moat", "agent-claude-code"])
+        XCTAssertEqual(checks[0].kind, .warning)
+        XCTAssertEqual(checks[0].fix, "moat proxy install")
+        XCTAssertEqual(checks[1].kind, .info)
+        XCTAssertEqual(checks[1].detail, "the sandbox profile is older than the policy")
+        XCTAssertEqual(checks[1].fix, "moat")
+    }
+
+    func test_lostProtection_isAProblem_andNotFoundIsLeftOut() throws {
+        let checks = try SecurityChecks.from(self.snapshot("status-unprotected", proxy: .running))
+
+        XCTAssertEqual(checks.first?.id, "agent-claude-code")
+        XCTAssertEqual(checks.first?.kind, .problem)
+        XCTAssertFalse(checks.contains { $0.id == "agent-cursor" }, "an unknown level is not listed as a check")
+    }
+
+    func test_attention_isWarningsAndProblems() throws {
+        let fine = try SecurityChecks.from(self.snapshot("status", proxy: .running))
+        XCTAssertEqual(SecurityChecks.needingAttention(fine), [], "hook only is shown but does not turn the icon amber")
+
+        let stopped = try SecurityChecks.from(self.snapshot("status", proxy: .stopped))
+        XCTAssertEqual(SecurityChecks.needingAttention(stopped).map(\.id), ["proxy"])
+
+        let windows = try SecurityChecks.from(self.snapshot("status", proxy: nil))
+        XCTAssertFalse(windows.contains { $0.id == "proxy" }, "no proxy line where moat has no proxy service")
+    }
+}
