@@ -6,7 +6,7 @@ enum IconRenderer {
     /// Menu bar height is 22 pt; the croc is 16 pt tall.
     static let logoHeight: CGFloat = 16
 
-    static let logo: NSImage? = Bundle.module.image(forResource: "logo-float")
+    static let logo: NSImage? = AppResources.image("logo-float")
 
     static func image(for state: IconState) -> NSImage {
         guard let logo = self.logo else {
