@@ -1,0 +1,61 @@
+import AppKit
+import MoatBarCore
+import SwiftUI
+
+/// Settings: the few things MoatBar itself decides. Nothing here changes OpenMoat.
+struct SettingsView: View {
+    @ObservedObject var preferences: Preferences
+    let moatPath: String?
+    let moatVersion: String?
+
+    var body: some View {
+        Form {
+            Section {
+                if self.preferences.canOpenAtLogin {
+                    Toggle("Open at login", isOn: Binding(
+                        get: { self.preferences.openAtLogin },
+                        set: { self.preferences.openAtLogin = $0 }
+                    ))
+                } else {
+                    Text("Open at login: add MoatBar in System Settings → General → Login Items.")
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("General").font(.headline)
+            }
+
+            Section {
+                Toggle("An agent is not protected", isOn: .constant(true))
+                    .disabled(true)
+                Text("Always on: the one thing MoatBar must never miss.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Toggle("Each blocked call", isOn: Binding(
+                    get: { self.preferences.notifyBlocks },
+                    set: { self.preferences.notifyBlocks = $0 }
+                ))
+                Text("At most one per rule every 10 minutes. Shows the rule and the agent, never the command.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } header: {
+                Text("Notifications").font(.headline)
+            }
+
+            Section {
+                Text("moat: \(self.moatPath ?? "not found")\(self.moatVersion.map { " · \($0)" } ?? "")")
+                    .textSelection(.enabled)
+                Text("MoatBar reads moat's status and audit log. It never writes to them.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Button("How to turn OpenMoat off ↗") {
+                    Actions.open(URL(string: "https://openmoat.dev/docs/turn-off/")!)
+                }
+                .buttonStyle(.link)
+            } header: {
+                Text("OpenMoat").font(.headline)
+            }
+        }
+        .padding(24)
+        .frame(width: 460)
+    }
+}

@@ -10,6 +10,7 @@ struct MenuBuilder {
     let selectedHost: String?
     let onSelectHost: (String?) -> Void
     let onRefresh: () -> Void
+    let onSettings: () -> Void
     var now = Date()
 
     /// Longest list a verdict submenu shows; the rest is in the Activity window.
@@ -247,6 +248,7 @@ struct MenuBuilder {
         menu.addItem(ClosureMenuItem("Refresh", key: "r") { self.onRefresh() })
         menu.addItem(ClosureMenuItem("OpenMoat docs ↗") { Actions.open(DocsLink.home) })
         menu.addItem(.separator())
+        menu.addItem(ClosureMenuItem("Settings…", key: ",") { self.onSettings() })
         menu.addItem(ClosureMenuItem("About MoatBar") {
             NSApp.activate(ignoringOtherApps: true)
             NSApp.orderFrontStandardAboutPanel(nil)
