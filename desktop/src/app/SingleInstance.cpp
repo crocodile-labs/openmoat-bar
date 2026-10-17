@@ -55,11 +55,21 @@ bool SingleInstance::sendToRunning(const QString &request, int timeoutMs) const 
 }
 
 bool SingleInstance::listen() {
+    // Someone answering means a MoatBar is running. Asked first, because
+    // Windows lets two servers share a pipe name.
+    QLocalSocket probe;
+    probe.connectToServer(m_name);
+    if (probe.waitForConnected(300)) {
+        probe.disconnectFromServer();
+        return false;
+    }
+    const bool refused = probe.error() == QLocalSocket::ConnectionRefusedError;
     if (m_server.listen(m_name)) {
         return true;
     }
-    // A socket left behind by a MoatBar that crashed: nothing answers on it.
-    if (m_server.serverError() == QAbstractSocket::AddressInUseError && !sendToRunning(u"ping"_s, 300)) {
+    // A socket file left behind by a MoatBar that crashed: it exists, but the
+    // connection is refused. A slow answer is not a reason to take it over.
+    if (m_server.serverError() == QAbstractSocket::AddressInUseError && refused) {
         QLocalServer::removeServer(m_name);
         return m_server.listen(m_name);
     }
