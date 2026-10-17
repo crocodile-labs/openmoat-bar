@@ -48,10 +48,13 @@ private slots:
 
     void filterByAgentVerdictAndRule() {
         const auto all = events();
-        QCOMPARE(ids(ActivityFilter{u"codex"_s, std::nullopt, {}}.apply(all)), (QStringList{u"1e"_s, u"1d"_s}));
-        QCOMPARE(ids(ActivityFilter{{}, Verdict::Deny, u"secrets-paths"_s}.apply(all)),
-                 (QStringList{u"1e"_s, u"1c"_s}));
-        QCOMPARE(ActivityFilter{{}, std::nullopt, {}}.apply(all).size(), std::size_t{8});
+        // (Filters are built outside QCOMPARE: commas in braces split macro arguments.)
+        const ActivityFilter codex{u"codex"_s, std::nullopt, {}};
+        const ActivityFilter secrets{{}, Verdict::Deny, u"secrets-paths"_s};
+        const ActivityFilter everything{{}, std::nullopt, {}};
+        QCOMPARE(ids(codex.apply(all)), (QStringList{u"1e"_s, u"1d"_s}));
+        QCOMPARE(ids(secrets.apply(all)), (QStringList{u"1e"_s, u"1c"_s}));
+        QCOMPARE(everything.apply(all).size(), std::size_t{8});
     }
 
     void exportIsMoatsOwnJsonOneLineEach() {
