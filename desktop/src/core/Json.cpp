@@ -120,6 +120,7 @@ std::optional<Event> parseEvent(const QJsonObject &object) {
     event.verdict = verdictFromWire(object.value(u"verdict").toString());
     event.rules = stringList(object.value(u"rules"));
     event.reasons = stringList(object.value(u"reasons"));
+    event.raw = object;
     return event;
 }
 
@@ -224,6 +225,15 @@ Result<QString> parseVersion(const QByteArray &bytes) {
         return unreadable(u"--version"_s);
     }
     return words.at(1).trimmed();
+}
+
+QByteArray toJsonLines(const std::vector<Event> &events) {
+    QByteArray out;
+    for (const Event &event : events) {
+        out += QJsonDocument(event.raw).toJson(QJsonDocument::Compact);
+        out += '\n';
+    }
+    return out;
 }
 
 } // namespace moatbar::json

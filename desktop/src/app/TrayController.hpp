@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/ActivityWindow.hpp"
 #include "app/QuickView.hpp"
 #include "app/QuickViewModel.hpp"
 #include "app/SnapshotStore.hpp"
@@ -27,6 +28,7 @@ public:
 
     void show();
     void openQuickView();
+    void openActivity(const QString &verdict);
 
 private:
     void storeChanged();
@@ -45,6 +47,8 @@ private:
     std::unique_ptr<QMenu> m_menu;
     QuickViewModel m_model;
     QuickView m_quickView;
+    ActivityModel m_activityModel;
+    ActivityWindow m_activity;
     QSettings m_settings;
     bool m_rebuildPending = false;
 };

@@ -1,4 +1,5 @@
 #include "app/QuickViewModel.hpp"
+#include "app/EventViews.hpp"
 #include "core/Format.hpp"
 #include "core/SecurityChecks.hpp"
 #include "core/Text.hpp"
@@ -6,7 +7,6 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QDir>
-#include <QFileInfo>
 #include <QGuiApplication>
 
 #include <algorithm>
@@ -16,25 +16,6 @@ using namespace std::chrono_literals;
 
 namespace moatbar {
 namespace {
-
-QString verdictKey(Verdict verdict) {
-    switch (verdict) {
-    case Verdict::Deny: return u"deny"_s;
-    case Verdict::Ask: return u"ask"_s;
-    case Verdict::Deferred: return u"deferred"_s;
-    case Verdict::Allow: return u"allow"_s;
-    }
-    return {};
-}
-
-std::optional<Verdict> verdictFromKey(QStringView key) {
-    for (const Verdict verdict : kVerdicts) {
-        if (verdictKey(verdict) == key) {
-            return verdict;
-        }
-    }
-    return std::nullopt;
-}
 
 /// The colour role QML draws a level in.
 QString levelTone(Level level) {
@@ -71,15 +52,6 @@ QVariantMap countsMap(const VerdictCounts &counts) {
         {u"allow"_s, counts[Verdict::Allow]},
         {u"total"_s, counts.total()},
     };
-}
-
-/// The last folder of a working directory: `openmoat` for `~/code/openmoat`.
-QString folderName(const std::optional<QString> &cwd) {
-    if (!cwd || cwd->isEmpty()) {
-        return {};
-    }
-    const QString name = QFileInfo(QDir::cleanPath(*cwd)).fileName();
-    return name.isEmpty() ? *cwd : name;
 }
 
 } // namespace
@@ -246,19 +218,6 @@ QVariantList QuickViewModel::verdicts() const {
     return out;
 }
 
-QVariantMap QuickViewModel::eventRow(const Event &event) const {
-    return {
-        {u"id"_s, event.id},
-        {u"display"_s, Format::oneLine(event.display(), 80)},
-        {u"monospace"_s, event.action && event.action->shellCommand().has_value()},
-        {u"rule"_s, event.rule().value_or(QString{})},
-        {u"agent"_s, agentName(event.host)},
-        {u"host"_s, event.host},
-        {u"place"_s, folderName(event.cwd)},
-        {u"time"_s, Format::clock(event.time())},
-    };
-}
-
 QVariantList QuickViewModel::events(const QString &verdict) const {
     const auto which = verdictFromKey(verdict);
     if (!m_snapshot || !which) {
@@ -268,7 +227,7 @@ QVariantList QuickViewModel::events(const QString &verdict) const {
     QVariantList out;
     const auto shown = std::min<std::size_t>(events.size(), kListLimit);
     for (std::size_t i = 0; i < shown; ++i) {
-        out << eventRow(events[i]);
+        out << eventRowMap(events[i], agentName(events[i].host));
     }
     return out;
 }
@@ -290,27 +249,7 @@ QVariantMap QuickViewModel::decision(const QString &id) const {
     if (it == m_snapshot->events.end()) {
         return {};
     }
-    const Event &event = *it;
-    const auto rule = event.rule();
-    const auto why = rule ? RuleText::why(*rule) : std::nullopt;
-    const auto check = event.action ? CopyCommands::policyCheck(*event.action) : std::nullopt;
-    return {
-        {u"id"_s, event.id},
-        {u"verdict"_s, verdictKey(event.verdict)},
-        {u"title"_s, verdictTitle(event.verdict)},
-        {u"rule"_s, rule.value_or(QString{})},
-        {u"agent"_s, agentName(event.host)},
-        {u"host"_s, event.host},
-        {u"time"_s, Format::clock(event.time())},
-        {u"tool"_s, event.tool},
-        {u"display"_s, event.display()},
-        {u"monospace"_s, event.action && event.action->shellCommand().has_value()},
-        {u"folder"_s, event.cwd ? Format::shortPath(*event.cwd, QDir::homePath()) : QString{}},
-        {u"told"_s, event.reason().value_or(QString{})},
-        {u"why"_s, why.value_or(QString{})},
-        {u"checkCommand"_s, check.value_or(QString{})},
-        {u"blocked"_s, event.verdict == Verdict::Deny || event.verdict == Verdict::Ask},
-    };
+    return decisionMap(*it, agentName(it->host));
 }
 
 // MARK: - Agents, sessions, checks

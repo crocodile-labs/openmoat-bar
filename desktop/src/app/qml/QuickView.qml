@@ -66,6 +66,7 @@ ApplicationWindow {
     }
 
     Shortcut { sequence: "Ctrl+R"; onActivated: moatbar.refresh() }
+    Shortcut { sequence: "Ctrl+A"; onActivated: moatbar.openActivity("deny") }
     Shortcut { sequence: "Ctrl+Q"; onActivated: moatbar.quit() }
     Shortcut { sequence: "Escape"; onActivated: root.back() }
     Shortcut { sequence: "Backspace"; onActivated: root.back() }
@@ -297,13 +298,10 @@ ApplicationWindow {
                             onClicked: root.openDecision(modelData.id)
                         }
                     }
-                    Label {
-                        visible: page.more > 0
-                        text: page.more + " more. The Activity window lists them all."
-                        color: Theme.secondary
-                        font.pixelSize: 12
-                        Layout.leftMargin: Theme.gutter
-                        Layout.topMargin: 6
+                    Divider {}
+                    LinkRow {
+                        title: "Show all in Activity…" + (page.more > 0 ? " (" + page.more + " more)" : "")
+                        onClicked: moatbar.openActivity(page.verdict)
                     }
                 }
             }
@@ -342,6 +340,11 @@ ApplicationWindow {
                     Decision {
                         visible: page.d.id !== undefined
                         d: page.d
+                    }
+                    LinkRow {
+                        visible: page.d.id !== undefined
+                        title: "Show in Activity…"
+                        onClicked: moatbar.openActivity(page.d.verdict)
                     }
                 }
             }

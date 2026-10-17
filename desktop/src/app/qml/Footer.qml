@@ -12,6 +12,12 @@ ColumnLayout {
 
     Divider {}
 
+    LinkRow {
+        title: "Activity window…"
+        shortcut: "Ctrl+A"
+        onClicked: moatbar.openActivity("deny")
+    }
+
     ItemDelegate {
         id: refresh
         Layout.fillWidth: true

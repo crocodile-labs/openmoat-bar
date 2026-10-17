@@ -8,6 +8,7 @@
 //   proxy status  crates/openmoat-cli/src/commands/service.rs
 
 #include <QDateTime>
+#include <QJsonObject>
 #include <QString>
 #include <QStringList>
 
@@ -94,6 +95,9 @@ struct Event {
     Verdict verdict = Verdict::Deferred;
     QStringList rules;
     QStringList reasons;
+    /// The event exactly as moat printed it (moat has already redacted it),
+    /// so an export keeps every field, including ones MoatBar doesn't read.
+    QJsonObject raw;
 
     [[nodiscard]] QDateTime time() const { return QDateTime::fromMSecsSinceEpoch(tsMs); }
     [[nodiscard]] QString display() const { return action ? action->display() : tool; }

@@ -85,6 +85,8 @@ public:
     /// `home`, `blocked`, `check`, `quickstart` or `limits`.
     Q_INVOKABLE static void openDocs(const QString &page);
     Q_INVOKABLE static void reportWrongBlock(const QString &rule);
+    /// The Activity window, showing one verdict (`deny`…) or, for "", everything.
+    Q_INVOKABLE void openActivity(const QString &verdict) { emit activityRequested(verdict); }
     Q_INVOKABLE void about() { emit aboutRequested(); }
     Q_INVOKABLE void quit() { emit quitRequested(); }
     /// The Quick View closed: what it showed has been seen.
@@ -93,6 +95,7 @@ public:
 signals:
     void changed();
     void refreshChanged();
+    void activityRequested(const QString &verdict);
     void aboutRequested();
     void quitRequested();
     void viewClosed();
@@ -102,7 +105,6 @@ private:
 
     [[nodiscard]] QStringView host() const { return m_selectedHost; }
     [[nodiscard]] QString agentName(const QString &host) const;
-    [[nodiscard]] QVariantMap eventRow(const Event &event) const;
     void setRefresh(const QString &state, const QString &text);
 
     std::optional<Snapshot> m_snapshot;

@@ -13,7 +13,7 @@ app, through `moat … --format json`, and its tests use the Mac app's fixtures
 | Path | What |
 | --- | --- |
 | `src/core` | No GUI, Qt Core only: moat's JSON (`Models`, `Json`), the read-only `MoatClient`, `Snapshot` (every count the tray shows), `IconState`, `SecurityChecks`, `Text` (rule explanations, copyable commands, links) |
-| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window), `qml/` |
+| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window); the Activity window: `ActivityModel`, `ActivityWindow`; `EventViews` (a call as QML sees it); `qml/` |
 | `tests` | Qt Test suites for `src/core` and `QuickViewModel` |
 | `tools` | `moatbar_shots`: draws the menu, the tray icons and every Quick View page from the fixtures into PNG files, and fails on any QML warning |
 
@@ -26,7 +26,14 @@ agents and security checks, then Refresh, docs, About and Quit. On Windows it is
 beside the taskbar that closes when you click elsewhere; on Linux a normal window. A right
 click on the icon still opens the plain tray menu, which also has "Open MoatBar" for desktops
 where a click opens the menu (GNOME's AppIndicator). Colours follow the desktop's palette, light
-or dark. Keys: Ctrl+R refresh, Esc back or close, Ctrl+Q quit.
+or dark. Keys: Ctrl+R refresh, Ctrl+A Activity, Esc back or close, Ctrl+Q quit.
+
+## The Activity window
+
+Every call in today, the last 7 days or the last 30 days, filtered by agent, verdict and rule,
+with one call in full beside the list. Export saves the calls the filter matches as JSON lines,
+each one exactly as `moat show` printed it. Opened from the Quick View (Ctrl+A, "Show all in
+Activity…"), and from the tray menu.
 
 ## Status
 

@@ -7,6 +7,9 @@ qt_add_library(moatbar_ui STATIC
     TrayController.hpp TrayController.cpp
     QuickViewModel.hpp QuickViewModel.cpp
     QuickView.hpp QuickView.cpp
+    EventViews.hpp EventViews.cpp
+    ActivityModel.hpp ActivityModel.cpp
+    ActivityWindow.hpp ActivityWindow.cpp
 )
 target_link_libraries(moatbar_ui PUBLIC moatbar_core Qt6::Gui Qt6::Widgets Qt6::Qml Qt6::Quick Qt6::QuickControls2)
 moatbar_warnings(moatbar_ui)
@@ -33,6 +36,7 @@ qt_add_resources(moatbar_ui "quick_view"
         qml/PageHeader.qml
         qml/Divider.qml
         qml/Footer.qml
+        qml/ActivityWindow.qml
 )
 
 # The logo and agent icons are shared with the macOS app.
