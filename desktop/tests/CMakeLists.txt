@@ -23,3 +23,7 @@ target_link_libraries(tst_activity PRIVATE moatbar_ui)
 # Notifications (new blocks, the rule throttle) and MoatBar's own settings.
 moatbar_test(tst_settings)
 target_link_libraries(tst_settings PRIVATE moatbar_ui)
+
+# One MoatBar per user.
+moatbar_test(tst_singleinstance)
+target_link_libraries(tst_singleinstance PRIVATE moatbar_ui)

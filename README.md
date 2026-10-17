@@ -128,8 +128,9 @@ cmake --build build --parallel
 ```
 
 CI runs the Ubuntu line exactly as written; the Fedora and Arch lines are not tested yet. On
-GNOME without Ubuntu's tray support (Fedora, for example), install the "AppIndicator and
-KStatusNotifierItem Support" extension, or MoatBar has no tray to sit in.
+GNOME without Ubuntu's tray support (Fedora, for example), the tray icon needs the "AppIndicator
+and KStatusNotifierItem Support" extension. Without it MoatBar still runs: open it from the app
+menu and it shows as a window.
 
 ### Windows
 

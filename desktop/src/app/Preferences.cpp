@@ -106,7 +106,7 @@ void Preferences::setStartAtLogin(bool on) {
 #ifdef Q_OS_WIN
     QSettings run(kRunKey, QSettings::NativeFormat);
     if (on) {
-        run.setValue(kRunValue, u"\"%1\""_s.arg(QDir::toNativeSeparators(m_executable)));
+        run.setValue(kRunValue, u"\"%1\" --background"_s.arg(QDir::toNativeSeparators(m_executable)));
     } else {
         run.remove(kRunValue);
     }
@@ -121,7 +121,7 @@ void Preferences::setStartAtLogin(bool on) {
                                 u"Type=Application\n"
                                 u"Name=MoatBar\n"
                                 u"Comment=See what OpenMoat does for your coding agents. Read-only.\n"
-                                u"Exec=%1\n"
+                                u"Exec=%1 --background\n"
                                 u"Icon=dev.openmoat.moatbar\n"
                                 u"Terminal=false\n"
                                 u"X-GNOME-Autostart-enabled=true\n"_s.arg(execQuoted(m_executable))

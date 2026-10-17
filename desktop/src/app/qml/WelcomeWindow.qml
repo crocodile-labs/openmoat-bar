@@ -64,8 +64,8 @@ ApplicationWindow {
 
         Image {
             Layout.alignment: Qt.AlignHCenter
-            source: "image://moatbar/logo"
-            sourceSize: Qt.size(400, 400)
+            source: "image://moatbar/logo-large"
+            sourceSize: Qt.size(360, 180)
             Layout.preferredWidth: 180
             Layout.preferredHeight: 90
             fillMode: Image.PreserveAspectFit

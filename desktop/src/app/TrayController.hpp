@@ -31,8 +31,10 @@ public:
     explicit TrayController(SnapshotStore &store, QObject *parent = nullptr);
 
     void show();
-    /// The welcome window on the first launch; nothing after that.
-    void welcomeOnFirstLaunch();
+    /// The welcome window on the first launch; nothing after that. Returns whether it showed.
+    bool welcomeOnFirstLaunch();
+    /// A request from a later start (SingleInstance): show, activity, settings, quit.
+    void handleRequest(const QString &request);
     void openQuickView();
     void openActivity(const QString &verdict);
     void openSettings();

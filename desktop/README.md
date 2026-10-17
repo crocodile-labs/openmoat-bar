@@ -48,6 +48,24 @@ menu) has the few things MoatBar decides itself:
 
 MoatBar's settings are its own (Qt's per-user settings); it never writes to OpenMoat or `~/.moat`.
 
+## One MoatBar, with or without a tray
+
+Only one MoatBar runs per user. Starting it again (from the app menu, the Start menu or a
+terminal) hands the request to the one that is running, over a local socket only that user
+can open, and exits:
+
+| Command | Does |
+| --- | --- |
+| `moatbar` | Opens the Quick View |
+| `moatbar --activity` | Opens the Activity window |
+| `moatbar --settings` | Opens Settings |
+| `moatbar --background` | Starts without opening a window (what start at login uses) |
+| `moatbar --quit` | Quits the MoatBar that is running |
+
+Without a tray (GNOME without the AppIndicator extension), MoatBar still runs. Start it from the
+app menu to open the Quick View as a window; notifications go to GNOME's own notification
+service.
+
 ## Status
 
 Builds and passes its tests on Ubuntu 24.04 and Windows Server 2022 in CI. It has not been
@@ -73,7 +91,8 @@ ctest --test-dir build --build-config Release --output-on-failure
 ./build/src/app/moatbar
 ```
 
-On GNOME, the tray needs the "AppIndicator and KStatusNotifierItem Support" extension.
+On GNOME, the tray icon needs the "AppIndicator and KStatusNotifierItem Support" extension;
+without it MoatBar runs from the app menu (see above).
 
 ## Rules
 
