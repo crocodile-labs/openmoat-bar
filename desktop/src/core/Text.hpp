@@ -52,6 +52,7 @@ namespace DocsLink {
 [[nodiscard]] QUrl checkACommand();
 [[nodiscard]] QUrl quickstart();
 [[nodiscard]] QUrl limits();
+[[nodiscard]] QUrl turnOff();
 /// A new OpenMoat issue for a wrong block. Only the rule id goes in the title.
 [[nodiscard]] QUrl reportWrongBlock(const std::optional<QString> &rule);
 } // namespace DocsLink

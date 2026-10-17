@@ -74,6 +74,11 @@ ColumnLayout {
     Divider {}
 
     LinkRow {
+        title: "Settings…"
+        shortcut: "Ctrl+,"
+        onClicked: moatbar.openSettings()
+    }
+    LinkRow {
         title: "About MoatBar"
         onClicked: moatbar.about()
     }

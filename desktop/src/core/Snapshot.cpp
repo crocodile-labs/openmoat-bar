@@ -1,10 +1,12 @@
 #include "core/Snapshot.hpp"
 
 #include <QDir>
+#include <QSet>
 
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <ranges>
@@ -149,6 +151,27 @@ std::vector<Protection> newlyUnprotected(const Snapshot *previous, const Snapsho
         const Protection *before = previous ? previous->agent(agent.host) : nullptr;
         if (before == nullptr || before->level != Level::NotProtected) {
             out.push_back(agent);
+        }
+    }
+    return out;
+}
+
+std::vector<Event> newBlocks(const Snapshot *previous, const Snapshot &current) {
+    if (previous == nullptr) {
+        return {};
+    }
+    // Ids seen before, and nothing older than the newest call seen before (a
+    // new day's read starts over with fresh ids).
+    const std::int64_t seen = previous->events.empty() ? std::numeric_limits<std::int64_t>::min()
+                                                       : previous->events.back().tsMs;
+    QSet<QString> known;
+    for (const Event &event : previous->events) {
+        known.insert(event.id);
+    }
+    std::vector<Event> out;
+    for (const Event &event : current.events) {
+        if (event.verdict == Verdict::Deny && event.tsMs >= seen && !known.contains(event.id)) {
+            out.push_back(event);
         }
     }
     return out;

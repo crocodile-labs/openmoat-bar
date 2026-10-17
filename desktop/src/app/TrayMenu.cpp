@@ -283,6 +283,9 @@ void TrayMenu::addFooter(QMenu &menu) const {
     QObject::connect(menu.addAction(u"Refresh"_s), &QAction::triggered, m_actions.refresh);
     addLink(menu, u"OpenMoat docs"_s, DocsLink::home());
     menu.addSeparator();
+    if (m_actions.settings) {
+        QObject::connect(menu.addAction(u"Settings…"_s), &QAction::triggered, m_actions.settings);
+    }
     QObject::connect(menu.addAction(u"About MoatBar"_s), &QAction::triggered, m_actions.about);
     QObject::connect(menu.addAction(u"Quit MoatBar"_s), &QAction::triggered, m_actions.quit);
 }

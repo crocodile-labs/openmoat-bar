@@ -87,6 +87,7 @@ public:
     Q_INVOKABLE static void reportWrongBlock(const QString &rule);
     /// The Activity window, showing one verdict (`deny`…) or, for "", everything.
     Q_INVOKABLE void openActivity(const QString &verdict) { emit activityRequested(verdict); }
+    Q_INVOKABLE void openSettings() { emit settingsRequested(); }
     Q_INVOKABLE void about() { emit aboutRequested(); }
     Q_INVOKABLE void quit() { emit quitRequested(); }
     /// The Quick View closed: what it showed has been seen.
@@ -96,6 +97,7 @@ signals:
     void changed();
     void refreshChanged();
     void activityRequested(const QString &verdict);
+    void settingsRequested();
     void aboutRequested();
     void quitRequested();
     void viewClosed();

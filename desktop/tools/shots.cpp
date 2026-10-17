@@ -6,6 +6,11 @@
 
 #include "../tests/Fixtures.hpp"
 #include "app/ActivityWindow.hpp"
+#include "app/Preferences.hpp"
+#include "app/SettingsWindows.hpp"
+
+#include <QSettings>
+#include <QTemporaryDir>
 #include "app/QuickView.hpp"
 #include "app/QuickViewModel.hpp"
 #include "app/TrayIcon.hpp"
@@ -222,6 +227,38 @@ bool quickViewShots(const QDir &out, const Snapshot &protectedSnapshot, const Sn
 
 /// The Activity window: Blocked with the newest call open, then everything
 /// filtered to one rule, then dark.
+/// The Welcome and Settings windows, with settings kept in a temporary folder:
+/// the tool never reads or writes the real ones.
+bool settingsShots(const QDir &out) {
+    QTemporaryDir scratch;
+    if (!scratch.isValid()) {
+        std::fprintf(stderr, "no temporary folder\n");
+        return false;
+    }
+    Preferences preferences(std::make_unique<QSettings>(scratch.filePath(u"moatbar.ini"_s), QSettings::IniFormat),
+                            scratch.filePath(u"autostart"_s), u"/usr/bin/moatbar"_s);
+    preferences.setMoat(u"/usr/local/bin/moat"_s, u"0.5.3"_s);
+    QuickViewModel actions;
+    SettingsWindows windows(preferences, actions);
+
+    bool ok = true;
+    for (const auto &[window, name] : {std::pair{windows.welcomeWindow(), u"welcome.png"_s},
+                                       std::pair{windows.settingsWindow(), u"settings.png"_s}}) {
+        if (window == nullptr) {
+            return false;
+        }
+        window->show();
+        settle();
+        ok &= save(QPixmap::fromImage(window->grabWindow()), out, name);
+        window->hide();
+    }
+    if (windows.warningCount() > 0) {
+        std::fprintf(stderr, "%d QML warnings in Welcome or Settings\n", windows.warningCount());
+        ok = false;
+    }
+    return ok;
+}
+
 bool activityShots(const QDir &out, const Snapshot &snapshot) {
     QuickViewModel actions;
     ActivityModel model;
@@ -284,7 +321,8 @@ int main(int argc, char *argv[]) {
 
     bool ok = true;
     // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
-    const TrayActions actions{.open = {}, .activity = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
+    const TrayActions actions{
+        .open = {}, .activity = {}, .settings = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
 
     QMenu menu;
     TrayMenu(&*protectedSnapshot, std::nullopt, actions).fill(menu);
@@ -312,5 +350,6 @@ int main(int argc, char *argv[]) {
 
     ok &= quickViewShots(out, *protectedSnapshot, *unprotectedSnapshot);
     ok &= activityShots(out, *protectedSnapshot);
+    ok &= settingsShots(out);
     return ok ? 0 : 1;
 }

@@ -13,7 +13,7 @@ app, through `moat … --format json`, and its tests use the Mac app's fixtures
 | Path | What |
 | --- | --- |
 | `src/core` | No GUI, Qt Core only: moat's JSON (`Models`, `Json`), the read-only `MoatClient`, `Snapshot` (every count the tray shows), `IconState`, `SecurityChecks`, `Text` (rule explanations, copyable commands, links) |
-| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window); the Activity window: `ActivityModel`, `ActivityWindow`; `EventViews` (a call as QML sees it); `qml/` |
+| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window); the Activity window: `ActivityModel`, `ActivityWindow`; Welcome and Settings: `Preferences`, `SettingsWindows`; `EventViews` (a call as QML sees it); `qml/` |
 | `tests` | Qt Test suites for `src/core` and `QuickViewModel` |
 | `tools` | `moatbar_shots`: draws the menu, the tray icons and every Quick View page from the fixtures into PNG files, and fails on any QML warning |
 
@@ -34,6 +34,19 @@ Every call in today, the last 7 days or the last 30 days, filtered by agent, ver
 with one call in full beside the list. Export saves the calls the filter matches as JSON lines,
 each one exactly as `moat show` printed it. Opened from the Quick View (Ctrl+A, "Show all in
 Activity…"), and from the tray menu.
+
+## Welcome, Settings and notifications
+
+The first launch shows a welcome window once. Settings (Ctrl+, in the Quick View, or the tray
+menu) has the few things MoatBar decides itself:
+
+- Start at login: an XDG autostart entry (`~/.config/autostart/dev.openmoat.moatbar.desktop`)
+  on Linux, the per-user Run key on Windows. Off until you turn it on.
+- Notifications: an agent that stops being protected always notifies. Blocked calls notify
+  only if you turn it on, at most one per rule every 10 minutes, naming the rule and the agent
+  but never the command.
+
+MoatBar's settings are its own (Qt's per-user settings); it never writes to OpenMoat or `~/.moat`.
 
 ## Status
 

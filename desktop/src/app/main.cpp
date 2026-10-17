@@ -35,5 +35,6 @@ int main(int argc, char *argv[]) {
     moatbar::TrayController tray(store);
     tray.show();
     store.start();
+    tray.welcomeOnFirstLaunch();
     return QApplication::exec();
 }

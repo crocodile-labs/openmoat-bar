@@ -17,7 +17,7 @@ copy into Terminal.
 | Platform | Status |
 | --- | --- |
 | macOS 12 or later | In development: menu bar app, Activity window, Settings |
-| Linux, Windows | Early ([`desktop/`](desktop)): tray icon, the Quick View (the menu's content in a small window, opened by clicking the icon), the Activity window and a plain tray menu. Welcome and Settings are still to come. Built and tested in CI on Ubuntu and Windows, not yet tried on a real desktop |
+| Linux, Windows | Early ([`desktop/`](desktop)): tray icon, the Quick View (the menu's content in a small window, opened by clicking the icon), the Activity window, Welcome and Settings (start at login, opt-in block notifications) and a plain tray menu. Built and tested in CI on Ubuntu and Windows, not yet tried on a real desktop |
 
 ![The MoatBar menu: Blocked, then the list of blocked calls, then one decision in full](docs/images/menu.png)
 

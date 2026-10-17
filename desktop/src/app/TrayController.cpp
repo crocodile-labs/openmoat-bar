@@ -17,7 +17,7 @@ const QString kSeenUntilKey = QStringLiteral("seenUntilMs");
 
 TrayController::TrayController(SnapshotStore &store, QObject *parent)
     : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model),
-      m_activity(m_activityModel, m_model) {
+      m_activity(m_activityModel, m_model), m_settingsWindows(m_preferences, m_model) {
     m_tray.setContextMenu(m_menu.get());
     m_menu->setToolTipsVisible(true);
     // The menu is never rebuilt while it is open: items removed under the
@@ -41,6 +41,9 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
 
     m_model.setRefreshHandler([this] { m_store.refresh(); });
     connect(&m_model, &QuickViewModel::activityRequested, this, &TrayController::openActivity);
+    connect(&m_model, &QuickViewModel::settingsRequested, this, &TrayController::openSettings);
+    connect(&m_settingsWindows, &SettingsWindows::openRequested, this, &TrayController::openQuickView);
+    connect(&m_settingsWindows, &SettingsWindows::quitRequested, qApp, &QCoreApplication::quit);
     connect(&m_model, &QuickViewModel::aboutRequested, this, &TrayController::showAbout);
     connect(&m_model, &QuickViewModel::quitRequested, qApp, &QCoreApplication::quit);
     connect(&m_model, &QuickViewModel::viewClosed, this, &TrayController::markSeen);
@@ -52,6 +55,17 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
 
 void TrayController::show() {
     m_tray.show();
+}
+
+void TrayController::welcomeOnFirstLaunch() {
+    m_settingsWindows.showWelcomeOnce();
+}
+
+void TrayController::openSettings() {
+#ifdef Q_OS_WIN
+    m_quickView.hide();
+#endif
+    m_settingsWindows.showSettings();
 }
 
 void TrayController::openQuickView() {
@@ -73,6 +87,9 @@ void TrayController::storeChanged() {
     // The Quick View redraws in place; it has no submenus to close.
     m_model.setData(m_store.snapshot(), m_store.error());
     m_model.refreshFinished(m_store.error());
+    const auto &snapshot = m_store.snapshot();
+    m_preferences.setMoat(MoatClient::locate().value_or(QString{}),
+                          snapshot ? snapshot->moatVersion.value_or(QString{}) : QString{});
     updateIcon();
     if (m_menu->isVisible()) {
         m_rebuildPending = true;
@@ -87,6 +104,21 @@ void TrayController::snapshotRead(const std::optional<Snapshot> &previous, const
         m_tray.showMessage(u"%1 is not protected"_s.arg(agent.name),
                            why + u"Its calls are not being checked. Open MoatBar for the fix."_s,
                            QSystemTrayIcon::Warning);
+    }
+    if (!m_preferences.notifyBlocks()) {
+        return;
+    }
+    // The rule and the agent, never the command: notifications can show on a
+    // locked screen.
+    for (const Event &event : newBlocks(previous ? &*previous : nullptr, current)) {
+        const QString rule = event.rule().value_or(u"a rule"_s);
+        if (!m_throttle.allow(rule)) {
+            continue;
+        }
+        const Protection *agent = current.agent(event.host);
+        m_tray.showMessage(u"Blocked by %1"_s.arg(rule),
+                           u"%1 was stopped. Open MoatBar to see what and why."_s.arg(agent ? agent->name : event.host),
+                           QSystemTrayIcon::Information);
     }
 }
 
@@ -104,6 +136,7 @@ void TrayController::rebuildMenu() {
                            TrayActions{
                                .open = [this] { openQuickView(); },
                                .activity = [this] { openActivity(u"deny"_s); },
+                               .settings = [this] { openSettings(); },
                                .refresh = [this] { m_store.refresh(); },
                                .about = [this] { showAbout(); },
                                .quit = [] { QApplication::quit(); },
