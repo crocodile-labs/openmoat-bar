@@ -20,4 +20,8 @@ namespace moatbar::json {
 /// `moat 0.5.3 (OpenMoat)` → `0.5.3`.
 [[nodiscard]] Result<QString> parseVersion(const QByteArray &bytes);
 
+/// Events as JSON lines, one object per line in moat's own shape, for the
+/// Activity window's export.
+[[nodiscard]] QByteArray toJsonLines(const std::vector<Event> &events);
+
 } // namespace moatbar::json

@@ -16,7 +16,8 @@ const QString kSeenUntilKey = QStringLiteral("seenUntilMs");
 } // namespace
 
 TrayController::TrayController(SnapshotStore &store, QObject *parent)
-    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model) {
+    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model),
+      m_activity(m_activityModel, m_model) {
     m_tray.setContextMenu(m_menu.get());
     m_menu->setToolTipsVisible(true);
     // The menu is never rebuilt while it is open: items removed under the
@@ -39,6 +40,7 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
     connect(&m_store, &SnapshotStore::snapshotRead, this, &TrayController::snapshotRead);
 
     m_model.setRefreshHandler([this] { m_store.refresh(); });
+    connect(&m_model, &QuickViewModel::activityRequested, this, &TrayController::openActivity);
     connect(&m_model, &QuickViewModel::aboutRequested, this, &TrayController::showAbout);
     connect(&m_model, &QuickViewModel::quitRequested, qApp, &QCoreApplication::quit);
     connect(&m_model, &QuickViewModel::viewClosed, this, &TrayController::markSeen);
@@ -57,6 +59,14 @@ void TrayController::openQuickView() {
     m_model.setData(m_store.snapshot(), m_store.error());
     m_quickView.show(m_tray.geometry());
     m_store.refresh();
+}
+
+void TrayController::openActivity(const QString &verdict) {
+#ifdef Q_OS_WIN
+    // The flyout would close anyway when the window takes focus.
+    m_quickView.hide();
+#endif
+    m_activity.show(verdict);
 }
 
 void TrayController::storeChanged() {
@@ -93,6 +103,7 @@ void TrayController::rebuildMenu() {
     const TrayMenu builder(snapshot ? &*snapshot : nullptr, m_store.error(),
                            TrayActions{
                                .open = [this] { openQuickView(); },
+                               .activity = [this] { openActivity(u"deny"_s); },
                                .refresh = [this] { m_store.refresh(); },
                                .about = [this] { showAbout(); },
                                .quit = [] { QApplication::quit(); },

@@ -73,27 +73,41 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
     return pixmap;
 }
 
-QuickView::QuickView(QuickViewModel &model, QObject *parent) : QObject(parent), m_model(model) {
+QmlHost::QmlHost(QObject *parent) : QObject(parent) {
     m_engine.addImageProvider(u"moatbar"_s, new ImageProvider); // the engine owns it
-    m_engine.rootContext()->setContextProperty(u"moatbar"_s, &m_model);
+    m_engine.setOutputWarningsToStandardError(false);
+    connect(&m_engine, &QQmlEngine::warnings, this, [this](const QList<QQmlError> &warnings) {
+        for (const QQmlError &warning : warnings) {
+            std::fprintf(stderr, "qml: %s\n", qPrintable(warning.toString()));
+        }
+        m_warnings += static_cast<int>(warnings.size());
+    });
+}
+
+void QmlHost::expose(const QString &name, QObject *object) {
+    m_engine.rootContext()->setContextProperty(name, object);
+}
+
+QQuickWindow *QmlHost::load(const QString &file) {
+    m_engine.load(QUrl(QString(u"qrc:/qml/"_s + file)));
+    const auto roots = m_engine.rootObjects();
+    auto *window = roots.isEmpty() ? nullptr : qobject_cast<QQuickWindow *>(roots.last());
+    if (window == nullptr) {
+        std::fprintf(stderr, "%s did not load\n", qPrintable(file));
+    }
+    return window;
+}
+
+QuickView::QuickView(QuickViewModel &model, QObject *parent) : QObject(parent), m_model(model) {
+    m_host.expose(u"moatbar"_s, &m_model);
 }
 
 bool QuickView::load() {
     if (m_window) {
         return true;
     }
-    m_engine.setOutputWarningsToStandardError(false);
-    QObject::connect(&m_engine, &QQmlEngine::warnings, this, [this](const QList<QQmlError> &warnings) {
-        for (const QQmlError &warning : warnings) {
-            std::fprintf(stderr, "qml: %s\n", qPrintable(warning.toString()));
-        }
-        m_warnings += static_cast<int>(warnings.size());
-    });
-    m_engine.load(QUrl(u"qrc:/qml/QuickView.qml"_s));
-    const auto roots = m_engine.rootObjects();
-    m_window = roots.isEmpty() ? nullptr : qobject_cast<QQuickWindow *>(roots.first());
+    m_window = m_host.load(u"QuickView.qml"_s);
     if (!m_window) {
-        std::fprintf(stderr, "the Quick View did not load\n");
         return false;
     }
     connect(m_window, &QWindow::visibleChanged, this, [this](bool visible) {

@@ -5,6 +5,7 @@
 //     moatbar_shots OUT_DIR
 
 #include "../tests/Fixtures.hpp"
+#include "app/ActivityWindow.hpp"
 #include "app/QuickView.hpp"
 #include "app/QuickViewModel.hpp"
 #include "app/TrayIcon.hpp"
@@ -219,6 +220,45 @@ bool quickViewShots(const QDir &out, const Snapshot &protectedSnapshot, const Sn
     return ok;
 }
 
+/// The Activity window: Blocked with the newest call open, then everything
+/// filtered to one rule, then dark.
+bool activityShots(const QDir &out, const Snapshot &snapshot) {
+    QuickViewModel actions;
+    ActivityModel model;
+    ActivityWindow activity(model, actions);
+    model.setData(snapshot.status, snapshot.events);
+    if (!activity.load()) {
+        return false;
+    }
+    QQuickWindow *window = activity.window();
+    window->show();
+
+    bool ok = true;
+    const auto shoot = [&](const QString &name) {
+        settle();
+        ok &= save(QPixmap::fromImage(window->grabWindow()), out, name);
+    };
+
+    shoot(u"activity.png"_s);
+
+    model.setVerdict(QString{});
+    model.setRule(u"secrets-paths"_s);
+    shoot(u"activity-rule.png"_s);
+
+    const QPalette light = QGuiApplication::palette();
+    QGuiApplication::setPalette(darkPalette());
+    model.setRule(QString{});
+    shoot(u"activity-dark.png"_s);
+    QGuiApplication::setPalette(light);
+
+    window->hide();
+    if (activity.warningCount() > 0) {
+        std::fprintf(stderr, "%d QML warnings in the Activity window\n", activity.warningCount());
+        ok = false;
+    }
+    return ok;
+}
+
 } // namespace
 
 int main(int argc, char *argv[]) {
@@ -244,7 +284,7 @@ int main(int argc, char *argv[]) {
 
     bool ok = true;
     // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
-    const TrayActions actions{.open = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
+    const TrayActions actions{.open = {}, .activity = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
 
     QMenu menu;
     TrayMenu(&*protectedSnapshot, std::nullopt, actions).fill(menu);
@@ -271,5 +311,6 @@ int main(int argc, char *argv[]) {
     ok &= save(iconStrip(), out, u"tray-icons.png"_s);
 
     ok &= quickViewShots(out, *protectedSnapshot, *unprotectedSnapshot);
+    ok &= activityShots(out, *protectedSnapshot);
     return ok ? 0 : 1;
 }

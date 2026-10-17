@@ -277,6 +277,9 @@ void TrayMenu::addUnavailable(QMenu &menu) const {
 
 void TrayMenu::addFooter(QMenu &menu) const {
     menu.addSeparator();
+    if (m_actions.activity) {
+        QObject::connect(menu.addAction(u"Activity window…"_s), &QAction::triggered, m_actions.activity);
+    }
     QObject::connect(menu.addAction(u"Refresh"_s), &QAction::triggered, m_actions.refresh);
     addLink(menu, u"OpenMoat docs"_s, DocsLink::home());
     menu.addSeparator();
