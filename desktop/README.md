@@ -1,12 +1,13 @@
 # MoatBar for Linux and Windows
 
-The same MoatBar as on macOS, for Linux and Windows: a tray icon and menu that show which
-coding agents OpenMoat protects, what it blocked today and why, and a notification when
-protection drops. Read-only, like the Mac app.
+The same MoatBar as on macOS, for Linux and Windows: a tray croc and a small window that show
+which coding agents OpenMoat protects, what it blocked and why, and a notification when
+protection drops. Read-only, like the Mac app. What differs from macOS:
+[MAC_COMPARISON.md](MAC_COMPARISON.md).
 
-Qt 6 and C++20, one codebase for both systems. It reads OpenMoat the same way as the Mac
-app, through `moat … --format json`, and its tests use the Mac app's fixtures
-(`Tests/MoatBarCoreTests/Fixtures`), so both apps read moat's JSON the same way.
+Qt 6 (Qt Quick for the windows) and C++20, one codebase for both systems. It reads OpenMoat the
+same way as the Mac app, through `moat … --format json`, and its tests use the Mac app's
+fixtures (`Tests/MoatBarCoreTests/Fixtures`), so both apps read moat's JSON the same way.
 
 ## Layout
 
