@@ -30,7 +30,10 @@ QString agentResource(QStringView host) {
 /// The image without its transparent border, scaled to fit a `size` square.
 /// The agent icons and the croc have wide transparent margins, which at 16 px
 /// leave a speck.
-QPixmap fitted(const QPixmap &source, const QSize &size) {
+QPixmap fitted(QPixmap source, const QSize &size) {
+    // Pixels, not points: Qt reads "@4x" in a file name as a device pixel
+    // ratio, which would draw the croc at a quarter of the size asked for.
+    source.setDevicePixelRatio(1.0);
     const QImage image = source.toImage().convertToFormat(QImage::Format_ARGB32);
     QRect used;
     for (int y = 0; y < image.height(); ++y) {
