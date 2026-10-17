@@ -56,13 +56,22 @@ jobs:
       - name: Configure
         run: cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
 
+      # Build and test output also go to screenshots/, which is published to
+      # ci-shots/<os> below, so failures can be read without the log viewer.
       - name: Build
-        run: cmake --build build --config Release --parallel
+        shell: bash
+        run: |
+          mkdir -p screenshots
+          set -o pipefail
+          cmake --build build --config Release --parallel 2>&1 | tee screenshots/build.log
 
       - name: Test
+        shell: bash
         env:
           QT_QPA_PLATFORM: offscreen
-        run: ctest --test-dir build --build-config Release --output-on-failure
+        run: |
+          set -o pipefail
+          ctest --test-dir build --build-config Release --output-on-failure 2>&1 | tee screenshots/test.log
 
       # The menu and tray icons drawn offscreen from the fixtures, kept with the
       # run so they can be looked at without a Linux or Windows machine.
@@ -86,7 +95,7 @@ jobs:
         with:
           name: moatbar-${{ matrix.name }}-screenshots
           path: screenshots/
-          if-no-files-found: error
+          if-no-files-found: warn
 
       # Also on a branch of their own (ci-shots/linux, ci-shots/windows), so they
       # can be read through the contents API by reviewers who can't download
