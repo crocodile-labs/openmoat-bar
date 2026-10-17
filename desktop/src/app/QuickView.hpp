@@ -11,8 +11,9 @@
 
 namespace moatbar {
 
-/// Images for QML: `image://moatbar/logo` and `image://moatbar/agent/<host>/<rrggbb>`,
-/// an agent's white template icon recoloured.
+/// Images for QML: `image://moatbar/logo` (the tray croc), `image://moatbar/logo-large`
+/// (the full-size croc) and `image://moatbar/agent/<host>/<rrggbb>`, an agent's
+/// white template icon recoloured.
 class ImageProvider final : public QQuickImageProvider {
 public:
     ImageProvider() : QQuickImageProvider(QQuickImageProvider::Pixmap) {}

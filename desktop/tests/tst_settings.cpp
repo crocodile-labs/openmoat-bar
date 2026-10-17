@@ -94,7 +94,8 @@ private slots:
         const QString text = QString::fromUtf8(entry.readAll());
         QVERIFY(text.startsWith(u"[Desktop Entry]\n"_s));
         // The path is quoted, so a space in it keeps it one argument.
-        QVERIFY(text.contains(u"\nExec=\"/opt/Moat Bar/moatbar\"\n"_s));
+        // --background: logging in starts MoatBar without opening a window.
+        QVERIFY(text.contains(u"\nExec=\"/opt/Moat Bar/moatbar\" --background\n"_s));
         entry.close();
 
         preferences->setStartAtLogin(false);

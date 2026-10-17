@@ -60,6 +60,9 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
     const QStringList parts = id.split(u'/');
     if (parts.value(0) == u"logo") {
         pixmap = fitted(appIcon().pixmap(256), want);
+    } else if (parts.value(0) == u"logo-large") {
+        // The full-size croc, for the welcome window.
+        pixmap = fitted(QPixmap(u":/logo-float@4x.png"_s), want);
     } else if (parts.value(0) == u"agent" && parts.size() == 3) {
         const QString resource = agentResource(parts[1]);
         const QColor color(u"#"_s + parts[2]);

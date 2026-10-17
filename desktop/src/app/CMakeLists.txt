@@ -12,8 +12,15 @@ qt_add_library(moatbar_ui STATIC
     ActivityWindow.hpp ActivityWindow.cpp
     Preferences.hpp Preferences.cpp
     SettingsWindows.hpp SettingsWindows.cpp
+    SingleInstance.hpp SingleInstance.cpp
+    Notify.hpp Notify.cpp
 )
-target_link_libraries(moatbar_ui PUBLIC moatbar_core Qt6::Gui Qt6::Widgets Qt6::Qml Qt6::Quick Qt6::QuickControls2)
+target_link_libraries(moatbar_ui PUBLIC moatbar_core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::Qml Qt6::Quick
+                                        Qt6::QuickControls2)
+if(TARGET Qt6::DBus)
+    target_link_libraries(moatbar_ui PUBLIC Qt6::DBus)
+    target_compile_definitions(moatbar_ui PRIVATE MOATBAR_HAS_DBUS)
+endif()
 moatbar_warnings(moatbar_ui)
 
 # The Quick View's QML, loaded from qrc:/qml/.

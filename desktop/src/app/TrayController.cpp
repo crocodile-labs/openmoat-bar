@@ -1,4 +1,5 @@
 #include "app/TrayController.hpp"
+#include "app/Notify.hpp"
 #include "app/TrayIcon.hpp"
 #include "app/TrayMenu.hpp"
 #include "core/SecurityChecks.hpp"
@@ -54,11 +55,27 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
 }
 
 void TrayController::show() {
-    m_tray.show();
+    // Without a tray (GNOME without its extension) MoatBar is its windows and
+    // its notifications; launching it again opens the Quick View.
+    if (QSystemTrayIcon::isSystemTrayAvailable()) {
+        m_tray.show();
+    }
 }
 
-void TrayController::welcomeOnFirstLaunch() {
-    m_settingsWindows.showWelcomeOnce();
+bool TrayController::welcomeOnFirstLaunch() {
+    return m_settingsWindows.showWelcomeOnce();
+}
+
+void TrayController::handleRequest(const QString &request) {
+    if (request == u"show") {
+        openQuickView();
+    } else if (request == u"activity") {
+        openActivity(u"deny"_s);
+    } else if (request == u"settings") {
+        openSettings();
+    } else if (request == u"quit") {
+        QApplication::quit();
+    }
 }
 
 void TrayController::openSettings() {
@@ -101,9 +118,8 @@ void TrayController::storeChanged() {
 void TrayController::snapshotRead(const std::optional<Snapshot> &previous, const Snapshot &current) {
     for (const Protection &agent : newlyUnprotected(previous ? &*previous : nullptr, current)) {
         const QString why = agent.reason ? u"OpenMoat says: %1. "_s.arg(*agent.reason) : QString{};
-        m_tray.showMessage(u"%1 is not protected"_s.arg(agent.name),
-                           why + u"Its calls are not being checked. Open MoatBar for the fix."_s,
-                           QSystemTrayIcon::Warning);
+        notify(m_tray, u"%1 is not protected"_s.arg(agent.name),
+               why + u"Its calls are not being checked. Open MoatBar for the fix."_s, true);
     }
     if (!m_preferences.notifyBlocks()) {
         return;
@@ -116,9 +132,8 @@ void TrayController::snapshotRead(const std::optional<Snapshot> &previous, const
             continue;
         }
         const Protection *agent = current.agent(event.host);
-        m_tray.showMessage(u"Blocked by %1"_s.arg(rule),
-                           u"%1 was stopped. Open MoatBar to see what and why."_s.arg(agent ? agent->name : event.host),
-                           QSystemTrayIcon::Information);
+        notify(m_tray, u"Blocked by %1"_s.arg(rule),
+               u"%1 was stopped. Open MoatBar to see what and why."_s.arg(agent ? agent->name : event.host), false);
     }
 }
 
