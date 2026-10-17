@@ -4,7 +4,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-VERSION="${MOATBAR_VERSION:-0.1.0}"
+VERSION="${MOATBAR_VERSION:-0.2.0}"
 APP="MoatBar.app"
 
 # Build with swiftc directly, without SwiftPM. Used when `swift build` can't
