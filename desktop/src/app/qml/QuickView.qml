@@ -67,6 +67,7 @@ ApplicationWindow {
 
     Shortcut { sequence: "Ctrl+R"; onActivated: moatbar.refresh() }
     Shortcut { sequence: "Ctrl+A"; onActivated: moatbar.openActivity("deny") }
+    Shortcut { sequence: "Ctrl+,"; onActivated: moatbar.openSettings() }
     Shortcut { sequence: "Ctrl+Q"; onActivated: moatbar.quit() }
     Shortcut { sequence: "Escape"; onActivated: root.back() }
     Shortcut { sequence: "Backspace"; onActivated: root.back() }

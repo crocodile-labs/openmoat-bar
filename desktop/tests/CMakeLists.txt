@@ -19,3 +19,7 @@ target_link_libraries(tst_quickview PRIVATE moatbar_ui)
 # The Activity window's filter, export and model.
 moatbar_test(tst_activity)
 target_link_libraries(tst_activity PRIVATE moatbar_ui)
+
+# Notifications (new blocks, the rule throttle) and MoatBar's own settings.
+moatbar_test(tst_settings)
+target_link_libraries(tst_settings PRIVATE moatbar_ui)

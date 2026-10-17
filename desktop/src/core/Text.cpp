@@ -98,6 +98,7 @@ QUrl DocsLink::blocked() { return QUrl(u"https://openmoat.dev/docs/blocked/"_s);
 QUrl DocsLink::checkACommand() { return QUrl(u"https://openmoat.dev/docs/check-a-command/"_s); }
 QUrl DocsLink::quickstart() { return QUrl(u"https://openmoat.dev/docs/quickstart/"_s); }
 QUrl DocsLink::limits() { return QUrl(u"https://openmoat.dev/docs/limits/"_s); }
+QUrl DocsLink::turnOff() { return QUrl(u"https://openmoat.dev/docs/turn-off/"_s); }
 
 QUrl DocsLink::reportWrongBlock(const std::optional<QString> &rule) {
     QUrl url(u"https://github.com/crocodile-labs/openmoat/issues/new"_s);

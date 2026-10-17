@@ -79,6 +79,10 @@ struct Snapshot {
 /// wasn't running is still reported once.
 [[nodiscard]] std::vector<Protection> newlyUnprotected(const Snapshot *previous, const Snapshot &current);
 
+/// Blocked calls in `current` that `previous` didn't have. Nothing on the first
+/// read (`previous` null): blocks from before MoatBar started are not news.
+[[nodiscard]] std::vector<Event> newBlocks(const Snapshot *previous, const Snapshot &current);
+
 /// Where moat keeps its state: `$MOAT_HOME`, else `~/.moat`. MoatBar only
 /// watches it; it never writes there.
 [[nodiscard]] QString moatHome(const QString &moatHomeVariable, const QString &homeDirectory);

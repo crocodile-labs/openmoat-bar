@@ -390,6 +390,8 @@ void QuickViewModel::openDocs(const QString &page) {
         url = DocsLink::quickstart();
     } else if (page == u"limits") {
         url = DocsLink::limits();
+    } else if (page == u"turn-off") {
+        url = DocsLink::turnOff();
     } else {
         url = DocsLink::home();
     }

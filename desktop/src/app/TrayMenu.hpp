@@ -14,6 +14,7 @@ namespace moatbar {
 struct TrayActions {
     std::function<void()> open;     ///< the Quick View
     std::function<void()> activity; ///< the Activity window
+    std::function<void()> settings; ///< the Settings window
     std::function<void()> refresh;
     std::function<void()> about;
     std::function<void()> quit;
