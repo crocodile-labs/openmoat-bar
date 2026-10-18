@@ -1,0 +1,16 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code",
+      "reason": null
+    }
+  ],
+  "policy_update": "3 changes from the OpenMoat 0.5.7 default",
+  "lock_drift": [
+    "/Users/you/.moat/policy.yaml was modified: rules",
+    "/Users/you/.codex/hooks.json is missing"
+  ]
+}

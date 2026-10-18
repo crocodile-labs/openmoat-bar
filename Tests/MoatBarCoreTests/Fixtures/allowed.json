@@ -1,0 +1,65 @@
+{
+  "rules": [
+    {
+      "id": "approved-1",
+      "shell": [
+        "npm install"
+      ]
+    },
+    {
+      "id": "approved-site-docs-rs",
+      "reason": "allowed with moat allow --site",
+      "net": [
+        "docs.rs",
+        "*.docs.rs"
+      ],
+      "fetch": [
+        "docs.rs"
+      ]
+    },
+    {
+      "id": "approved-dir-1",
+      "fs.read": [
+        "/Users/you/code/notes/**"
+      ],
+      "fs.write": [
+        "/Users/you/code/notes/**"
+      ],
+      "mcp": [
+        "mcp__notes__*"
+      ]
+    }
+  ],
+  "session_grants": [
+    {
+      "host": "claude-code",
+      "session_id": "5b1c2d3e-0000-4000-8000-000000000001",
+      "what": "run \"cargo publish --dry-run\"",
+      "action": {
+        "shell": {
+          "command": "cargo publish --dry-run"
+        }
+      },
+      "granted_at_ms": 1792058000000,
+      "expires_at_ms": 1792072400000
+    },
+    {
+      "host": "codex",
+      "session_id": "019a-codex-session",
+      "what": "write ~/code/app/Makefile",
+      "action": {
+        "fs_write": {
+          "path": "/Users/you/code/app/Makefile"
+        }
+      },
+      "granted_at_ms": 1792040000000,
+      "expires_at_ms": 1792054400000
+    }
+  ],
+  "trusted_repos": [
+    {
+      "root": "/Users/you/code/team app",
+      "sha256": "9f2c4a7e0b1d3f5a6c8e9b0d1f2a3c4e5b6d7f8a9c0e1b2d3f4a5c6e7b8d9f0a"
+    }
+  ]
+}
