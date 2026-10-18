@@ -13,6 +13,9 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`).
 | Copy a command | "Copied ✓", menu stays open | "Copied ✓" |
 | Agents, sessions, security checks | Yes | Yes |
 | Refresh | Row with a spinner, menu stays open | The same, in the Quick View |
+| What you allowed, Secrets, Checks | The Details window, from the menu; one tab each | Three Quick View pages, from the overview or the tray menu |
+| Policy update, changed files | A card in the menu with the command to copy; also in Security checks | The same, in the Quick View and the tray menu |
+| Older moat | A note per screen: needs OpenMoat 0.5.5 (0.5.7 for the update notices) | The same |
 | Activity window | Today / 7 days / 30 days, filters, one call in full, export | The same. The export keeps each event exactly as `moat show` printed it |
 | Welcome window | Once, on the first launch | The same |
 | Settings | Open at login (macOS 13 and later), block notifications, where moat is | Start at login (XDG autostart on Linux, the per-user Run key on Windows), block notifications, where moat is |
@@ -22,11 +25,6 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`).
 | Light and dark | Follows macOS | Follows the desktop's palette |
 | Install | `make app` | CMake from source, or the release installer |
 | Shown in CI | Screenshots rendered from the app's views | Every window drawn offscreen on Linux (Qt 6.7 and Ubuntu's Qt 6.4) and Windows; images on the `ci-shots/*` branches; any QML warning fails the build |
-
-## What neither app shows yet
-
-What you allowed (sites, folders, session grants, trusted repos), brokered secrets and the full
-`moat doctor` checks. These need JSON output from the moat CLI first.
 
 ## Not tried yet
 

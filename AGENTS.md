@@ -5,7 +5,9 @@ MoatBar is a read-only menu bar app for OpenMoat. Read this before changing anyt
 ## The one rule
 
 MoatBar never changes OpenMoat. It runs only the read-only moat commands listed in
-`MoatClient.allowedCommands` (`status`, `show`, `report`, `proxy status`, `--version`),
+`MoatClient.allowedCommands`, whole command lines word for word (`status`, `show`, `report`,
+`proxy status`, `--version`, `allowed`, `secret list`, `doctor`, each with `--format json`
+where moat has it; `doctor` never with `--accept`),
 never writes under `~/.moat`, and never approves or allows anything. Every fix it offers is a
 command the person copies and runs in Terminal. A change that breaks this needs the
 maintainer's explicit OK.

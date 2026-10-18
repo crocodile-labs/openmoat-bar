@@ -42,6 +42,12 @@ moat --version                   ─┘        │
 
 ## Safety
 
-- Only `MoatClient.allowedCommands` are ever run; a test pins the list.
+- Only `MoatClient.allowedCommands` are ever run, matched as whole command lines (so
+  `doctor --accept`, `secret add` or a bare `proxy` can never run); a test pins the list.
+- The Details screens (What you allowed, Secrets, Checks) read `moat allowed`,
+  `moat secret list` and `moat doctor` with `--format json`, OpenMoat 0.5.5 and later. On an
+  older moat each screen shows a note instead of an error, and the commands it lacks are not
+  run. `moat doctor` exits 64 after printing its checks when one is a problem; that exit with
+  output is read, not treated as a failure.
 - Commands to fix things are copied to the clipboard for the person to run.
 - Nothing leaves the machine. An update check, if added, is opt-in.

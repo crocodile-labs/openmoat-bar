@@ -45,6 +45,17 @@ copy into Terminal.
 | Red | An agent stopped being protected |
 | Faded | OpenMoat isn't installed or can't be read |
 
+**Notices in the menu** (OpenMoat 0.5.7 and later):
+- "Policy update available" when a newer default policy has changes, with `moat policy upgrade` to copy. It shows each change and asks first.
+- "OpenMoat's files changed" when a file OpenMoat pinned was changed or removed, with the list and `moat doctor`.
+
+**The Details window** (from the menu, OpenMoat 0.5.5 and later):
+- What you allowed: permanent rules, session grants with when they end, and trusted repositories, each with the command that takes it back.
+- Secrets: each brokered secret's id, host and where its value is read from, and whether the agent can still read it there.
+- Checks: every `moat doctor` check, grouped into problems, things to look at, notes and fine.
+
+With an older moat these show a short note saying which version they need.
+
 **The Activity window** (⌘A) shows today, 7 days or 30 days:
 - Filter by agent, verdict and rule.
 - See one call in full.
@@ -179,6 +190,9 @@ MoatBar runs only these read-only moat commands and reads their JSON:
 - `moat report`
 - `moat proxy status`
 - `moat --version`
+- `moat allowed`, `moat secret list` and `moat doctor`, for the Details screens
+
+Each with `--format json`. MoatBar matches whole command lines, so `moat doctor --accept` or `moat secret add` can never run.
 
 It re-reads when OpenMoat's audit log changes (within 2 seconds), every minute, and when you open the menu. It writes nothing to `~/.moat`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
