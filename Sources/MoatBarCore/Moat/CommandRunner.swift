@@ -10,9 +10,9 @@ public protocol CommandRunner {
     func run(_ executable: URL, arguments: [String], timeout: TimeInterval, okExitCodes: Set<Int32>) throws -> Data
 }
 
-public extension CommandRunner {
+extension CommandRunner {
     /// Runners that return canned output (tests) have no exit codes to judge.
-    func run(
+    public func run(
         _ executable: URL,
         arguments: [String],
         timeout: TimeInterval,

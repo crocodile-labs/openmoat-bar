@@ -65,11 +65,15 @@ struct DetailsView: View {
     }
 
     /// The loaded screen, or the note for an older moat, or why moat couldn't be read.
+    // swiftformat:disable opaqueGenericParameters
+    // `Loaded` is the result type of a closure parameter, where Swift 5.7 has
+    // no `some View`.
     @ViewBuilder
     private func screen<Value: Equatable, Loaded: View>(
         _ state: ScreenState<Value>,
         @ViewBuilder loaded: (Value) -> Loaded
     ) -> some View {
+        // swiftformat:enable opaqueGenericParameters
         switch state {
         case let .loaded(value):
             loaded(value)
@@ -110,7 +114,7 @@ struct DetailsView: View {
                     DetailsRow(
                         title: Format.shortPath(repo.root),
                         monospaced: true,
-                        lines: ["Policy file sha256 \(DetailsText.shortHash(repo.sha256)). A change to it ends the trust."]
+                        lines: [self.trustLine(repo)]
                     ) {
                         CopyButton(title: "Copy the revoke command", command: CopyCommands.revokeTrust(repo.root))
                     }
@@ -129,6 +133,10 @@ struct DetailsView: View {
         let now = self.now ?? Date()
         let ends = DetailsText.endsIn(grant.expiresAtMs, nowMs: Int64(now.timeIntervalSince1970 * 1000))
         return "\(agent) · session \(session) · \(ends)"
+    }
+
+    private func trustLine(_ repo: TrustedRepo) -> String {
+        "Policy file sha256 \(DetailsText.shortHash(repo.sha256)). A change to it ends the trust."
     }
 
     // MARK: - Secrets

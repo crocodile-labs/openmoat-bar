@@ -50,9 +50,17 @@ public struct AllowedRule: Decodable, Equatable, Identifiable {
 
     private struct Key: CodingKey {
         var stringValue: String
-        var intValue: Int? { nil }
-        init(stringValue: String) { self.stringValue = stringValue }
-        init?(intValue _: Int) { nil }
+        var intValue: Int? {
+            nil
+        }
+
+        init(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        init?(intValue _: Int) {
+            nil
+        }
     }
 
     public init(from decoder: Decoder) throws {
