@@ -11,11 +11,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settingsWindow = WindowPresenter()
     private let activityWindow = WindowPresenter()
     private let activity = ActivityModel()
+    private let detailsWindow = WindowPresenter()
+    private let details = DetailsModel()
 
     func applicationDidFinishLaunching(_: Notification) {
         let statusItem = StatusItemController(store: self.store)
         statusItem.onSettings = { [weak self] in self?.showSettings() }
         statusItem.onActivity = { [weak self] verdict in self?.showActivity(verdict) }
+        statusItem.onDetails = { [weak self] tab in self?.showDetails(tab) }
         self.statusItem = statusItem
 
         self.store.onSnapshot = { [weak self] old, new in
@@ -64,6 +67,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             title: "MoatBar Activity",
             size: NSSize(width: 1040, height: 640),
             content: ActivityView(model: self.activity),
+            resizable: true
+        )
+    }
+
+    /// Open the Details window on `tab`: what you allowed, secrets or checks.
+    private func showDetails(_ tab: DetailsTab) {
+        self.details.tab = tab
+        if let snapshot = self.store.snapshot {
+            self.details.agentNames = Dictionary(
+                snapshot.status.agents.map { ($0.host, $0.name) },
+                uniquingKeysWith: { first, _ in first }
+            )
+            self.details.updateNoticesNote = MoatRequirement.updateNoticesNote(for: snapshot.status)
+        }
+        self.details.load()
+        self.detailsWindow.show(
+            title: "MoatBar Details",
+            size: NSSize(width: 620, height: 600),
+            content: DetailsView(model: self.details),
             resizable: true
         )
     }

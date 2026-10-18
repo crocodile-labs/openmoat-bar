@@ -4,6 +4,22 @@ import Foundation
 /// `ProcessRunner`, tests use a stub that returns fixtures.
 public protocol CommandRunner {
     func run(_ executable: URL, arguments: [String], timeout: TimeInterval) throws -> Data
+    /// The same, but an exit code in `okExitCodes` that printed something is
+    /// not a failure: `moat doctor` exits non-zero after printing its checks
+    /// when one found a problem.
+    func run(_ executable: URL, arguments: [String], timeout: TimeInterval, okExitCodes: Set<Int32>) throws -> Data
+}
+
+public extension CommandRunner {
+    /// Runners that return canned output (tests) have no exit codes to judge.
+    func run(
+        _ executable: URL,
+        arguments: [String],
+        timeout: TimeInterval,
+        okExitCodes _: Set<Int32>
+    ) throws -> Data {
+        try self.run(executable, arguments: arguments, timeout: timeout)
+    }
 }
 
 /// Runs a real process with a deadline, reading stdout and stderr while it runs
@@ -16,6 +32,15 @@ public struct ProcessRunner: CommandRunner {
     }
 
     public func run(_ executable: URL, arguments: [String], timeout: TimeInterval) throws -> Data {
+        try self.run(executable, arguments: arguments, timeout: timeout, okExitCodes: [0])
+    }
+
+    public func run(
+        _ executable: URL,
+        arguments: [String],
+        timeout: TimeInterval,
+        okExitCodes: Set<Int32>
+    ) throws -> Data {
         let command = arguments.first ?? ""
         let process = Process()
         process.executableURL = executable
@@ -45,7 +70,9 @@ public struct ProcessRunner: CommandRunner {
         }
         let (out, err) = output.finish()
 
-        guard process.terminationStatus == 0 else {
+        let status = process.terminationStatus
+        let accepted = status == 0 || (okExitCodes.contains(status) && !out.isEmpty)
+        guard accepted, process.terminationReason == .exit else {
             let text = String(bytes: err.isEmpty ? out : err, encoding: .utf8) ?? ""
             let first = text.split(separator: "\n").first.map(String.init)
                 ?? "exit \(process.terminationStatus)"

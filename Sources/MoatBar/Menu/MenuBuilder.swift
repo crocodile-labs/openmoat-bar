@@ -14,6 +14,8 @@ struct MenuBuilder {
     let refreshRow: RefreshMenuRow
     let onSettings: () -> Void
     let onActivity: (Verdict?) -> Void
+    /// What you allowed, Secrets or Checks.
+    let onDetails: (DetailsTab) -> Void
     var now = Date()
 
     /// Longest list a verdict submenu shows; the rest is in the Activity window.
@@ -170,6 +172,30 @@ struct MenuBuilder {
             )))
             menu.addItem(copyItem("Copy the fix", command: CopyCommands.setUp))
         }
+        self.addNotices(snapshot.status, to: menu)
+    }
+
+    /// A newer default policy to look at, and pinned files that changed. Both
+    /// are about OpenMoat itself, so every tab shows them.
+    private func addNotices(_ status: StatusReport, to menu: NSMenu) {
+        if let update = status.policyUpdate {
+            menu.addItem(hostedItem(ProblemCard(
+                title: UpdateNotices.updateTitle,
+                text: "OpenMoat says: \(update).",
+                note: UpdateNotices.updateNote,
+                tint: Color(nsColor: .systemBlue)
+            )))
+            menu.addItem(copyItem("Copy the command", command: CopyCommands.policyUpgrade))
+        }
+        if !status.lockDrift.isEmpty {
+            menu.addItem(hostedItem(ProblemCard(
+                title: UpdateNotices.driftTitle,
+                text: status.lockDrift.joined(separator: "\n"),
+                note: UpdateNotices.driftNote,
+                tint: Color(nsColor: .systemOrange)
+            )))
+            menu.addItem(copyItem("Copy the check command", command: CopyCommands.doctor))
+        }
     }
 
     private func addToday(_ snapshot: Snapshot, to menu: NSMenu) {
@@ -311,6 +337,7 @@ struct MenuBuilder {
                 }
             }
             sub.addItem(.separator())
+            sub.addItem(ClosureMenuItem("Every check…") { self.onDetails(.checks) })
             sub.addItem(copyItem("Copy for every check", command: CopyCommands.doctor, width: Self.submenuWidth))
         }
         menu.addItem(.separator())
@@ -348,6 +375,9 @@ struct MenuBuilder {
         separator.representedObject = Self.footerTag
         menu.addItem(separator)
         menu.addItem(ClosureMenuItem("Activity window…", key: "a") { self.onActivity(.deny) })
+        for tab in DetailsTab.allCases {
+            menu.addItem(ClosureMenuItem("\(tab.title)…") { self.onDetails(tab) })
+        }
         // A view item: clicking it keeps the menu open. ⌘R still reaches the
         // item's action through its key equivalent.
         let refresh = ClosureMenuItem("Refresh", key: "r") { [refreshRow = self.refreshRow] in

@@ -47,6 +47,24 @@ public enum SecurityChecks {
         if let proxy = snapshot.proxy {
             checks.append(self.proxyCheck(proxy))
         }
+        if !snapshot.status.lockDrift.isEmpty {
+            checks.append(SecurityCheck(
+                id: "lock",
+                kind: .problem,
+                title: UpdateNotices.driftTitle,
+                detail: snapshot.status.lockDrift.joined(separator: "\n"),
+                fix: CopyCommands.doctor
+            ))
+        }
+        if let update = snapshot.status.policyUpdate {
+            checks.append(SecurityCheck(
+                id: "policy-update",
+                kind: .info,
+                title: UpdateNotices.updateTitle,
+                detail: update,
+                fix: CopyCommands.policyUpgrade
+            ))
+        }
         // Worst first, then in moat's order.
         return checks.enumerated()
             .sorted { $0.element.kind != $1.element.kind ? $0.element.kind > $1.element.kind : $0.offset < $1.offset }
