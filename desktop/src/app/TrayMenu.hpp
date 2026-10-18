@@ -15,6 +15,8 @@ struct TrayActions {
     std::function<void()> open;     ///< the Quick View
     std::function<void()> activity; ///< the Activity window
     std::function<void()> settings; ///< the Settings window
+    /// The Quick View on a detail page: `allowed`, `secrets` or `checks`.
+    std::function<void(const QString &)> details;
     std::function<void()> refresh;
     std::function<void()> about;
     std::function<void()> quit;

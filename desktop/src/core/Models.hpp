@@ -47,8 +47,15 @@ struct Protection {
     QString gaps;
 };
 
+/// The whole `moat status --format json` document (commands/status.rs).
 struct StatusReport {
     std::vector<Protection> agents;
+    /// `3 changes from the OpenMoat 0.5.7 default` when `moat policy upgrade` has changes.
+    std::optional<QString> policyUpdate;
+    /// Pinned files that changed since: `… was modified`, `… is missing`.
+    QStringList lockDrift;
+    /// Whether moat sent `policy_update` and `lock_drift` at all (OpenMoat 0.5.7+).
+    bool hasUpdateNotices = true;
 };
 
 // MARK: - Verdicts and actions

@@ -26,6 +26,7 @@ class QuickViewModel final : public QObject {
     Q_PROPERTY(QString selectedHost READ selectedHost WRITE setSelectedHost NOTIFY changed)
     Q_PROPERTY(QVariantMap header READ header NOTIFY changed)
     Q_PROPERTY(QVariantList problems READ problems NOTIFY changed)
+    Q_PROPERTY(QVariantList notices READ notices NOTIFY changed)
     Q_PROPERTY(QVariantMap today READ today NOTIFY changed)
     Q_PROPERTY(QVariantList verdicts READ verdicts NOTIFY changed)
     Q_PROPERTY(QVariantList agents READ agents NOTIFY changed)
@@ -58,6 +59,9 @@ public:
     void setSelectedHost(const QString &host);
     [[nodiscard]] QVariantMap header() const;
     [[nodiscard]] QVariantList problems() const;
+    /// A policy update to look at and pinned files that changed (OpenMoat 0.5.7+),
+    /// on every tab: they are about OpenMoat itself.
+    [[nodiscard]] QVariantList notices() const;
     [[nodiscard]] QVariantMap today() const;
     [[nodiscard]] QVariantList verdicts() const;
     [[nodiscard]] QVariantList agents() const;
@@ -88,6 +92,8 @@ public:
     /// The Activity window, showing one verdict (`deny`…) or, for "", everything.
     Q_INVOKABLE void openActivity(const QString &verdict) { emit activityRequested(verdict); }
     Q_INVOKABLE void openSettings() { emit settingsRequested(); }
+    /// A detail page (`allowed`, `secrets`, `checks`) was opened: read moat for it.
+    Q_INVOKABLE void openDetails(const QString &page) { emit detailsRequested(page); }
     Q_INVOKABLE void about() { emit aboutRequested(); }
     Q_INVOKABLE void quit() { emit quitRequested(); }
     /// The Quick View closed: what it showed has been seen.
@@ -98,6 +104,7 @@ signals:
     void refreshChanged();
     void activityRequested(const QString &verdict);
     void settingsRequested();
+    void detailsRequested(const QString &page);
     void aboutRequested();
     void quitRequested();
     void viewClosed();

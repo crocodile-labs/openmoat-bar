@@ -4,6 +4,7 @@ qt_add_library(moatbar_core STATIC
     Result.hpp
     Models.hpp Models.cpp
     Json.hpp Json.cpp
+    Details.hpp Details.cpp
     MoatClient.hpp MoatClient.cpp
     Snapshot.hpp Snapshot.cpp
     IconState.hpp IconState.cpp

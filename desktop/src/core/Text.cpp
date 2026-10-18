@@ -2,6 +2,8 @@
 
 #include <QUrlQuery>
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
 
 namespace moatbar {
@@ -63,6 +65,27 @@ QString CopyCommands::install(Shell shell) {
                u"https://github.com/crocodile-labs/openmoat/releases/latest/download/openmoat-installer.ps1 | iex\""_s;
     }
     return u"brew install crocodile-labs/tap/moat"_s;
+}
+
+QString CopyCommands::policyUpgrade() {
+    return u"moat policy upgrade"_s;
+}
+
+QString CopyCommands::removeRule(const QString &id, Shell shell) {
+    return u"moat allow --remove "_s + quoteIfNeeded(id, shell);
+}
+
+QString CopyCommands::revokeTrust(const QString &root, Shell shell) {
+    return u"moat trust --revoke "_s + quoteIfNeeded(root, shell);
+}
+
+QString CopyCommands::quoteIfNeeded(const QString &text, Shell shell) {
+    // Backslashes are path separators in PowerShell and escapes in POSIX shells.
+    const QString punctuation = shell == Shell::PowerShell ? u"-_./:\\"_s : u"-_./:@+=,"_s;
+    const bool plain = !text.isEmpty() && std::ranges::all_of(text, [&punctuation](QChar c) {
+        return c.unicode() < 128 && (c.isLetterOrNumber() || punctuation.contains(c));
+    });
+    return plain ? text : quote(text, shell);
 }
 
 QString CopyCommands::quote(const QString &text, Shell shell) {

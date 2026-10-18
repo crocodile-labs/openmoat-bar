@@ -17,7 +17,7 @@ const QString kSeenUntilKey = QStringLiteral("seenUntilMs");
 } // namespace
 
 TrayController::TrayController(SnapshotStore &store, QObject *parent)
-    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model),
+    : QObject(parent), m_store(store), m_menu(std::make_unique<QMenu>()), m_quickView(m_model, m_details),
       m_activity(m_activityModel, m_model), m_settingsWindows(m_preferences, m_model) {
     m_tray.setContextMenu(m_menu.get());
     m_menu->setToolTipsVisible(true);
@@ -43,6 +43,15 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
     m_model.setRefreshHandler([this] { m_store.refresh(); });
     connect(&m_model, &QuickViewModel::activityRequested, this, &TrayController::openActivity);
     connect(&m_model, &QuickViewModel::settingsRequested, this, &TrayController::openSettings);
+    // A detail page opened in the Quick View: read moat for it.
+    connect(&m_model, &QuickViewModel::detailsRequested, this, [this](const QString &) {
+        if (const auto &snapshot = m_store.snapshot()) {
+            m_details.setStatus(snapshot->status);
+        }
+        if (!m_details.loading()) {
+            m_details.load();
+        }
+    });
     connect(&m_settingsWindows, &SettingsWindows::openRequested, this, &TrayController::openQuickView);
     connect(&m_settingsWindows, &SettingsWindows::quitRequested, qApp, &QCoreApplication::quit);
     connect(&m_model, &QuickViewModel::aboutRequested, this, &TrayController::showAbout);
@@ -90,6 +99,12 @@ void TrayController::openQuickView() {
     m_model.setData(m_store.snapshot(), m_store.error());
     m_quickView.show(m_tray.geometry());
     m_store.refresh();
+}
+
+void TrayController::openDetails(const QString &page) {
+    m_model.setData(m_store.snapshot(), m_store.error());
+    // The page asks the model to read moat when it opens (detailsRequested).
+    m_quickView.showPage(page, m_tray.geometry());
 }
 
 void TrayController::openActivity(const QString &verdict) {
@@ -152,6 +167,7 @@ void TrayController::rebuildMenu() {
                                .open = [this] { openQuickView(); },
                                .activity = [this] { openActivity(u"deny"_s); },
                                .settings = [this] { openSettings(); },
+                               .details = [this](const QString &which) { openDetails(which); },
                                .refresh = [this] { m_store.refresh(); },
                                .about = [this] { showAbout(); },
                                .quit = [] { QApplication::quit(); },

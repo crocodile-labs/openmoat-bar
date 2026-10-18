@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/DetailsModel.hpp"
 #include "app/QuickViewModel.hpp"
 
 #include <QElapsedTimer>
@@ -46,13 +47,16 @@ class QuickView final : public QObject {
     Q_OBJECT
 
 public:
-    explicit QuickView(QuickViewModel &model, QObject *parent = nullptr);
+    /// `details` backs the What you allowed, Secrets and Checks pages.
+    QuickView(QuickViewModel &model, DetailsModel &details, QObject *parent = nullptr);
 
     /// Create the window without showing it. Returns false and prints why if
     /// the QML did not load.
     bool load();
     /// Show it, near `trayGeometry` where the desktop says where the tray is.
     void show(const QRect &trayGeometry = {});
+    /// Show it on a detail page: `allowed`, `secrets` or `checks`.
+    void showPage(const QString &page, const QRect &trayGeometry = {});
     [[nodiscard]] bool isVisible() const { return m_window && m_window->isVisible(); }
     void hide();
     /// It closed a moment ago. A click on the tray icon takes focus from the

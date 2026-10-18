@@ -1,5 +1,6 @@
 #include "app/TrayMenu.hpp"
 #include "app/TrayIcon.hpp"
+#include "core/Details.hpp"
 #include "core/SecurityChecks.hpp"
 #include "core/Text.hpp"
 
@@ -11,6 +12,8 @@
 #include <QPalette>
 
 #include <algorithm>
+#include <array>
+#include <utility>
 
 using namespace Qt::StringLiterals;
 
@@ -143,6 +146,24 @@ void TrayMenu::addProblems(QMenu &menu) const {
         problem->addSeparator();
         addCopy(*problem, u"Copy the fix"_s, CopyCommands::setUp());
         addLink(*problem, u"Known limits"_s, DocsLink::limits());
+    }
+    // OpenMoat 0.5.7 and later: a newer default policy, pinned files that changed.
+    const StatusReport &status = m_snapshot->status;
+    if (status.policyUpdate) {
+        QMenu *update = menu.addMenu(UpdateNotices::updateTitle());
+        addNote(*update, u"OpenMoat says: "_s + *status.policyUpdate);
+        addNote(*update, UpdateNotices::updateNote());
+        update->addSeparator();
+        addCopy(*update, u"Copy the command"_s, CopyCommands::policyUpgrade());
+    }
+    if (!status.lockDrift.isEmpty()) {
+        QMenu *drift = menu.addMenu(u"⚠ "_s + UpdateNotices::driftTitle());
+        for (const QString &line : status.lockDrift) {
+            addNote(*drift, line);
+        }
+        addNote(*drift, UpdateNotices::driftNote());
+        drift->addSeparator();
+        addCopy(*drift, u"Copy the check command"_s, CopyCommands::doctor());
     }
 }
 
@@ -279,6 +300,14 @@ void TrayMenu::addFooter(QMenu &menu) const {
     menu.addSeparator();
     if (m_actions.activity) {
         QObject::connect(menu.addAction(u"Activity window…"_s), &QAction::triggered, m_actions.activity);
+    }
+    if (m_actions.details) {
+        const std::array pages{std::pair{u"What you allowed…"_s, u"allowed"_s}, std::pair{u"Secrets…"_s, u"secrets"_s},
+                               std::pair{u"Checks…"_s, u"checks"_s}};
+        for (const auto &entry : pages) {
+            QObject::connect(menu.addAction(entry.first), &QAction::triggered,
+                             [open = m_actions.details, page = entry.second] { open(page); });
+        }
     }
     QObject::connect(menu.addAction(u"Refresh"_s), &QAction::triggered, m_actions.refresh);
     addLink(menu, u"OpenMoat docs"_s, DocsLink::home());

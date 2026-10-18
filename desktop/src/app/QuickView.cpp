@@ -104,8 +104,16 @@ QQuickWindow *QmlHost::load(const QString &file) {
     return window;
 }
 
-QuickView::QuickView(QuickViewModel &model, QObject *parent) : QObject(parent), m_model(model) {
+QuickView::QuickView(QuickViewModel &model, DetailsModel &details, QObject *parent) : QObject(parent), m_model(model) {
     m_host.expose(u"moatbar"_s, &m_model);
+    m_host.expose(u"details"_s, &details);
+}
+
+void QuickView::showPage(const QString &page, const QRect &trayGeometry) {
+    show(trayGeometry);
+    if (m_window) {
+        QMetaObject::invokeMethod(m_window, "openPage", Q_ARG(QVariant, QVariant(page)));
+    }
 }
 
 bool QuickView::load() {

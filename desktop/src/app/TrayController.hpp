@@ -38,6 +38,8 @@ public:
     void openQuickView();
     void openActivity(const QString &verdict);
     void openSettings();
+    /// The Quick View on a detail page: `allowed`, `secrets` or `checks`.
+    void openDetails(const QString &page);
 
 private:
     void storeChanged();
@@ -55,6 +57,7 @@ private:
     QSystemTrayIcon m_tray;
     std::unique_ptr<QMenu> m_menu;
     QuickViewModel m_model;
+    DetailsModel m_details;
     QuickView m_quickView;
     ActivityModel m_activityModel;
     ActivityWindow m_activity;

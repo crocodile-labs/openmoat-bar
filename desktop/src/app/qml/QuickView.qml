@@ -53,6 +53,17 @@ ApplicationWindow {
         openOverview();
         stack.push(checksPage);
     }
+    // `allowed`, `secrets` or `checks` (every moat doctor check).
+    function openPage(page) {
+        openOverview();
+        if (page === "allowed") {
+            stack.push(allowedPage);
+        } else if (page === "secrets") {
+            stack.push(secretsPage);
+        } else if (page === "checks") {
+            stack.push(doctorPage);
+        }
+    }
     function selectTab(host) {
         moatbar.selectedHost = host;
         openOverview();
@@ -173,6 +184,26 @@ ApplicationWindow {
                             }
                         }
 
+                        // A policy update and pinned files that changed: every tab.
+                        Repeater {
+                            model: moatbar.notices
+                            delegate: ColumnLayout {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Card {
+                                    title: modelData.title
+                                    text: modelData.text
+                                    note: modelData.note
+                                    tint: Theme.tone(modelData.tone)
+                                }
+                                CopyRow {
+                                    title: modelData.commandTitle
+                                    command: modelData.command
+                                }
+                            }
+                        }
+
                         TodayChart { today: moatbar.today }
 
                         Divider {}
@@ -235,6 +266,21 @@ ApplicationWindow {
                             trailing: moatbar.checksHint
                             dotColor: moatbar.checksHint === "all fine" ? Theme.green : Theme.orange
                             onClicked: root.openChecks()
+                        }
+                        NavRow {
+                            title: "What you allowed"
+                            subtitle: "Rules, session grants and trusted repositories"
+                            onClicked: root.openPage("allowed")
+                        }
+                        NavRow {
+                            title: "Secrets"
+                            subtitle: "Tokens OpenMoat adds to requests for the agent"
+                            onClicked: root.openPage("secrets")
+                        }
+                        NavRow {
+                            title: "Checks"
+                            subtitle: "Every moat doctor check"
+                            onClicked: root.openPage("checks")
                         }
                     }
                 }
@@ -423,6 +469,292 @@ ApplicationWindow {
                         }
                     }
                     Divider {}
+                    CopyRow {
+                        title: "Copy for every check"
+                        command: moatbar.doctorCommand
+                    }
+                    LinkRow {
+                        title: "Every check…"
+                        onClicked: root.openPage("checks")
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - What you allowed
+
+    Component {
+        id: allowedPage
+
+        Page {
+            id: page
+            readonly property var a: details.allowed
+            background: null
+            Component.onCompleted: moatbar.openDetails("allowed")
+
+            ScrollView {
+                anchors.fill: parent
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
+
+                    PageHeader {
+                        title: "What you allowed"
+                        trailing: details.loading ? "Reading…" : ""
+                        onBack: root.back()
+                    }
+                    Label {
+                        visible: page.a.state !== "loaded"
+                        text: page.a.note || ""
+                        color: page.a.state === "failed" ? Theme.orange : Theme.secondary
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.gutter
+                        Layout.rightMargin: Theme.gutter
+                        Layout.topMargin: 6
+                    }
+
+                    ColumnLayout {
+                        visible: page.a.state === "loaded"
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        SectionHeader {
+                            title: "Permanent rules"
+                            trailing: String((page.a.rules || []).length)
+                        }
+                        Label {
+                            visible: (page.a.rules || []).length === 0
+                            text: "None. moat allow --always, --site and --dir add them."
+                            color: Theme.secondary
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                            Layout.leftMargin: Theme.gutter
+                            Layout.rightMargin: Theme.gutter
+                        }
+                        Repeater {
+                            model: page.a.rules || []
+                            delegate: ColumnLayout {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                spacing: 0
+                                DetailRow {
+                                    title: modelData.title
+                                    detail: modelData.detail
+                                    monospace: true
+                                }
+                                CopyRow {
+                                    title: "Copy the remove command"
+                                    command: modelData.command
+                                }
+                            }
+                        }
+
+                        SectionHeader {
+                            title: "Session grants"
+                            trailing: String((page.a.grants || []).length)
+                        }
+                        Label {
+                            visible: (page.a.grants || []).length === 0
+                            text: "None. moat allow --last allows one call again for the rest of its session."
+                            color: Theme.secondary
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                            Layout.leftMargin: Theme.gutter
+                            Layout.rightMargin: Theme.gutter
+                        }
+                        Repeater {
+                            model: page.a.grants || []
+                            delegate: DetailRow {
+                                required property var modelData
+                                title: modelData.title
+                                detail: modelData.detail
+                                monospace: true
+                            }
+                        }
+
+                        SectionHeader {
+                            title: "Trusted repositories"
+                            trailing: String((page.a.repos || []).length)
+                        }
+                        Label {
+                            visible: (page.a.repos || []).length === 0
+                            text: "None. moat trust lets a repository's own policy allow calls."
+                            color: Theme.secondary
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                            Layout.leftMargin: Theme.gutter
+                            Layout.rightMargin: Theme.gutter
+                        }
+                        Repeater {
+                            model: page.a.repos || []
+                            delegate: ColumnLayout {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                spacing: 0
+                                DetailRow {
+                                    title: modelData.title
+                                    detail: modelData.detail
+                                    monospace: true
+                                }
+                                CopyRow {
+                                    title: "Copy the revoke command"
+                                    command: modelData.command
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Secrets
+
+    Component {
+        id: secretsPage
+
+        Page {
+            id: page
+            readonly property var s: details.secrets
+            background: null
+            Component.onCompleted: moatbar.openDetails("secrets")
+
+            ScrollView {
+                anchors.fill: parent
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
+
+                    PageHeader {
+                        title: "Secrets"
+                        trailing: details.loading ? "Reading…" : (page.s.hint || "")
+                        onBack: root.back()
+                    }
+                    Label {
+                        visible: page.s.state !== "loaded"
+                        text: page.s.note || ""
+                        color: page.s.state === "failed" ? Theme.orange : Theme.secondary
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.gutter
+                        Layout.rightMargin: Theme.gutter
+                        Layout.topMargin: 6
+                    }
+                    Label {
+                        visible: page.s.state === "loaded" && (page.s.items || []).length === 0
+                        text: "None. moat secret add keeps a token away from the agent and adds it to requests."
+                        color: Theme.secondary
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.gutter
+                        Layout.rightMargin: Theme.gutter
+                        Layout.topMargin: 6
+                    }
+                    Repeater {
+                        model: page.s.state === "loaded" ? (page.s.items || []) : []
+                        delegate: ColumnLayout {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: 4
+                            spacing: 0
+                            DetailRow {
+                                title: modelData.id + "  ·  " + modelData.host
+                                detail: modelData.line + "\n" + modelData.hint
+                                dotColor: Theme.tone(modelData.tone)
+                            }
+                            CopyRow {
+                                visible: modelData.command.length > 0
+                                title: "Copy the check command"
+                                command: modelData.command
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Every moat doctor check
+
+    Component {
+        id: doctorPage
+
+        Page {
+            id: page
+            readonly property var c: details.checks
+            background: null
+            Component.onCompleted: moatbar.openDetails("checks")
+
+            ScrollView {
+                anchors.fill: parent
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
+
+                    PageHeader {
+                        title: "Checks"
+                        trailing: details.loading ? "Reading…" : (page.c.summary || "")
+                        onBack: root.back()
+                    }
+                    Label {
+                        visible: details.updateNote.length > 0
+                        text: details.updateNote
+                        color: Theme.secondary
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.gutter
+                        Layout.rightMargin: Theme.gutter
+                        Layout.topMargin: 6
+                    }
+                    Label {
+                        visible: page.c.state !== "loaded"
+                        text: page.c.note || ""
+                        color: page.c.state === "failed" ? Theme.orange : Theme.secondary
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.gutter
+                        Layout.rightMargin: Theme.gutter
+                        Layout.topMargin: 6
+                    }
+                    Repeater {
+                        model: page.c.state === "loaded" ? (page.c.groups || []) : []
+                        delegate: ColumnLayout {
+                            id: group
+                            required property var modelData
+                            Layout.fillWidth: true
+                            spacing: 0
+                            SectionHeader {
+                                title: group.modelData.title
+                                trailing: String(group.modelData.count)
+                            }
+                            Repeater {
+                                model: group.modelData.items
+                                delegate: DetailRow {
+                                    required property var modelData
+                                    title: modelData.title
+                                    detail: modelData.subtitle
+                                    dotColor: Theme.tone(group.modelData.tone)
+                                }
+                            }
+                        }
+                    }
+                    Divider { visible: page.c.state === "loaded" }
                     CopyRow {
                         title: "Copy for every check"
                         command: moatbar.doctorCommand

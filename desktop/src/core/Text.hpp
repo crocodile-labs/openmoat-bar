@@ -36,6 +36,14 @@ namespace CopyCommands {
 [[nodiscard]] QString setUp();
 [[nodiscard]] QString doctor();
 [[nodiscard]] QString install(Shell shell = nativeShell());
+/// Show the newer default policy's changes and ask before applying them.
+[[nodiscard]] QString policyUpgrade();
+/// Take back a permanent rule, as `moat allowed` prints it.
+[[nodiscard]] QString removeRule(const QString &id, Shell shell = nativeShell());
+/// Stop trusting a repository's policy, as `moat allowed` prints it.
+[[nodiscard]] QString revokeTrust(const QString &root, Shell shell = nativeShell());
+/// `text` as is when the shell would leave it alone, else `quote(text)`.
+[[nodiscard]] QString quoteIfNeeded(const QString &text, Shell shell = nativeShell());
 
 /// `moat policy check` for this action, so the person can see the verdict and
 /// rule again without running anything. Nothing for kinds it can't check.
