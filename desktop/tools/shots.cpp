@@ -368,7 +368,13 @@ int main(int argc, char *argv[]) {
     bool ok = true;
     // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
     const TrayActions actions{
-        .open = {}, .activity = {}, .settings = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
+        .open = {},
+        .activity = {},
+        .settings = {},
+        .details = [](const QString &) {},
+        .refresh = [] {},
+        .about = [] {},
+        .quit = [] {}};
 
     QMenu menu;
     TrayMenu(&*protectedSnapshot, std::nullopt, actions).fill(menu);
