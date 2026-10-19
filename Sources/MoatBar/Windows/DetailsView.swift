@@ -64,10 +64,11 @@ struct DetailsView: View {
         }
     }
 
-    /// The loaded screen, or the note for an older moat, or why moat couldn't be read.
     // swiftformat:disable opaqueGenericParameters
     // `Loaded` is the result type of a closure parameter, where Swift 5.7 has
     // no `some View`.
+
+    /// The loaded screen, or the note for an older moat, or why moat couldn't be read.
     @ViewBuilder
     private func screen<Value: Equatable, Loaded: View>(
         _ state: ScreenState<Value>,
