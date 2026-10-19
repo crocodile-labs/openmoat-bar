@@ -3,52 +3,86 @@
 #include <QUrlQuery>
 
 #include <algorithm>
+#include <array>
 
 using namespace Qt::StringLiterals;
 
 namespace moatbar {
 
+namespace {
+
+/// Rule id and its words; the macOS app's RuleText.swift has the same table.
+struct RuleWords {
+    QStringView rule;
+    QStringView words;
+};
+
+constexpr std::array kRuleWords{
+    RuleWords{u"secrets-paths",
+              u"Private keys, .env files and cloud credentials hold passwords and tokens. Agents never read them."},
+    RuleWords{u"destructive",
+              u"This throws away work that can't be brought back, like uncommitted changes or a home folder."},
+    RuleWords{u"pipe-to-shell", u"Running a script straight from the internet means running code nobody has looked at."},
+    RuleWords{u"env-secrets",
+              u"Printing environment variables would show tokens to the agent and to whatever it talks to."},
+    RuleWords{u"env-dump", u"Printing environment variables would show tokens to the agent and to whatever it talks to."},
+    RuleWords{u"shell-rc", u"Changing your shell's startup files would run code in every terminal you open later."},
+    RuleWords{u"kernel-self",
+              u"Agents can't change OpenMoat's own rules, hooks or binary. Only a person can, in a terminal."},
+    RuleWords{u"kernel-integrity",
+              u"A file OpenMoat watches was changed outside moat, so calls stop until a person looks."},
+    RuleWords{u"git-internals", u"This changes which hooks git runs, which would run code on later git commands."},
+    RuleWords{u"runs-later", u"This changes something that runs on its own later, like CI settings or editor tasks."},
+    RuleWords{u"default.net", u"The agent tried to reach a site that isn't on the allowed list."},
+    RuleWords{u"default", u"No rule covers this, so the agent's own prompt decided."},
+    RuleWords{u"dev-shell", u"A normal development command, like building or testing."},
+    RuleWords{u"project-fs", u"Reading or writing files inside the project."},
+    RuleWords{u"package-near-miss",
+              u"The package name is one typo away from a popular one, a common trick for slipping in a look-alike."},
+    RuleWords{u"push-secret", u"The push would publish a token or a brokered secret's value in a commit."},
+    RuleWords{u"push-runs-later",
+              u"After reading untrusted content, the agent pushes a change to a file CI runs with your secrets."},
+    RuleWords{u"push-unchecked", u"OpenMoat couldn't check what this push publishes in time, so it asks."},
+    RuleWords{u"token-egress", u"A known kind of token was about to go to a host that isn't its own service."},
+    RuleWords{u"placeholder-egress",
+              u"A brokered secret's placeholder was about to go to a host that secret isn't for."},
+    RuleWords{u"mcp-server-changed", u"This MCP server's definition changed since a person accepted it, so its tools "
+                                     u"wait for moat mcp accept."},
+    RuleWords{u"mcp-tool-held",
+              u"This MCP tool's description or inputs changed, so it stays hidden until a person accepts it."},
+    RuleWords{u"settings-drift", u"A settings file OpenMoat pinned changed in a way that changes no decision, so "
+                                 u"calls are decided as usual."},
+};
+
+} // namespace
+
 std::optional<QString> RuleText::why(QStringView rule) {
-    if (rule == u"secrets-paths") {
-        return u"Private keys, .env files and cloud credentials hold passwords and tokens. Agents never read them."_s;
+    for (const RuleWords &entry : kRuleWords) {
+        if (entry.rule == rule) {
+            return entry.words.toString();
+        }
     }
-    if (rule == u"destructive") {
-        return u"This throws away work that can't be brought back, like uncommitted changes or a home folder."_s;
+    // `pack:<name>:<id>`: a rule from a signed policy pack (openmoat `packs.rs`).
+    if (rule.startsWith(u"pack:")) {
+        const QStringView name = rule.mid(5).split(u':').value(0);
+        if (name.isEmpty()) {
+            return u"A rule from a signed policy pack you installed."_s;
+        }
+        return u"A rule from the policy pack %1, installed after its signature checked out."_s.arg(name);
     }
-    if (rule == u"pipe-to-shell") {
-        return u"Running a script straight from the internet means running code nobody has looked at."_s;
-    }
-    if (rule == u"env-secrets" || rule == u"env-dump") {
-        return u"Printing environment variables would show tokens to the agent and to whatever it talks to."_s;
-    }
-    if (rule == u"shell-rc") {
-        return u"Changing your shell's startup files would run code in every terminal you open later."_s;
-    }
-    if (rule == u"kernel-self") {
-        return u"Agents can't change OpenMoat's own rules, hooks or binary. Only a person can, in a terminal."_s;
-    }
-    if (rule == u"kernel-integrity") {
-        return u"A file OpenMoat watches was changed outside moat, so calls stop until a person looks."_s;
-    }
-    if (rule == u"git-internals") {
-        return u"This changes which hooks git runs, which would run code on later git commands."_s;
-    }
-    if (rule == u"runs-later") {
-        return u"This changes something that runs on its own later, like CI settings or editor tasks."_s;
-    }
-    if (rule == u"default.net") {
-        return u"The agent tried to reach a site that isn't on the allowed list."_s;
-    }
-    if (rule == u"default") {
-        return u"No rule covers this, so the agent's own prompt decided."_s;
-    }
-    if (rule == u"dev-shell") {
-        return u"A normal development command, like building or testing."_s;
-    }
-    if (rule == u"project-fs") {
-        return u"Reading or writing files inside the project."_s;
+    // `repo:<id>`: a rule from the project's `.moat/policy.yaml` (openmoat `repo.rs`).
+    if (rule.startsWith(u"repo:")) {
+        return u"A rule from this repository's own OpenMoat policy file."_s;
     }
     return std::nullopt;
+}
+
+std::optional<QString> RuleText::driftNote(const QStringList &rules) {
+    if (rules.isEmpty() || rules.first() == settingsDrift() || !rules.contains(settingsDrift())) {
+        return std::nullopt;
+    }
+    return u"A settings file OpenMoat pinned changed in a way that changes no decision. "
+           u"moat doctor shows the change."_s;
 }
 
 QString CopyCommands::setUp() {
@@ -69,6 +103,13 @@ QString CopyCommands::install(Shell shell) {
 
 QString CopyCommands::policyUpgrade() {
     return u"moat policy upgrade"_s;
+}
+
+QString CopyCommands::mcpAccept(const std::optional<QString> &server, Shell shell) {
+    if (!server || server->isEmpty()) {
+        return u"moat mcp accept"_s;
+    }
+    return u"moat mcp accept "_s + quoteIfNeeded(*server, shell);
 }
 
 QString CopyCommands::removeRule(const QString &id, Shell shell) {
@@ -114,6 +155,49 @@ std::optional<QString> CopyCommands::policyCheck(const Action &action, Shell she
         line += u" --kind "_s + kind;
     }
     return line;
+}
+
+QString McpNotices::title() {
+    return u"MCP server changes wait for you"_s;
+}
+
+QString McpNotices::note() {
+    return u"OpenMoat refuses a changed server's tool calls until you accept it. "
+           u"moat mcp accept shows each change and asks."_s;
+}
+
+std::optional<QString> McpNotices::server(const QString &line) {
+    constexpr QStringView prefix = u"MCP server `";
+    if (!line.startsWith(prefix)) {
+        return std::nullopt;
+    }
+    const qsizetype end = line.indexOf(u'`', prefix.size());
+    if (end <= prefix.size()) {
+        return std::nullopt;
+    }
+    return line.mid(prefix.size(), end - prefix.size());
+}
+
+QStringList McpNotices::servers(const QStringList &lines) {
+    QStringList out;
+    for (const QString &line : lines) {
+        if (const auto name = server(line); name && !out.contains(*name)) {
+            out.append(*name);
+        }
+    }
+    return out;
+}
+
+QStringList McpNotices::acceptCommands(const QStringList &lines, Shell shell) {
+    const QStringList names = servers(lines);
+    if (names.isEmpty()) {
+        return {CopyCommands::mcpAccept(std::nullopt, shell)};
+    }
+    QStringList out;
+    for (const QString &name : names) {
+        out.append(CopyCommands::mcpAccept(name, shell));
+    }
+    return out;
 }
 
 QUrl DocsLink::home() { return QUrl(u"https://openmoat.dev"_s); }

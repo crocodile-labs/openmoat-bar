@@ -1,4 +1,5 @@
 #include "core/Details.hpp"
+#include "core/Text.hpp"
 
 #include <algorithm>
 #include <array>
@@ -93,6 +94,82 @@ QString doctorStatusTone(DoctorStatus status) {
     return u"warn"_s;
 }
 
+QString doctorTopicLabel(DoctorTopic topic) {
+    switch (topic) {
+    case DoctorTopic::Moat: return u"OpenMoat"_s;
+    case DoctorTopic::Policy: return u"Policy"_s;
+    case DoctorTopic::Lock: return u"Pinned files"_s;
+    case DoctorTopic::Hooks: return u"Hooks"_s;
+    case DoctorTopic::Mcp: return u"MCP servers"_s;
+    case DoctorTopic::Sandbox: return u"Sandboxes"_s;
+    case DoctorTopic::Proxy: return u"Network proxy"_s;
+    case DoctorTopic::Agents: return u"Agents"_s;
+    case DoctorTopic::Audit: return u"Audit log"_s;
+    case DoctorTopic::Other: return u"Other"_s;
+    }
+    return u"Other"_s;
+}
+
+QString DoctorCheck::title() const {
+    return name.isEmpty() ? detail : CheckText::label(name);
+}
+
+DoctorTopic DoctorCheck::topic() const {
+    // `area` in openmoat crates/openmoat-cli/src/commands/doctor.rs.
+    if (area) {
+        const QString &a = *area;
+        if (a == u"state" || a == u"binary" || a == u"environment") {
+            return DoctorTopic::Moat;
+        }
+        if (a == u"policy") {
+            return DoctorTopic::Policy;
+        }
+        if (a == u"lock") {
+            return DoctorTopic::Lock;
+        }
+        if (a == u"hook") {
+            return DoctorTopic::Hooks;
+        }
+        if (a == u"mcp") {
+            return DoctorTopic::Mcp;
+        }
+        if (a == u"sandbox") {
+            return DoctorTopic::Sandbox;
+        }
+        if (a == u"service") {
+            return DoctorTopic::Proxy;
+        }
+        if (a == u"audit") {
+            return DoctorTopic::Audit;
+        }
+        return DoctorTopic::Other;
+    }
+    const QString lower = name.toLower();
+    if (lower == u"audit log" || lower == u"audit anchor") {
+        return DoctorTopic::Audit;
+    }
+    if (lower == u"repo policy" || lower == u"policy update") {
+        return DoctorTopic::Policy;
+    }
+    if (lower == u"mcp servers" || lower == u"mcp tools") {
+        return DoctorTopic::Mcp;
+    }
+    if (lower == u"guard" || lower == u"hook file") {
+        return DoctorTopic::Hooks;
+    }
+    if (detail.contains(u"onFailure")) {
+        return DoctorTopic::Hooks; // `Claude Code      runs a tool call when its hook fails…`
+    }
+    // How the notes about one agent start (`Claude Code      protection: …`).
+    constexpr std::array agentLines{QStringView{u"protection:"}, QStringView{u"known gaps:"},
+                                    QStringView{u"host not found"}, QStringView{u"not set up"}};
+    if (!lower.isEmpty() &&
+        std::ranges::any_of(agentLines, [this](QStringView start) { return detail.startsWith(start); })) {
+        return DoctorTopic::Agents;
+    }
+    return DoctorTopic::Other;
+}
+
 std::vector<DoctorGroup> DoctorReport::groups() const {
     constexpr std::array order{DoctorStatus::Problem, DoctorStatus::Warning, DoctorStatus::Note, DoctorStatus::Ok};
     std::vector<DoctorGroup> out;
@@ -100,11 +177,130 @@ std::vector<DoctorGroup> DoctorReport::groups() const {
         DoctorGroup group{status, {}};
         std::ranges::copy_if(checks, std::back_inserter(group.checks),
                              [status](const DoctorCheck &check) { return check.status == status; });
+        // Stable: within a topic, moat's order.
+        std::ranges::stable_sort(group.checks, std::ranges::less{}, &DoctorCheck::topic);
         if (!group.checks.empty()) {
             out.push_back(std::move(group));
         }
     }
     return out;
+}
+
+// MARK: - Check words
+
+QString CheckText::label(const QString &name) {
+    const QString lower = name.toLower();
+    if (lower == u"audit anchor") {
+        return u"Audit anchor"_s;
+    }
+    if (lower == u"audit log") {
+        return u"Audit log"_s;
+    }
+    if (lower == u"repo policy") {
+        return u"Repository policy"_s;
+    }
+    if (lower == u"policy update") {
+        return u"Policy update"_s;
+    }
+    if (lower == u"mcp servers") {
+        return u"MCP servers"_s;
+    }
+    if (lower == u"mcp tools") {
+        return u"MCP tools"_s;
+    }
+    return name;
+}
+
+std::optional<QString> CheckText::hint(const DoctorCheck &check) {
+    const QString name = check.name.toLower();
+    const QString &detail = check.detail;
+    switch (check.topic()) {
+    case DoctorTopic::Audit:
+        if (name == u"audit anchor") {
+            return u"A copy of the audit log's latest hash, kept outside it. "
+                   u"moat audit verify --against checks the log against it later."_s;
+        }
+        return std::nullopt;
+    case DoctorTopic::Policy:
+        return name == u"repo policy" ? repoPolicyHint(detail) : std::nullopt;
+    case DoctorTopic::Mcp:
+        if (detail.contains(u"not pinned yet")) {
+            return u"Once pinned, a server definition that changes later is held back until you accept it."_s;
+        }
+        if (check.status == DoctorStatus::Problem) {
+            return u"Its tool calls are refused until you accept the change."_s;
+        }
+        return std::nullopt;
+    case DoctorTopic::Hooks:
+        if (detail.contains(u"onFailure")) {
+            return u"With this Claude Code, a tool call still runs when the OpenMoat hook crashes or times out."_s;
+        }
+        return std::nullopt;
+    case DoctorTopic::Lock:
+        if (isPackFile(detail)) {
+            return u"A signed policy pack changed after it was installed. Calls stop until a person looks."_s;
+        }
+        return std::nullopt;
+    case DoctorTopic::Moat:
+    case DoctorTopic::Sandbox:
+    case DoctorTopic::Proxy:
+    case DoctorTopic::Agents:
+    case DoctorTopic::Other: return std::nullopt;
+    }
+    return std::nullopt;
+}
+
+std::optional<QString> CheckText::fix(const DoctorCheck &check) {
+    if (check.topic() != DoctorTopic::Mcp || check.status == DoctorStatus::Ok) {
+        return std::nullopt;
+    }
+    return CopyCommands::mcpAccept(quotedName(check.detail));
+}
+
+std::optional<QString> CheckText::repoPolicyHint(const QString &detail) {
+    constexpr QStringView signedBy = u"trusted: signed by ";
+    if (const qsizetype at = detail.indexOf(signedBy); at >= 0) {
+        const QString signer = detail.mid(at + signedBy.size()).section(u' ', 0, 0);
+        return u"Signed by %1, a key you trust, so its allow rules apply too."_s.arg(signer);
+    }
+    if (detail.contains(u"not signed by a trusted key")) {
+        return u"Not signed by a key you trust, so only its deny and ask rules apply."_s;
+    }
+    if (detail.contains(u"changed since `moat trust`")) {
+        return u"Changed since you trusted it, so only its deny and ask rules apply."_s;
+    }
+    if (detail.contains(u"not trusted")) {
+        return u"Not trusted, so only its deny and ask rules apply."_s;
+    }
+    if (detail.contains(u"tightening only")) {
+        return u"It only adds deny and ask rules."_s;
+    }
+    if (detail.contains(u"trusted (")) {
+        return u"Trusted with moat trust, so its allow rules apply too."_s;
+    }
+    return std::nullopt;
+}
+
+bool CheckText::isPackFile(const QString &detail) {
+    return detail.contains(u"policy.d/packs/") || detail.contains(u"policy.d\\packs\\") ||
+           detail.contains(u"packs.json");
+}
+
+std::optional<QString> CheckText::quotedName(const QString &text) {
+    const qsizetype start = text.indexOf(u'`');
+    if (start < 0) {
+        return std::nullopt;
+    }
+    const qsizetype end = text.indexOf(u'`', start + 1);
+    if (end < 0) {
+        return std::nullopt;
+    }
+    const QString name = text.mid(start + 1, end - start - 1);
+    // `moat mcp accept` in the "not pinned yet" line is a command, not a server.
+    if (name.isEmpty() || name.contains(u' ')) {
+        return std::nullopt;
+    }
+    return name;
 }
 
 // MARK: - Older moat

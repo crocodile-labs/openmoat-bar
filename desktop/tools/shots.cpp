@@ -143,7 +143,8 @@ Details fixtureDetails() {
     runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.6 (OpenMoat)\n"));
     runner->stub(u"allowed"_s, test::fixture(u"allowed"_s));
     runner->stub(u"secret"_s, test::fixture(u"secret-list"_s));
-    runner->stub(u"doctor"_s, test::fixture(u"doctor"_s));
+    // The doctor lines OpenMoat 0.5.7 and later add: signing state, MCP, the audit anchor.
+    runner->stub(u"doctor"_s, test::fixture(u"doctor-signed"_s));
     return MoatClient(u"moat"_s, runner).details(QDateTime::fromMSecsSinceEpoch(1792061000000));
 }
 
@@ -154,12 +155,17 @@ Details olderMoatDetails() {
     return MoatClient(u"moat"_s, runner).details(QDateTime::fromMSecsSinceEpoch(1792061000000));
 }
 
-/// `snapshot` with the status that has a policy update and changed files.
+/// `snapshot` with the status that has a policy update, changed files and MCP
+/// server changes to accept.
 Snapshot noticesSnapshot(Snapshot snapshot) {
     const auto status = json::parseStatus(test::fixture(u"status-notices"_s));
     if (status.ok()) {
         snapshot.status.policyUpdate = status.value().policyUpdate;
         snapshot.status.lockDrift = status.value().lockDrift;
+    }
+    const auto mcp = json::parseStatus(test::fixture(u"status-mcp"_s));
+    if (mcp.ok()) {
+        snapshot.status.mcpChanges = mcp.value().mcpChanges;
     }
     return snapshot;
 }

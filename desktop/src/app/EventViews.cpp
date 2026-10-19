@@ -77,6 +77,7 @@ QVariantMap decisionMap(const Event &event, const QString &agentName) {
         {u"folder"_s, event.cwd ? Format::shortPath(*event.cwd, QDir::homePath()) : QString{}},
         {u"told"_s, event.reason().value_or(QString{})},
         {u"why"_s, why.value_or(QString{})},
+        {u"driftNote"_s, RuleText::driftNote(event.rules).value_or(QString{})},
         {u"checkCommand"_s, check.value_or(QString{})},
         {u"blocked"_s, event.verdict == Verdict::Deny || event.verdict == Verdict::Ask},
     };

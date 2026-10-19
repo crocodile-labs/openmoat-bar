@@ -198,6 +198,50 @@ private slots:
         QVERIFY(model.notices().isEmpty());
     }
 
+    void noticesShowMcpChangesWithACommandPerServer() {
+        QuickViewModel model;
+        model.setData(makeSnapshot(u"status-mcp"_s), std::nullopt, kNow);
+        const QVariantList notices = model.notices();
+        QCOMPARE(column(notices, u"title"_s), QStringList{u"MCP server changes wait for you"_s});
+        const QVariantMap mcp = notices[0].toMap();
+        QCOMPARE(mcp.value(u"tone"_s).toString(), u"warn"_s);
+        QCOMPARE(mcp.value(u"command"_s).toString(), u"moat mcp accept gh"_s);
+        QCOMPARE(mcp.value(u"moreCommands"_s).toStringList(), QStringList{u"moat mcp accept docs"_s});
+        QVERIFY(mcp.value(u"text"_s).toString().contains(u"cannot be read"_s));
+    }
+
+    void decisionNotesSettingsDrift() {
+        QuickViewModel model;
+        Snapshot snapshot = makeSnapshot(u"status"_s);
+        snapshot.events = json::parseEvents(fixture(u"show-new-rules"_s)).value();
+        model.setData(snapshot, std::nullopt, kNow);
+        const QVariantMap drifted = model.decision(u"2e"_s);
+        QCOMPARE(drifted.value(u"rule"_s).toString(), u"dev-shell"_s);
+        QVERIFY(drifted.value(u"driftNote"_s).toString().startsWith(u"A settings file OpenMoat pinned"_s));
+        const QVariantMap typo = model.decision(u"2a"_s);
+        QVERIFY(typo.value(u"why"_s).toString().startsWith(u"The package name is one typo away"_s));
+        QVERIFY(typo.value(u"driftNote"_s).toString().isEmpty());
+    }
+
+    void checksPageNamesTopicsAndCopiesTheAcceptCommand() {
+        auto runner = std::make_shared<test::StubRunner>();
+        runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.7 (OpenMoat)\n"));
+        runner->stub(u"allowed"_s, fixture(u"allowed"_s));
+        runner->stub(u"secret"_s, fixture(u"secret-list"_s));
+        runner->stub(u"doctor"_s, fixture(u"doctor-signed"_s));
+        DetailsModel details;
+        details.setData(MoatClient(u"moat"_s, runner).details(), kNow);
+
+        const QVariantList groups = details.checks().value(u"groups"_s).toList();
+        const QVariantList problems = groups[0].toMap().value(u"items"_s).toList();
+        QCOMPARE(column(problems, u"topic"_s), (QStringList{u"Pinned files"_s, u"MCP servers"_s, u"MCP servers"_s}));
+        QCOMPARE(column(problems, u"command"_s),
+                 (QStringList{QString{}, u"moat mcp accept gh"_s, u"moat mcp accept docs"_s}));
+        const QVariantList notes = groups[2].toMap().value(u"items"_s).toList();
+        QCOMPARE(column(notes, u"title"_s), (QStringList{u"Repository policy"_s, u"Audit log"_s, u"Audit anchor"_s}));
+        QVERIFY(byKey(notes, u"title"_s, u"Audit anchor"_s).value(u"hint"_s).toString().startsWith(u"A copy of"_s));
+    }
+
     void detailPagesFromTheFixtures() {
         auto runner = std::make_shared<test::StubRunner>();
         runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.6 (OpenMoat)\n"));

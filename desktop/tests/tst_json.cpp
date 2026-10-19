@@ -2,6 +2,8 @@
 #include "core/Json.hpp"
 #include "core/Text.hpp"
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
 using namespace moatbar;
 using moatbar::test::fixture;
@@ -186,6 +188,138 @@ private slots:
         QCOMPARE(CopyCommands::revokeTrust(u"C:\\Users\\you\\code\\app"_s, Shell::PowerShell),
                  u"moat trust --revoke C:\\Users\\you\\code\\app"_s);
         QCOMPARE(CopyCommands::policyUpgrade(), u"moat policy upgrade"_s);
+    }
+
+    // MARK: - OpenMoat 0.5.7 and later: doctor lines, MCP changes, new rules
+
+    void doctorGroupsLikeChecksTogether() {
+        const auto doctor = json::parseDoctor(fixture(u"doctor-signed"_s));
+        QVERIFY(doctor.ok());
+        const auto groups = doctor.value().groups();
+        QCOMPARE(groups.size(), std::size_t{4});
+        const auto topics = [](const DoctorGroup &group) {
+            QStringList out;
+            for (const DoctorCheck &check : group.checks) {
+                out << doctorTopicLabel(check.topic());
+            }
+            return out;
+        };
+        QCOMPARE(topics(groups[0]), (QStringList{u"Pinned files"_s, u"MCP servers"_s, u"MCP servers"_s}));
+        QCOMPARE(topics(groups[1]), QStringList{u"Hooks"_s});
+        QCOMPARE(topics(groups[2]), (QStringList{u"Policy"_s, u"Audit log"_s, u"Audit log"_s}));
+        QCOMPARE(topics(groups[3]), (QStringList{u"Policy"_s, u"Hooks"_s, u"Audit log"_s}));
+        QCOMPARE(groups[2].checks[0].title(), u"Repository policy"_s);
+        QCOMPARE(groups[2].checks[2].title(), u"Audit anchor"_s);
+    }
+
+    void doctorNewLinesAreExplained() {
+        const auto doctor = json::parseDoctor(fixture(u"doctor-signed"_s));
+        QVERIFY(doctor.ok());
+        const auto &checks = doctor.value().checks;
+        // A copy, or an empty check (whose asserts then fail) when there is none.
+        const auto find = [&checks](QStringView name, QStringView needle = {}) {
+            const auto it = std::ranges::find_if(checks, [&](const DoctorCheck &check) {
+                return check.name == name && check.detail.contains(needle);
+            });
+            return it == checks.end() ? DoctorCheck{} : *it;
+        };
+        const DoctorCheck anchor = find(u"audit anchor");
+        QVERIFY(anchor.subtitle().startsWith(u"last made 2026-10-18 09:12:44 UTC (event 1198)"_s));
+        QVERIFY(CheckText::hint(anchor).value_or(QString{}).startsWith(u"A copy of the audit log's latest hash"_s));
+        QVERIFY(!CheckText::fix(anchor));
+        QCOMPARE(CheckText::hint(find(u"repo policy")).value_or(QString{}),
+                 u"Signed by alice@example.com, a key you trust, so its allow rules apply too."_s);
+        QVERIFY(CheckText::hint(find(u"lock")).value_or(QString{}).startsWith(u"A signed policy pack changed"_s));
+        const DoctorCheck hook = find(u"Claude Code", u"onFailure");
+        QVERIFY(hook.topic() == DoctorTopic::Hooks);
+        QVERIFY(CheckText::hint(hook).value_or(QString{}).contains(u"still runs when the OpenMoat hook crashes"_s));
+        QCOMPARE(CheckText::fix(find(u"mcp servers")).value_or(QString{}), u"moat mcp accept gh"_s);
+        QCOMPARE(CheckText::fix(find(u"mcp tools")).value_or(QString{}), u"moat mcp accept docs"_s);
+        QCOMPARE(CheckText::hint(find(u"mcp servers")).value_or(QString{}),
+                 u"Its tool calls are refused until you accept the change."_s);
+
+        const auto unpinned = json::parseDoctor(fixture(u"doctor-mcp-unpinned"_s));
+        QVERIFY(unpinned.ok());
+        const DoctorCheck &mcp = unpinned.value().checks[0];
+        QVERIFY(mcp.topic() == DoctorTopic::Mcp);
+        QCOMPARE(CheckText::fix(mcp).value_or(QString{}), u"moat mcp accept"_s);
+        QCOMPARE(CheckText::hint(unpinned.value().checks[1]).value_or(QString{}),
+                 u"Not signed by a key you trust, so only its deny and ask rules apply."_s);
+    }
+
+    void doctorRepoPolicyStates() {
+        QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  changed since `moat trust`: tightening only"_s).value_or(QString{}),
+                 u"Changed since you trusted it, so only its deny and ask rules apply."_s);
+        QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  trusted (1 deny, 0 ask, 1 allow)"_s).value_or(QString{}),
+                 u"Trusted with moat trust, so its allow rules apply too."_s);
+        QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  tightening only (1 deny)"_s).value_or(QString{}),
+                 u"It only adds deny and ask rules."_s);
+        QVERIFY(!CheckText::repoPolicyHint(u"something a newer moat says"_s));
+        QVERIFY(CheckText::isPackFile(u"C:\\Users\\you\\.moat\\policy.d\\packs\\team.yaml was modified"_s));
+        QVERIFY(!CheckText::isPackFile(u"/Users/you/.moat/policy.yaml was modified"_s));
+    }
+
+    void doctorOlderLinesKeepTheirWords() {
+        const auto doctor = json::parseDoctor(fixture(u"doctor"_s));
+        QVERIFY(doctor.ok());
+        const auto &checks = doctor.value().checks;
+        QCOMPARE(checks[0].title(), u"state directory"_s);
+        QVERIFY(std::ranges::none_of(checks, [](const DoctorCheck &check) { return CheckText::fix(check).has_value(); }));
+        QVERIFY(checks[6].topic() == DoctorTopic::Other);
+    }
+
+    void statusDecodesMcpChanges() {
+        const auto status = json::parseStatus(fixture(u"status-mcp"_s));
+        QVERIFY(status.ok());
+        const QStringList &lines = status.value().mcpChanges;
+        QCOMPARE(lines.size(), 4);
+        QCOMPARE(McpNotices::servers(lines), (QStringList{u"gh"_s, u"docs"_s}));
+        QCOMPARE(McpNotices::acceptCommands(lines, Shell::Posix),
+                 (QStringList{u"moat mcp accept gh"_s, u"moat mcp accept docs"_s}));
+        QVERIFY(!McpNotices::server(lines[3]));
+        QVERIFY(!McpNotices::server(u"MCP server `` in /x changed"_s));
+        QCOMPARE(McpNotices::acceptCommands(QStringList{u"/x cannot be read: denied"_s}, Shell::Posix),
+                 QStringList{u"moat mcp accept"_s});
+        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::Posix), u"moat mcp accept 'team docs'"_s);
+        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::PowerShell), u"moat mcp accept 'team docs'"_s);
+
+        for (const QString &name : {u"status"_s, u"status-notices"_s}) {
+            const auto older = json::parseStatus(fixture(name));
+            QVERIFY(older.ok());
+            QVERIFY(older.value().mcpChanges.isEmpty());
+        }
+    }
+
+    void ruleTextExplainsTheRulesMoatAdded() {
+        const auto events = json::parseEvents(fixture(u"show-new-rules"_s));
+        QVERIFY(events.ok());
+        QStringList rules;
+        for (const Event &event : events.value()) {
+            rules << event.rule().value_or(QString{});
+        }
+        QCOMPARE(rules, (QStringList{u"package-near-miss"_s, u"push-secret"_s, u"token-egress"_s,
+                                     u"mcp-server-changed"_s, u"dev-shell"_s, u"pack:team:no-deploy"_s}));
+        for (const QString &rule : rules) {
+            const auto why = RuleText::why(rule);
+            QVERIFY2(why.has_value(), qPrintable(rule));
+            QVERIFY(!why->contains(u'\n'));
+        }
+        QCOMPARE(RuleText::why(u"pack:team:no-deploy").value_or(QString{}),
+                 u"A rule from the policy pack team, installed after its signature checked out."_s);
+        QVERIFY(RuleText::why(u"repo:no-prod").has_value());
+        QVERIFY(RuleText::why(RuleText::settingsDrift()).has_value());
+        QVERIFY(!RuleText::why(u"my-team-rule").has_value());
+    }
+
+    void ruleTextNotesSettingsDriftBesideAnotherRule() {
+        const auto events = json::parseEvents(fixture(u"show-new-rules"_s));
+        QVERIFY(events.ok());
+        const Event &drifted = events.value()[4];
+        QCOMPARE(drifted.rule().value_or(QString{}), u"dev-shell"_s);
+        QVERIFY(RuleText::driftNote(drifted.rules).value_or(QString{}).startsWith(u"A settings file OpenMoat pinned"_s));
+        QVERIFY(!RuleText::driftNote(QStringList{u"settings-drift"_s}));
+        QVERIFY(!RuleText::driftNote(QStringList{u"dev-shell"_s}));
+        QVERIFY(!RuleText::driftNote(events.value()[0].rules));
     }
 
     void textInsteadOfJsonIsUnreadable() {

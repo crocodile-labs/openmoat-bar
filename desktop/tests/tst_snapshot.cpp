@@ -120,6 +120,32 @@ private slots:
         QCOMPARE(attention.front().id, u"lock"_s);
     }
 
+    void mcpChangesNeedALook() {
+        const auto checks = securityChecks(makeSnapshot(u"status-mcp"_s));
+        const auto mcp = std::ranges::find(checks, u"mcp"_s, &SecurityCheck::id);
+        QVERIFY(mcp != checks.end());
+        QVERIFY(mcp->kind == SecurityCheck::Kind::Warning);
+        // Two servers: the command that shows every change.
+        QCOMPARE(mcp->fix.value_or(QString{}), u"moat mcp accept"_s);
+        QVERIFY(mcp->detail.value_or(QString{}).contains(u"MCP server `gh`"_s));
+        const auto attention = needingAttention(checks);
+        QCOMPARE(attention.size(), std::size_t{1});
+        QCOMPARE(attention.front().id, u"mcp"_s);
+
+        Snapshot one = makeSnapshot(u"status"_s);
+        one.status.mcpChanges = QStringList{u"MCP server `gh` in /x changed"_s};
+        const auto single = securityChecks(one);
+        const auto gh = std::ranges::find(single, u"mcp"_s, &SecurityCheck::id);
+        QVERIFY(gh != single.end());
+        QCOMPARE(gh->fix.value_or(QString{}), u"moat mcp accept gh"_s);
+
+        // An older moat sends no mcp_changes: no check at all.
+        for (const QString &name : {u"status"_s, u"status-notices"_s}) {
+            const auto older = securityChecks(makeSnapshot(name));
+            QVERIFY(std::ranges::find(older, u"mcp"_s, &SecurityCheck::id) == older.end());
+        }
+    }
+
     void securityChecksWorstFirst() {
         const auto checks =
             securityChecks(makeSnapshot(u"status"_s, ProxyState{ProxyState::Kind::Stopped, {}}));
