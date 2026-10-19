@@ -1,0 +1,16 @@
+{
+  "healthy": true,
+  "problems": 0,
+  "checks": [
+    {
+      "status": "warning",
+      "name": "mcp servers",
+      "detail": "not pinned yet: `moat mcp accept` shows them and pins them, so a changed definition is held back"
+    },
+    {
+      "status": "note",
+      "name": "repo policy",
+      "detail": "/Users/you/code/site/.moat/policy.yaml  sha256:9f2c4e1a7b3d  not signed by a trusted key: tightening only, allow rules ignored (2 deny, 1 ask, 3 allow)"
+    }
+  ]
+}

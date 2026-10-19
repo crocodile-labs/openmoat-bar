@@ -186,10 +186,21 @@ struct DetailsView: View {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             StatusDot(color: group.status.color)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(check.title).font(.system(size: 12, weight: .medium))
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(check.title).font(.system(size: 12, weight: .medium))
+                                    Spacer(minLength: 8)
+                                    Text(check.topic.label).font(.system(size: 10)).foregroundColor(.secondary)
+                                }
                                 if !check.subtitle.isEmpty {
                                     Text(check.subtitle).font(.system(size: 12)).foregroundColor(.secondary)
                                         .textSelection(.enabled)
+                                }
+                                if let hint = CheckText.hint(check) {
+                                    Text(hint).font(.system(size: 12)).foregroundColor(.secondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                if let fix = CheckText.fix(check) {
+                                    CopyButton(title: "Copy the command", command: fix)
                                 }
                             }
                         }

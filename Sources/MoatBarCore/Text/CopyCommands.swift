@@ -15,6 +15,15 @@ public enum CopyCommands {
     /// Show the newer default policy's changes and ask before applying them.
     public static let policyUpgrade = "moat policy upgrade"
 
+    /// Show what changed in one MCP server (or, without a name, in every one)
+    /// and ask before accepting it. Only a person in a terminal can run it.
+    public static func mcpAccept(_ server: String?) -> String {
+        guard let server, !server.isEmpty else {
+            return "moat mcp accept"
+        }
+        return "moat mcp accept \(self.shellQuoteIfNeeded(server))"
+    }
+
     /// Take back a permanent rule `moat allow` wrote, as `moat allowed` prints it.
     public static func removeRule(_ id: String) -> String {
         "moat allow --remove \(self.shellQuoteIfNeeded(id))"

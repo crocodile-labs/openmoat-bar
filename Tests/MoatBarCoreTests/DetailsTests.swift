@@ -131,6 +131,140 @@ final class DetailsTests: XCTestCase {
         XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["lock"])
     }
 
+    // MARK: - Doctor lines from OpenMoat 0.5.7 and later
+
+    func test_doctor_groupsLikeChecksTogether_andNamesTheirTopic() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-signed")
+
+        XCTAssertEqual(report.groups.map(\.status), [.problem, .warning, .note, .ok])
+        // Problems: the pinned pack file first, then both MCP lines.
+        XCTAssertEqual(report.groups[0].checks.map(\.topic), [.lock, .mcp, .mcp])
+        XCTAssertEqual(report.groups[1].checks.map(\.topic), [.hooks])
+        XCTAssertEqual(report.groups[2].checks.map(\.topic), [.policy, .audit, .audit])
+        XCTAssertEqual(report.groups[3].checks.map(\.topic), [.policy, .hooks, .audit])
+        XCTAssertEqual(report.groups[2].checks.map(\.title), ["Repository policy", "Audit log", "Audit anchor"])
+        XCTAssertEqual(DoctorTopic.mcp.label, "MCP servers")
+    }
+
+    func test_doctor_auditAnchor_isExplained() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-signed")
+        let anchor = try XCTUnwrap(report.checks.first { $0.name == "audit anchor" })
+
+        XCTAssertEqual(anchor.status, .note)
+        XCTAssertTrue(anchor.subtitle.hasPrefix("last made 2026-10-18 09:12:44 UTC (event 1198)"))
+        XCTAssertEqual(CheckText.hint(anchor)?.hasPrefix("A copy of the audit log's latest hash"), true)
+        XCTAssertNil(CheckText.fix(anchor))
+    }
+
+    func test_doctor_repoPolicy_saysWhoSignedIt() throws {
+        let signed = try Fixture.decode(DoctorReport.self, "doctor-signed")
+        let repo = try XCTUnwrap(signed.checks.first { $0.name == "repo policy" })
+        XCTAssertEqual(
+            CheckText.hint(repo),
+            "Signed by alice@example.com, a key you trust, so its allow rules apply too."
+        )
+
+        let unsigned = try Fixture.decode(DoctorReport.self, "doctor-mcp-unpinned")
+        let other = try XCTUnwrap(unsigned.checks.first { $0.name == "repo policy" })
+        XCTAssertEqual(CheckText.hint(other), "Not signed by a key you trust, so only its deny and ask rules apply.")
+
+        XCTAssertEqual(
+            CheckText.repoPolicyHint("p  sha256:1  changed since `moat trust`: tightening only (1 deny)"),
+            "Changed since you trusted it, so only its deny and ask rules apply."
+        )
+        XCTAssertEqual(
+            CheckText.repoPolicyHint("p  sha256:1  trusted (1 deny, 0 ask, 1 allow)"),
+            "Trusted with moat trust, so its allow rules apply too."
+        )
+        XCTAssertEqual(
+            CheckText.repoPolicyHint("p  sha256:1  tightening only (1 deny, 0 ask, 0 allow)"),
+            "It only adds deny and ask rules."
+        )
+        XCTAssertNil(CheckText.repoPolicyHint("something a newer moat says"))
+    }
+
+    func test_doctor_changedPolicyPack_isExplained() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-signed")
+        let lock = try XCTUnwrap(report.checks.first { $0.area == "lock" })
+
+        XCTAssertEqual(CheckText.hint(lock)?.hasPrefix("A signed policy pack changed"), true)
+        XCTAssertTrue(CheckText.isPackFile(#"C:\Users\you\.moat\policy.d\packs\team.yaml was modified"#))
+        XCTAssertFalse(CheckText.isPackFile("/Users/you/.moat/policy.yaml was modified"))
+    }
+
+    func test_doctor_mcpLines_copyTheAcceptCommandForTheirServer() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-signed")
+        let mcp = report.checks.filter { $0.topic == .mcp }
+
+        XCTAssertEqual(mcp.map(\.title), ["MCP servers", "MCP tools"])
+        XCTAssertEqual(mcp.map { CheckText.fix($0) }, ["moat mcp accept gh", "moat mcp accept docs"])
+        XCTAssertEqual(CheckText.hint(mcp[0]), "Its tool calls are refused until you accept the change.")
+
+        let unpinned = try Fixture.decode(DoctorReport.self, "doctor-mcp-unpinned").checks[0]
+        XCTAssertEqual(unpinned.topic, .mcp)
+        XCTAssertEqual(CheckText.fix(unpinned), "moat mcp accept")
+        XCTAssertEqual(CheckText.hint(unpinned)?.hasPrefix("Once pinned"), true)
+    }
+
+    func test_doctor_hookWithoutOnFailure_isAHookWarning() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-signed")
+        let row = try XCTUnwrap(report.checks.first { $0.detail.contains("onFailure") })
+
+        XCTAssertEqual(row.status, .warning)
+        XCTAssertEqual(row.topic, .hooks)
+        XCTAssertEqual(row.title, "Claude Code")
+        XCTAssertEqual(CheckText.hint(row)?.contains("still runs when the OpenMoat hook crashes"), true)
+    }
+
+    func test_doctor_olderLines_keepTheirWords() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor")
+        XCTAssertEqual(report.checks.map(\.title)[0 ... 2], ["state directory", "policy", "lock"])
+        XCTAssertTrue(report.checks.allSatisfy { CheckText.fix($0) == nil })
+        XCTAssertEqual(report.checks[6].topic, .other)
+    }
+
+    // MARK: - MCP server changes from moat status
+
+    func test_status_decodesMcpChanges() throws {
+        let status = try Fixture.decode(StatusReport.self, "status-mcp")
+
+        XCTAssertEqual(status.mcpChanges.count, 4)
+        XCTAssertEqual(McpNotices.servers(status.mcpChanges), ["gh", "docs"])
+        XCTAssertEqual(McpNotices.acceptCommands(status.mcpChanges), ["moat mcp accept gh", "moat mcp accept docs"])
+        XCTAssertNil(McpNotices.server(in: status.mcpChanges[3]))
+    }
+
+    func test_status_withoutMcpChanges_showsNothing() throws {
+        for name in ["status", "status-notices"] {
+            let status = try Fixture.decode(StatusReport.self, name)
+            XCTAssertEqual(status.mcpChanges, [], name)
+            let checks = SecurityChecks.from(Snapshot(status: status, events: []))
+            XCTAssertFalse(checks.contains { $0.id == "mcp" }, name)
+        }
+    }
+
+    func test_mcpNotices_unnamedLines_copyThePlainCommand() {
+        let lines = ["/Users/you/.cursor/mcp.json cannot be read: denied"]
+        XCTAssertEqual(McpNotices.acceptCommands(lines), ["moat mcp accept"])
+        XCTAssertEqual(CopyCommands.mcpAccept("team docs"), "moat mcp accept 'team docs'")
+        XCTAssertNil(McpNotices.server(in: "MCP server `` in /x changed"))
+    }
+
+    func test_securityChecks_mcpChangesNeedALook() throws {
+        let status = try Fixture.decode(StatusReport.self, "status-mcp")
+        let checks = SecurityChecks.from(Snapshot(status: status, events: []))
+
+        let mcp = try XCTUnwrap(checks.first { $0.id == "mcp" })
+        XCTAssertEqual(mcp.kind, .warning)
+        XCTAssertEqual(mcp.title, McpNotices.title)
+        XCTAssertEqual(mcp.fix, "moat mcp accept", "two servers: the command that shows every change")
+        XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["mcp"])
+
+        let one = StatusReport(agents: status.agents, mcpChanges: ["MCP server `gh` in /x changed"])
+        let single = SecurityChecks.from(Snapshot(status: one, events: [])).first { $0.id == "mcp" }
+        XCTAssertEqual(single?.fix, "moat mcp accept gh")
+    }
+
     // MARK: - Older moat
 
     func test_version_comparesNumbers() {

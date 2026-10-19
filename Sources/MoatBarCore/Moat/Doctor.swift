@@ -16,11 +16,15 @@ public struct DoctorReport: Decodable, Equatable {
         self.checks = checks
     }
 
-    /// The checks grouped by status, worst first, each group in moat's order.
+    /// The checks grouped by status, worst first. Inside a group, checks about
+    /// the same thing (`DoctorTopic`) sit together, each topic in moat's order.
     /// Empty groups are left out.
     public var groups: [DoctorGroup] {
         DoctorStatus.allCases.reversed().compactMap { status in
-            let checks = self.checks.filter { $0.status == status }
+            let checks = self.checks.enumerated()
+                .filter { $0.element.status == status }
+                .sorted { ($0.element.topic, $0.offset) < ($1.element.topic, $1.offset) }
+                .map(\.element)
             return checks.isEmpty ? nil : DoctorGroup(status: status, checks: checks)
         }
     }
@@ -105,13 +109,91 @@ public struct DoctorCheck: Decodable, Equatable, Identifiable {
         self.detail = try c.decodeIfPresent(String.self, forKey: .detail) ?? ""
     }
 
-    /// The line's title: its name, or the detail when the line has no name.
+    /// The line's title: its name in plain words (`CheckText.label`), or the
+    /// detail when the line has no name.
     public var title: String {
-        self.name.isEmpty ? self.detail : self.name
+        self.name.isEmpty ? self.detail : CheckText.label(self.name)
+    }
+
+    /// What the check is about.
+    public var topic: DoctorTopic {
+        DoctorTopic(self)
     }
 
     /// The text under the title, empty when the title already is the detail.
     public var subtitle: String {
         self.name.isEmpty ? "" : self.detail
     }
+}
+
+/// What a `moat doctor` line is about, in the order the Checks screen keeps
+/// them together. From the line's `area`, or for notes and warnings (which
+/// have none) from its name.
+public enum DoctorTopic: Int, CaseIterable, Comparable {
+    case moat = 0
+    case policy
+    case lock
+    case hooks
+    case mcp
+    case sandbox
+    case proxy
+    case agents
+    case audit
+    case other
+
+    public init(_ check: DoctorCheck) {
+        if let area = check.area {
+            self = Self.byArea[area] ?? .other
+            return
+        }
+        let name = check.name.lowercased()
+        if let topic = Self.byName[name] {
+            self = topic
+        } else if check.detail.contains("onFailure") {
+            // `Claude Code      runs a tool call when its hook fails…`
+            self = .hooks
+        } else if !name.isEmpty, Self.agentLines.contains(where: { check.detail.hasPrefix($0) }) {
+            self = .agents
+        } else {
+            self = .other
+        }
+    }
+
+    public static func < (lhs: DoctorTopic, rhs: DoctorTopic) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+
+    /// The caption beside a check.
+    public var label: String {
+        switch self {
+        case .moat: return "OpenMoat"
+        case .policy: return "Policy"
+        case .lock: return "Pinned files"
+        case .hooks: return "Hooks"
+        case .mcp: return "MCP servers"
+        case .sandbox: return "Sandboxes"
+        case .proxy: return "Network proxy"
+        case .agents: return "Agents"
+        case .audit: return "Audit log"
+        case .other: return "Other"
+        }
+    }
+
+    /// `area` in openmoat `crates/openmoat-cli/src/commands/doctor.rs`.
+    private static let byArea: [String: DoctorTopic] = [
+        "state": .moat, "binary": .moat, "environment": .moat,
+        "policy": .policy, "lock": .lock, "hook": .hooks, "mcp": .mcp,
+        "sandbox": .sandbox, "service": .proxy, "audit": .audit,
+    ]
+
+    /// How the notes about one agent start (`Claude Code      protection: …`).
+    private static let agentLines = ["protection:", "known gaps:", "host not found", "not set up"]
+
+    /// The left column of rows without an area.
+    private static let byName: [String: DoctorTopic] = [
+        "audit log": .audit, "audit anchor": .audit,
+        "repo policy": .policy, "policy update": .policy,
+        "mcp servers": .mcp, "mcp tools": .mcp,
+        "guard": .hooks, "hook file": .hooks,
+    ]
 }

@@ -56,6 +56,17 @@ public enum SecurityChecks {
                 fix: CopyCommands.doctor
             ))
         }
+        // OpenMoat 0.5.7 and later; an older moat sends nothing, so no check.
+        if !snapshot.status.mcpChanges.isEmpty {
+            let commands = McpNotices.acceptCommands(snapshot.status.mcpChanges)
+            checks.append(SecurityCheck(
+                id: "mcp",
+                kind: .warning,
+                title: McpNotices.title,
+                detail: snapshot.status.mcpChanges.joined(separator: "\n"),
+                fix: commands.count == 1 ? commands[0] : CopyCommands.mcpAccept(nil)
+            ))
+        }
         if let update = snapshot.status.policyUpdate {
             checks.append(SecurityCheck(
                 id: "policy-update",
