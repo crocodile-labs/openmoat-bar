@@ -146,6 +146,121 @@ Result<StatusReport> parseStatus(const QByteArray &bytes) {
             report.agents.push_back(std::move(protection));
         }
     }
+    // OpenMoat 0.5.7 and later; `null` and `[]` when there is nothing to show.
+    const QJsonObject object = document->object();
+    report.hasUpdateNotices = object.contains(u"policy_update") || object.contains(u"lock_drift");
+    report.policyUpdate = optionalString(object, u"policy_update");
+    report.lockDrift = stringList(object.value(u"lock_drift"));
+    return report;
+}
+
+Result<AllowedReport> parseAllowed(const QByteArray &bytes) {
+    const auto document = parse(bytes);
+    if (!document || !document->isObject()) {
+        return unreadable(u"allowed"_s);
+    }
+    const QJsonObject object = document->object();
+    AllowedReport report;
+    // moat's kinds in the order it prints them; a kind a newer moat adds follows.
+    static const QStringList kinds{u"shell"_s, u"fs.read"_s, u"fs.write"_s, u"net"_s,
+                                   u"fetch"_s, u"env.read"_s, u"env.set"_s, u"mcp"_s};
+    for (const QJsonValue &value : object.value(u"rules").toArray()) {
+        const QJsonObject rule = value.toObject();
+        AllowedRule out;
+        out.id = rule.value(u"id").toString();
+        if (out.id.isEmpty()) {
+            continue;
+        }
+        out.reason = optionalString(rule, u"reason");
+        QStringList order = kinds;
+        QStringList extra;
+        for (const QString &key : rule.keys()) { // sorted
+            if (!kinds.contains(key) && key != u"id" && key != u"reason") {
+                extra << key;
+            }
+        }
+        order += extra;
+        for (const QString &kind : std::as_const(order)) {
+            const QJsonValue patterns = rule.value(kind);
+            const QStringList values = stringList(patterns);
+            if (patterns.isArray() && !values.isEmpty()) {
+                out.patterns.push_back(RulePatterns{kind, values});
+            }
+        }
+        report.rules.push_back(std::move(out));
+    }
+    for (const QJsonValue &value : object.value(u"session_grants").toArray()) {
+        const QJsonObject grant = value.toObject();
+        SessionGrant out;
+        out.host = grant.value(u"host").toString();
+        out.sessionId = grant.value(u"session_id").toString();
+        out.what = grant.value(u"what").toString();
+        out.grantedAtMs = grant.value(u"granted_at_ms").toInteger();
+        out.expiresAtMs = grant.value(u"expires_at_ms").toInteger();
+        if (!out.what.isEmpty()) {
+            report.sessionGrants.push_back(std::move(out));
+        }
+    }
+    for (const QJsonValue &value : object.value(u"trusted_repos").toArray()) {
+        const QJsonObject repo = value.toObject();
+        TrustedRepo out{repo.value(u"root").toString(), repo.value(u"sha256").toString()};
+        if (!out.root.isEmpty()) {
+            report.trustedRepos.push_back(std::move(out));
+        }
+    }
+    return report;
+}
+
+Result<SecretList> parseSecrets(const QByteArray &bytes) {
+    const auto document = parse(bytes);
+    if (!document || !document->isObject()) {
+        return unreadable(u"secret"_s);
+    }
+    SecretList list;
+    for (const QJsonValue &value : document->object().value(u"secrets").toArray()) {
+        const QJsonObject object = value.toObject();
+        BrokeredSecret secret;
+        secret.id = object.value(u"id").toString();
+        secret.host = object.value(u"host").toString();
+        secret.header = object.value(u"header").toString();
+        secret.plainHttp = object.value(u"plain_http").toBool(false);
+        // Left out means a moat that didn't check: say the agent may read it.
+        secret.sourceExposed = object.value(u"source_exposed").toBool(true);
+        const QJsonObject source = object.value(u"source").toObject();
+        if (source.value(u"env").isString()) {
+            secret.source = {SecretSource::Kind::Env, source.value(u"env").toString(), {}};
+        } else if (source.value(u"file").isString()) {
+            secret.source = {SecretSource::Kind::File, source.value(u"file").toString(), {}};
+        } else if (source.value(u"keychain").isObject()) {
+            const QJsonObject item = source.value(u"keychain").toObject();
+            secret.source = {SecretSource::Kind::Keychain, item.value(u"service").toString(),
+                             item.value(u"account").toString()};
+        }
+        if (!secret.id.isEmpty()) {
+            list.secrets.push_back(std::move(secret));
+        }
+    }
+    return list;
+}
+
+Result<DoctorReport> parseDoctor(const QByteArray &bytes) {
+    const auto document = parse(bytes);
+    if (!document || !document->isObject() || !document->object().value(u"checks").isArray()) {
+        return unreadable(u"doctor"_s);
+    }
+    const QJsonObject object = document->object();
+    DoctorReport report;
+    report.healthy = object.value(u"healthy").toBool(false);
+    report.problems = object.value(u"problems").toInt();
+    for (const QJsonValue &value : object.value(u"checks").toArray()) {
+        const QJsonObject row = value.toObject();
+        report.checks.push_back(DoctorCheck{
+            doctorStatusFromWire(row.value(u"status").toString()),
+            optionalString(row, u"area"),
+            row.value(u"name").toString(),
+            row.value(u"detail").toString(),
+        });
+    }
     return report;
 }
 

@@ -1,0 +1,46 @@
+{
+  "healthy": false,
+  "problems": 1,
+  "checks": [
+    {
+      "status": "ok",
+      "area": "state",
+      "name": "state directory",
+      "detail": "/Users/you/.moat"
+    },
+    {
+      "status": "ok",
+      "area": "policy",
+      "name": "policy",
+      "detail": "/Users/you/.moat/policy.yaml (31 deny, 12 allow, 9 ask)"
+    },
+    {
+      "status": "problem",
+      "area": "lock",
+      "name": "lock",
+      "detail": "/Users/you/.claude/settings.json was modified: hooks"
+    },
+    {
+      "status": "warning",
+      "name": "",
+      "detail": "secret gh: no deny rule covers its source, so the agent can read the value there"
+    },
+    {
+      "status": "note",
+      "name": "Claude Code",
+      "detail": "protection: hook + sandbox"
+    },
+    {
+      "status": "ok",
+      "area": "hook",
+      "name": "Claude Code",
+      "detail": "hook installed"
+    },
+    {
+      "status": "brand-new",
+      "area": "time-travel",
+      "name": "flux",
+      "detail": "a status a newer moat added"
+    }
+  ]
+}

@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
+#include <algorithm>
 #include <utility>
 
 using namespace Qt::StringLiterals;
@@ -14,6 +15,11 @@ namespace moatbar {
 
 Result<QByteArray> ProcessRunner::run(const QString &program, const QStringList &arguments,
                                       std::chrono::milliseconds timeout) {
+    return runAccepting(program, arguments, timeout, {0});
+}
+
+Result<QByteArray> ProcessRunner::runAccepting(const QString &program, const QStringList &arguments,
+                                               std::chrono::milliseconds timeout, const QList<int> &okExitCodes) {
     const QString command = arguments.isEmpty() ? QString{} : arguments.first();
     QProcess process;
     process.setProgram(program);
@@ -30,7 +36,9 @@ Result<QByteArray> ProcessRunner::run(const QString &program, const QStringList 
         return MoatError{MoatError::Kind::TimedOut, arguments.join(u' '), {}};
     }
     const QByteArray out = process.readAllStandardOutput();
-    if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
+    const int code = process.exitCode();
+    const bool accepted = code == 0 || (okExitCodes.contains(code) && !out.isEmpty());
+    if (process.exitStatus() != QProcess::NormalExit || !accepted) {
         const QByteArray err = process.readAllStandardError();
         QString first = QString::fromUtf8(err.isEmpty() ? out : err).section(u'\n', 0, 0).trimmed();
         if (first.startsWith(u"moat: ")) {
@@ -46,9 +54,32 @@ Result<QByteArray> ProcessRunner::run(const QString &program, const QStringList 
 
 // MARK: - MoatClient
 
-const QStringList &MoatClient::allowedCommands() {
-    static const QStringList commands{u"status"_s, u"show"_s, u"report"_s, u"proxy"_s, u"--version"_s};
+const QList<QStringList> &MoatClient::allowedCommands() {
+    static const QList<QStringList> commands{
+        {u"status"_s, u"--format"_s, u"json"_s},
+        {u"show"_s, u"--since"_s, u"*"_s, u"--format"_s, u"json"_s},
+        {u"report"_s, u"--since"_s, u"*"_s, u"--format"_s, u"json"_s},
+        {u"proxy"_s, u"status"_s, u"--format"_s, u"json"_s},
+        {u"--version"_s},
+        {u"allowed"_s, u"--format"_s, u"json"_s},
+        {u"secret"_s, u"list"_s, u"--format"_s, u"json"_s},
+        {u"doctor"_s, u"--format"_s, u"json"_s},
+    };
     return commands;
+}
+
+bool MoatClient::isAllowed(const QStringList &arguments) {
+    return std::ranges::any_of(allowedCommands(), [&arguments](const QStringList &line) {
+        if (line.size() != arguments.size()) {
+            return false;
+        }
+        for (qsizetype i = 0; i < line.size(); ++i) {
+            if (line[i] != u"*" && line[i] != arguments[i]) {
+                return false;
+            }
+        }
+        return true;
+    });
 }
 
 std::optional<QString> MoatClient::locate(const QProcessEnvironment &environment, const IsExecutable &isExecutable) {
@@ -86,13 +117,16 @@ std::optional<QString> MoatClient::locate(const QProcessEnvironment &environment
 MoatClient::MoatClient(QString binary, std::shared_ptr<CommandRunner> runner, std::chrono::milliseconds timeout)
     : m_binary(std::move(binary)), m_runner(std::move(runner)), m_timeout(timeout) {}
 
-Result<QByteArray> MoatClient::run(const QStringList &arguments) const {
+Result<QByteArray> MoatClient::run(const QStringList &arguments, const QList<int> &okExitCodes) const {
     // A programming error, not a runtime one: MoatBar must never run anything else.
-    Q_ASSERT(!arguments.isEmpty() && allowedCommands().contains(arguments.first()));
-    if (arguments.isEmpty() || !allowedCommands().contains(arguments.first())) {
+    Q_ASSERT(isAllowed(arguments));
+    if (!isAllowed(arguments)) {
         return MoatError{MoatError::Kind::Failed, arguments.value(0), u"not a read-only command"_s};
     }
-    return m_runner->run(m_binary, arguments, m_timeout);
+    if (okExitCodes == QList<int>{0}) {
+        return m_runner->run(m_binary, arguments, m_timeout);
+    }
+    return m_runner->runAccepting(m_binary, arguments, m_timeout, okExitCodes);
 }
 
 Result<StatusReport> MoatClient::status() const {
@@ -118,6 +152,34 @@ Result<ProxyState> MoatClient::proxyStatus() const {
 Result<QString> MoatClient::version() const {
     const auto bytes = run({u"--version"_s});
     return bytes ? json::parseVersion(bytes.value()) : Result<QString>{bytes.error()};
+}
+
+Result<AllowedReport> MoatClient::allowed() const {
+    const auto bytes = run({u"allowed"_s, u"--format"_s, u"json"_s});
+    return bytes ? json::parseAllowed(bytes.value()) : Result<AllowedReport>{bytes.error()};
+}
+
+Result<SecretList> MoatClient::secrets() const {
+    const auto bytes = run({u"secret"_s, u"list"_s, u"--format"_s, u"json"_s});
+    return bytes ? json::parseSecrets(bytes.value()) : Result<SecretList>{bytes.error()};
+}
+
+Result<DoctorReport> MoatClient::doctor() const {
+    // moat exits 64 after printing the checks when one of them is a problem.
+    const auto bytes = run({u"doctor"_s, u"--format"_s, u"json"_s}, {0, 64});
+    return bytes ? json::parseDoctor(bytes.value()) : Result<DoctorReport>{bytes.error()};
+}
+
+Details MoatClient::details(const QDateTime &now) const {
+    const auto ver = version();
+    const std::optional<QString> known = ver ? std::optional<QString>{ver.value()} : std::nullopt;
+    const QString minimum = MoatRequirement::screens();
+    return Details{
+        readScreen<AllowedReport>(minimum, known, [this] { return allowed(); }),
+        readScreen<SecretList>(minimum, known, [this] { return secrets(); }),
+        readScreen<DoctorReport>(minimum, known, [this] { return doctor(); }),
+        now,
+    };
 }
 
 Result<Snapshot> MoatClient::snapshot(const QDateTime &now) const {

@@ -14,7 +14,7 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`), so both apps read moat's JSON the 
 | Path | What |
 | --- | --- |
 | `src/core` | No GUI, Qt Core only: moat's JSON (`Models`, `Json`), the read-only `MoatClient`, `Snapshot` (every count the tray shows), `IconState`, `SecurityChecks`, `Text` (rule explanations, copyable commands, links) |
-| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window); the Activity window: `ActivityModel`, `ActivityWindow`; Welcome and Settings: `Preferences`, `SettingsWindows`; `EventViews` (a call as QML sees it); `qml/` |
+| `src/app` | The tray: `SnapshotStore` (reads off the GUI thread; refreshes on audit-log changes, every 60 s, on request), `TrayIcon`, `TrayMenu` (the right-click menu), `TrayController`; the Quick View: `QuickViewModel` (a snapshot as lists for QML), `QuickView` (the window), `DetailsModel` (What you allowed, Secrets and Checks, read off the GUI thread); the Activity window: `ActivityModel`, `ActivityWindow`; Welcome and Settings: `Preferences`, `SettingsWindows`; `EventViews` (a call as QML sees it); `qml/` |
 | `tests` | Qt Test suites for `src/core` and `QuickViewModel` |
 | `tools` | `moatbar_shots`: draws the menu, the tray icons and every Quick View page from the fixtures into PNG files, and fails on any QML warning |
 

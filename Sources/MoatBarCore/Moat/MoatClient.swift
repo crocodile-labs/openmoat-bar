@@ -1,10 +1,29 @@
 import Foundation
 
-/// Reads moat. Runs only the read-only commands in `allowedCommands` and
+/// Reads moat. Runs only the read-only command lines in `allowedCommands` and
 /// decodes their JSON; MoatBar never runs a moat command that changes anything.
 public struct MoatClient {
-    /// The only moat subcommands MoatBar ever runs.
-    public static let allowedCommands: Set<String> = ["status", "show", "report", "proxy", "--version"]
+    /// The only moat command lines MoatBar ever runs, word for word; `*` is
+    /// one `--since` value. Whole lines, not just the first word: `doctor`
+    /// re-pins with `--accept`, `secret add` edits the policy, and `proxy`
+    /// alone runs the proxy.
+    public static let allowedCommands: [[String]] = [
+        ["status", "--format", "json"],
+        ["show", "--since", "*", "--format", "json"],
+        ["report", "--since", "*", "--format", "json"],
+        ["proxy", "status", "--format", "json"],
+        ["--version"],
+        ["allowed", "--format", "json"],
+        ["secret", "list", "--format", "json"],
+        ["doctor", "--format", "json"],
+    ]
+
+    /// Whether `arguments` is one of `allowedCommands`.
+    public static func isAllowed(_ arguments: [String]) -> Bool {
+        self.allowedCommands.contains { line in
+            line.count == arguments.count && zip(line, arguments).allSatisfy { $0 == "*" || $0 == $1 }
+        }
+    }
 
     public var binary: URL
     public var runner: CommandRunner
@@ -77,6 +96,35 @@ public struct MoatClient {
         return String(words[1]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// What the person allowed (OpenMoat 0.5.5 and later).
+    public func allowed() throws -> AllowedReport {
+        try self.decode(AllowedReport.self, ["allowed", "--format", "json"])
+    }
+
+    /// Brokered secrets, never their values (OpenMoat 0.5.5 and later).
+    public func secrets() throws -> SecretList {
+        try self.decode(SecretList.self, ["secret", "list", "--format", "json"])
+    }
+
+    /// Every `moat doctor` check (OpenMoat 0.5.5 and later). moat exits 64
+    /// after printing them when one is a problem.
+    public func doctor() throws -> DoctorReport {
+        try self.decode(DoctorReport.self, ["doctor", "--format", "json"], okExitCodes: [0, 64])
+    }
+
+    /// The three detail screens. A moat older than 0.5.5 gets a note per
+    /// screen instead of an error, without running the commands it lacks.
+    public func details(now: Date = Date()) -> Details {
+        let version = try? self.version()
+        let minimum = MoatRequirement.screens
+        return Details(
+            allowed: .read(minimum: minimum, version: version) { try self.allowed() },
+            secrets: .read(minimum: minimum, version: version) { try self.secrets() },
+            checks: .read(minimum: minimum, version: version) { try self.doctor() },
+            takenAt: now
+        )
+    }
+
     /// Everything the menu needs. Status and events are required; the proxy
     /// state and version are shown when moat gives them.
     public func snapshot(now: Date = Date()) throws -> Snapshot {
@@ -93,8 +141,8 @@ public struct MoatClient {
 
     // MARK: - Running
 
-    func decode<T: Decodable>(_: T.Type, _ arguments: [String]) throws -> T {
-        let data = try self.run(arguments)
+    func decode<T: Decodable>(_: T.Type, _ arguments: [String], okExitCodes: Set<Int32> = [0]) throws -> T {
+        let data = try self.run(arguments, okExitCodes: okExitCodes)
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
@@ -102,10 +150,13 @@ public struct MoatClient {
         }
     }
 
-    func run(_ arguments: [String]) throws -> Data {
-        guard let command = arguments.first, Self.allowedCommands.contains(command) else {
+    func run(_ arguments: [String], okExitCodes: Set<Int32> = [0]) throws -> Data {
+        guard Self.isAllowed(arguments) else {
             preconditionFailure("MoatBar only runs read-only moat commands")
         }
-        return try self.runner.run(self.binary, arguments: arguments, timeout: self.timeout)
+        if okExitCodes == [0] {
+            return try self.runner.run(self.binary, arguments: arguments, timeout: self.timeout)
+        }
+        return try self.runner.run(self.binary, arguments: arguments, timeout: self.timeout, okExitCodes: okExitCodes)
     }
 }

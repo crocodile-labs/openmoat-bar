@@ -5,6 +5,7 @@
 // adds decode to safe defaults: a level is never "protected", a verdict is
 // never "allowed" or "blocked".
 
+#include "core/Details.hpp"
 #include "core/Models.hpp"
 #include "core/Result.hpp"
 
@@ -13,6 +14,9 @@
 namespace moatbar::json {
 
 [[nodiscard]] Result<StatusReport> parseStatus(const QByteArray &bytes);
+[[nodiscard]] Result<AllowedReport> parseAllowed(const QByteArray &bytes);
+[[nodiscard]] Result<SecretList> parseSecrets(const QByteArray &bytes);
+[[nodiscard]] Result<DoctorReport> parseDoctor(const QByteArray &bytes);
 [[nodiscard]] Result<std::vector<Event>> parseEvents(const QByteArray &bytes);
 [[nodiscard]] Result<Summary> parseSummary(const QByteArray &bytes);
 [[nodiscard]] Result<ProxyState> parseProxy(const QByteArray &bytes);

@@ -1,4 +1,5 @@
 #include "core/SecurityChecks.hpp"
+#include "core/Details.hpp"
 #include "core/Text.hpp"
 
 #include <algorithm>
@@ -70,6 +71,15 @@ std::vector<SecurityCheck> securityChecks(const Snapshot &snapshot) {
     }
     if (snapshot.proxy) {
         checks.push_back(proxyCheck(*snapshot.proxy));
+    }
+    // OpenMoat 0.5.7 and later: pinned files that changed, a newer default policy.
+    if (!snapshot.status.lockDrift.isEmpty()) {
+        checks.push_back({u"lock"_s, Kind::Problem, UpdateNotices::driftTitle(),
+                          snapshot.status.lockDrift.join(u'\n'), CopyCommands::doctor()});
+    }
+    if (snapshot.status.policyUpdate) {
+        checks.push_back({u"policy-update"_s, Kind::Info, UpdateNotices::updateTitle(), *snapshot.status.policyUpdate,
+                          CopyCommands::policyUpgrade()});
     }
     // Worst first; within a kind, moat's order.
     std::ranges::stable_sort(checks, std::ranges::greater{}, &SecurityCheck::kind);

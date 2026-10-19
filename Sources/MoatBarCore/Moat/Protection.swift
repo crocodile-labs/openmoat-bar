@@ -56,11 +56,51 @@ public struct Protection: Codable, Equatable {
     }
 }
 
-/// The whole `moat status --format json` document.
+/// The whole `moat status --format json` document. Shape: openmoat
+/// `crates/openmoat-cli/src/commands/status.rs`.
 public struct StatusReport: Codable, Equatable {
     public var agents: [Protection]
+    /// `3 changes from the OpenMoat 0.5.7 default` when `moat policy upgrade`
+    /// has changes to offer.
+    public var policyUpdate: String?
+    /// Files OpenMoat pinned that changed since: `… was modified`, `… is missing`.
+    public var lockDrift: [String]
+    /// Whether moat sent `policy_update` and `lock_drift` at all. moat before
+    /// 0.5.7 does not, so MoatBar can't say whether there is anything to show.
+    public var hasUpdateNotices: Bool
 
-    public init(agents: [Protection]) {
+    public init(
+        agents: [Protection],
+        policyUpdate: String? = nil,
+        lockDrift: [String] = [],
+        hasUpdateNotices: Bool = true
+    ) {
         self.agents = agents
+        self.policyUpdate = policyUpdate
+        self.lockDrift = lockDrift
+        self.hasUpdateNotices = hasUpdateNotices
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case agents
+        case policyUpdate = "policy_update"
+        case lockDrift = "lock_drift"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.agents = try c.decode([Protection].self, forKey: .agents)
+        self.policyUpdate = try? c.decodeIfPresent(String.self, forKey: .policyUpdate)
+        self.lockDrift = (try? c.decodeIfPresent([String].self, forKey: .lockDrift)) ?? []
+        self.hasUpdateNotices = c.contains(.policyUpdate) || c.contains(.lockDrift)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(self.agents, forKey: .agents)
+        if self.hasUpdateNotices {
+            try c.encode(self.policyUpdate, forKey: .policyUpdate)
+            try c.encode(self.lockDrift, forKey: .lockDrift)
+        }
     }
 }

@@ -1,4 +1,5 @@
 #include "Fixtures.hpp"
+#include "app/DetailsModel.hpp"
 #include "app/QuickViewModel.hpp"
 #include "core/Format.hpp"
 #include "core/Json.hpp"
@@ -180,6 +181,68 @@ private slots:
         QCOMPARE(Format::shortPath(u"/home/alex/code"_s, u"/home/al"_s), u"/home/alex/code"_s);
         QCOMPARE(Format::oneLine(u"a\n  b"_s, 10), u"a b"_s);
         QCOMPARE(Format::oneLine(u"abcdefghijk"_s, 5), u"abcd…"_s);
+    }
+
+    // MARK: - Update notices and the detail pages
+
+    void noticesShowAPolicyUpdateAndChangedFiles() {
+        QuickViewModel model;
+        model.setData(makeSnapshot(u"status-notices"_s), std::nullopt, kNow);
+        const QVariantList notices = model.notices();
+        QCOMPARE(column(notices, u"title"_s),
+                 (QStringList{u"Policy update available"_s, u"OpenMoat's files changed"_s}));
+        QCOMPARE(column(notices, u"command"_s), (QStringList{u"moat policy upgrade"_s, u"moat doctor"_s}));
+        QVERIFY(notices[1].toMap().value(u"text"_s).toString().contains(u"hooks.json is missing"_s));
+
+        model.setData(makeSnapshot(u"status"_s), std::nullopt, kNow);
+        QVERIFY(model.notices().isEmpty());
+    }
+
+    void detailPagesFromTheFixtures() {
+        auto runner = std::make_shared<test::StubRunner>();
+        runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.6 (OpenMoat)\n"));
+        runner->stub(u"allowed"_s, fixture(u"allowed"_s));
+        runner->stub(u"secret"_s, fixture(u"secret-list"_s));
+        runner->stub(u"doctor"_s, fixture(u"doctor"_s));
+        DetailsModel details;
+        details.setStatus(makeSnapshot(u"status"_s).status);
+        details.setData(MoatClient(u"moat"_s, runner).details(), kNow);
+
+        const QVariantMap allowed = details.allowed();
+        QCOMPARE(allowed.value(u"state"_s).toString(), u"loaded"_s);
+        const QVariantList rules = allowed.value(u"rules"_s).toList();
+        QCOMPARE(column(rules, u"title"_s),
+                 (QStringList{u"approved-1"_s, u"approved-site-docs-rs"_s, u"approved-dir-1"_s}));
+        QCOMPARE(rules[0].toMap().value(u"command"_s).toString(), u"moat allow --remove approved-1"_s);
+        const QVariantList grants = allowed.value(u"grants"_s).toList();
+        QCOMPARE(grants[0].toMap().value(u"detail"_s).toString(), u"Claude Code · session 5b1c2d3e · Ends in 3 h 10 min"_s);
+        QCOMPARE(grants[1].toMap().value(u"detail"_s).toString(), u"Codex · session 019a-cod · Ended"_s);
+
+        const QVariantMap secrets = details.secrets();
+        const QVariantList items = secrets.value(u"items"_s).toList();
+        QCOMPARE(items.size(), 4);
+        QCOMPARE(items[0].toMap().value(u"tone"_s).toString(), u"warn"_s);
+        QCOMPARE(items[0].toMap().value(u"command"_s).toString(), u"moat policy lint"_s);
+        QVERIFY(items[0].toMap().value(u"hint"_s).toString().startsWith(u"No deny rule covers its source"_s));
+        QCOMPARE(items[1].toMap().value(u"tone"_s).toString(), u"ok"_s);
+        QCOMPARE(secrets.value(u"hint"_s).toString(), u"1 readable by the agent"_s);
+
+        const QVariantMap checks = details.checks();
+        QCOMPARE(checks.value(u"summary"_s).toString(), u"1 to fix"_s);
+        QCOMPARE(column(checks.value(u"groups"_s).toList(), u"title"_s),
+                 (QStringList{u"Problems"_s, u"Needs a look"_s, u"Notes"_s, u"Fine"_s}));
+        QCOMPARE(details.updateNote(), u"Policy update and changed-file notices need OpenMoat 0.5.7 or later."_s);
+    }
+
+    void detailPagesOnAnOlderMoatAreNotes() {
+        auto runner = std::make_shared<test::StubRunner>();
+        runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n"));
+        DetailsModel details;
+        details.setData(MoatClient(u"moat"_s, runner).details(), kNow);
+        for (const QVariantMap &page : {details.allowed(), details.secrets(), details.checks()}) {
+            QCOMPARE(page.value(u"state"_s).toString(), u"note"_s);
+            QCOMPARE(page.value(u"note"_s).toString(), u"This needs OpenMoat 0.5.5 or later. Update moat to see it here."_s);
+        }
     }
 };
 

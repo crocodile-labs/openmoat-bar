@@ -1,5 +1,6 @@
 #include "app/QuickViewModel.hpp"
 #include "app/EventViews.hpp"
+#include "core/Details.hpp"
 #include "core/Format.hpp"
 #include "core/SecurityChecks.hpp"
 #include "core/Text.hpp"
@@ -174,6 +175,35 @@ QVariantList QuickViewModel::problems() const {
             {u"note"_s, u"Run moat in a terminal. It shows the change and asks first. "
                         u"This goes away on the next check."_s},
             {u"command"_s, CopyCommands::setUp()},
+        };
+    }
+    return out;
+}
+
+QVariantList QuickViewModel::notices() const {
+    if (!m_snapshot) {
+        return {};
+    }
+    QVariantList out;
+    const StatusReport &status = m_snapshot->status;
+    if (status.policyUpdate) {
+        out << QVariantMap{
+            {u"title"_s, UpdateNotices::updateTitle()},
+            {u"text"_s, u"OpenMoat says: %1."_s.arg(*status.policyUpdate)},
+            {u"note"_s, UpdateNotices::updateNote()},
+            {u"tone"_s, u"info"_s},
+            {u"commandTitle"_s, u"Copy the command"_s},
+            {u"command"_s, CopyCommands::policyUpgrade()},
+        };
+    }
+    if (!status.lockDrift.isEmpty()) {
+        out << QVariantMap{
+            {u"title"_s, UpdateNotices::driftTitle()},
+            {u"text"_s, status.lockDrift.join(u'\n')},
+            {u"note"_s, UpdateNotices::driftNote()},
+            {u"tone"_s, u"warn"_s},
+            {u"commandTitle"_s, u"Copy the check command"_s},
+            {u"command"_s, CopyCommands::doctor()},
         };
     }
     return out;

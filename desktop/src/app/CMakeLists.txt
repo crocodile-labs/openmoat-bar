@@ -6,6 +6,7 @@ qt_add_library(moatbar_ui STATIC
     TrayMenu.hpp TrayMenu.cpp
     TrayController.hpp TrayController.cpp
     QuickViewModel.hpp QuickViewModel.cpp
+    DetailsModel.hpp DetailsModel.cpp
     QuickView.hpp QuickView.cpp
     EventViews.hpp EventViews.cpp
     ActivityModel.hpp ActivityModel.cpp
@@ -40,6 +41,7 @@ qt_add_resources(moatbar_ui "quick_view"
         qml/EventRow.qml
         qml/Decision.qml
         qml/CopyRow.qml
+        qml/DetailRow.qml
         qml/LinkRow.qml
         qml/SectionHeader.qml
         qml/PageHeader.qml

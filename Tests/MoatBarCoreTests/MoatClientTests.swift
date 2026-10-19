@@ -60,9 +60,38 @@ final class MoatClientTests: XCTestCase {
     }
 
     func test_onlyReadOnlyCommandsAreAllowed() {
-        XCTAssertEqual(MoatClient.allowedCommands, ["status", "show", "report", "proxy", "--version"])
-        for writer in ["allow", "edit", "trust", "secret", "init", "uninstall", "doctor"] {
-            XCTAssertFalse(MoatClient.allowedCommands.contains(writer), writer)
+        XCTAssertEqual(MoatClient.allowedCommands.map { $0[0] }, [
+            "status", "show", "report", "proxy", "--version", "allowed", "secret", "doctor",
+        ])
+        for line in [
+            ["status", "--format", "json"],
+            ["show", "--since", "7d", "--format", "json"],
+            ["report", "--since", "today", "--format", "json"],
+            ["proxy", "status", "--format", "json"],
+            ["--version"],
+            ["allowed", "--format", "json"],
+            ["secret", "list", "--format", "json"],
+            ["doctor", "--format", "json"],
+        ] {
+            XCTAssertTrue(MoatClient.isAllowed(line), line.joined(separator: " "))
+        }
+        for writer in [
+            ["allow", "--last"],
+            ["allow", "--remove", "approved-1"],
+            ["trust", "--revoke", "/repo"],
+            ["secret", "add", "gh"],
+            ["secret", "list", "--format", "json", "gh"],
+            ["doctor"],
+            ["doctor", "--accept"],
+            ["doctor", "--format", "json", "--accept"],
+            ["proxy"],
+            ["proxy", "install"],
+            ["policy", "upgrade"],
+            ["init"],
+            ["uninstall"],
+            ["edit"],
+        ] {
+            XCTAssertFalse(MoatClient.isAllowed(writer), writer.joined(separator: " "))
         }
     }
 
@@ -88,6 +117,21 @@ final class MoatClientTests: XCTestCase {
         let failing = ["-c", "echo 'moat: no audit log' >&2; exit 3"]
         XCTAssertThrowsError(try runner.run(sh, arguments: failing, timeout: 5)) {
             XCTAssertEqual($0 as? MoatError, .failed(command: "-c", message: "no audit log"))
+        }
+    }
+
+    func test_processRunner_acceptsListedExitCodesOnlyWithOutput() throws {
+        let sh = URL(fileURLWithPath: "/bin/sh")
+        let runner = ProcessRunner()
+
+        let printed = ["-c", "printf '{}'; exit 64"]
+        let out = try runner.run(sh, arguments: printed, timeout: 5, okExitCodes: [0, 64])
+        XCTAssertEqual(String(bytes: out, encoding: .utf8), "{}")
+        XCTAssertThrowsError(try runner.run(sh, arguments: printed, timeout: 5), "64 fails by default")
+
+        let silent = ["-c", "echo 'moat: no policy' >&2; exit 64"]
+        XCTAssertThrowsError(try runner.run(sh, arguments: silent, timeout: 5, okExitCodes: [0, 64])) {
+            XCTAssertEqual($0 as? MoatError, .failed(command: "-c", message: "no policy"))
         }
     }
 

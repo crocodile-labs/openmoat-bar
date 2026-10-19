@@ -221,6 +221,7 @@ let builder = MenuBuilder(
     refreshRow: RefreshMenuRow(width: menuWidth),
     onSettings: {},
     onActivity: { _ in },
+    onDetails: { _ in },
     now: now
 )
 let menu = NSMenu()
@@ -258,6 +259,7 @@ let agentBuilder = MenuBuilder(
     refreshRow: RefreshMenuRow(width: menuWidth),
     onSettings: {},
     onActivity: { _ in },
+    onDetails: { _ in },
     now: now
 )
 let agentMenu = NSMenu()

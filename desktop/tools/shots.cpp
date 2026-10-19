@@ -6,6 +6,8 @@
 
 #include "../tests/Fixtures.hpp"
 #include "app/ActivityWindow.hpp"
+#include "app/DetailsModel.hpp"
+#include "core/Json.hpp"
 #include "app/Preferences.hpp"
 #include "app/SettingsWindows.hpp"
 
@@ -135,6 +137,33 @@ std::optional<Snapshot> fixtureSnapshot(const QString &status) {
     return std::move(snapshot).value();
 }
 
+/// The detail pages from the fixtures, as a moat 0.5.6 prints them.
+Details fixtureDetails() {
+    auto runner = std::make_shared<test::StubRunner>();
+    runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.6 (OpenMoat)\n"));
+    runner->stub(u"allowed"_s, test::fixture(u"allowed"_s));
+    runner->stub(u"secret"_s, test::fixture(u"secret-list"_s));
+    runner->stub(u"doctor"_s, test::fixture(u"doctor"_s));
+    return MoatClient(u"moat"_s, runner).details(QDateTime::fromMSecsSinceEpoch(1792061000000));
+}
+
+/// What a moat older than 0.5.5 gets: a note per page.
+Details olderMoatDetails() {
+    auto runner = std::make_shared<test::StubRunner>();
+    runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n"));
+    return MoatClient(u"moat"_s, runner).details(QDateTime::fromMSecsSinceEpoch(1792061000000));
+}
+
+/// `snapshot` with the status that has a policy update and changed files.
+Snapshot noticesSnapshot(Snapshot snapshot) {
+    const auto status = json::parseStatus(test::fixture(u"status-notices"_s));
+    if (status.ok()) {
+        snapshot.status.policyUpdate = status.value().policyUpdate;
+        snapshot.status.lockDrift = status.value().lockDrift;
+    }
+    return snapshot;
+}
+
 /// Let animations and layout finish.
 void settle(int ms = 400) {
     QEventLoop loop;
@@ -168,8 +197,11 @@ QPalette darkPalette() {
 bool quickViewShots(const QDir &out, const Snapshot &protectedSnapshot, const Snapshot &unprotectedSnapshot) {
     const QDateTime now = QDateTime::fromMSecsSinceEpoch(1792061000000);
     QuickViewModel model;
-    QuickView view(model);
+    DetailsModel details;
+    QuickView view(model, details);
     model.setData(protectedSnapshot, std::nullopt, now);
+    details.setStatus(protectedSnapshot.status);
+    details.setData(fixtureDetails(), now);
     if (!view.load()) {
         return false;
     }
@@ -199,6 +231,20 @@ bool quickViewShots(const QDir &out, const Snapshot &protectedSnapshot, const Sn
 
     ok &= call(window, "openChecks");
     shoot(u"quick-view-checks.png"_s);
+
+    for (const QString &page : {u"allowed"_s, u"secrets"_s, u"checks"_s}) {
+        ok &= call(window, "openPage", page);
+        shoot(u"quick-view-%1.png"_s.arg(page == u"checks" ? u"doctor"_s : page));
+    }
+    // An older moat: a note on each page instead of an error.
+    details.setData(olderMoatDetails(), now);
+    ok &= call(window, "openPage", u"allowed"_s);
+    shoot(u"quick-view-older-moat.png"_s);
+    ok &= call(window, "openOverview");
+    // The policy update and changed-file notices.
+    model.setData(noticesSnapshot(protectedSnapshot), std::nullopt, now);
+    shoot(u"quick-view-notices.png"_s);
+    model.setData(protectedSnapshot, std::nullopt, now);
 
     ok &= call(window, "selectTab", u"claude-code"_s);
     shoot(u"quick-view-agent.png"_s);
@@ -322,7 +368,13 @@ int main(int argc, char *argv[]) {
     bool ok = true;
     // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
     const TrayActions actions{
-        .open = {}, .activity = {}, .settings = {}, .refresh = [] {}, .about = [] {}, .quit = [] {}};
+        .open = {},
+        .activity = {},
+        .settings = {},
+        .details = [](const QString &) {},
+        .refresh = [] {},
+        .about = [] {},
+        .quit = [] {}};
 
     QMenu menu;
     TrayMenu(&*protectedSnapshot, std::nullopt, actions).fill(menu);

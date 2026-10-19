@@ -17,6 +17,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     var onSettings: (() -> Void)?
     /// Opens the Activity window, filtered to a verdict or `nil` for everything.
     var onActivity: ((Verdict?) -> Void)?
+    /// Opens the Details window on one of its screens.
+    var onDetails: ((DetailsTab) -> Void)?
 
     private enum Key {
         static let seenUntil = "seenUntilMs"
@@ -119,7 +121,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             onSelectHost: { [weak self] host in self?.selectHost(host) },
             refreshRow: self.refreshRow,
             onSettings: { [weak self] in self?.onSettings?() },
-            onActivity: { [weak self] verdict in self?.onActivity?(verdict) }
+            onActivity: { [weak self] verdict in self?.onActivity?(verdict) },
+            onDetails: { [weak self] tab in self?.onDetails?(tab) }
         )
     }
 

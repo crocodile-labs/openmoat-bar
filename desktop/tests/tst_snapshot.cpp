@@ -6,6 +6,8 @@
 
 #include <QTimeZone>
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
 using namespace moatbar;
 using moatbar::test::fixture;
@@ -101,6 +103,21 @@ private slots:
         QVERIFY(decideIcon(&fine, std::nullopt, true) == IconState::Attention);
         QVERIFY(decideIcon(&fine, 1792056000000) == IconState::NewBlocks);
         QVERIFY(decideIcon(&fine, 1792059000000) == IconState::Quiet);
+    }
+
+    void lockDriftIsAProblemAndAPolicyUpdateIsInfo() {
+        const auto checks = securityChecks(makeSnapshot(u"status-notices"_s));
+        const auto lock = std::ranges::find(checks, u"lock"_s, &SecurityCheck::id);
+        QVERIFY(lock != checks.end());
+        QVERIFY(lock->kind == SecurityCheck::Kind::Problem);
+        QCOMPARE(lock->fix.value_or(QString{}), u"moat doctor"_s);
+        const auto update = std::ranges::find(checks, u"policy-update"_s, &SecurityCheck::id);
+        QVERIFY(update != checks.end());
+        QVERIFY(update->kind == SecurityCheck::Kind::Info);
+        QCOMPARE(update->fix.value_or(QString{}), u"moat policy upgrade"_s);
+        const auto attention = needingAttention(checks);
+        QCOMPARE(attention.size(), std::size_t{1});
+        QCOMPARE(attention.front().id, u"lock"_s);
     }
 
     void securityChecksWorstFirst() {

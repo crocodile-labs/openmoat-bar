@@ -12,6 +12,28 @@ public enum CopyCommands {
     /// Run every security check.
     public static let doctor = "moat doctor"
 
+    /// Show the newer default policy's changes and ask before applying them.
+    public static let policyUpgrade = "moat policy upgrade"
+
+    /// Take back a permanent rule `moat allow` wrote, as `moat allowed` prints it.
+    public static func removeRule(_ id: String) -> String {
+        "moat allow --remove \(self.shellQuoteIfNeeded(id))"
+    }
+
+    /// Stop trusting a repository's policy, as `moat allowed` prints it.
+    public static func revokeTrust(_ root: String) -> String {
+        "moat trust --revoke \(self.shellQuoteIfNeeded(root))"
+    }
+
+    /// Quoted only when the shell would split or expand it.
+    public static func shellQuoteIfNeeded(_ text: String) -> String {
+        let punctuation = Set("-_./:@+=,".unicodeScalars)
+        let safe = !text.isEmpty && text.unicodeScalars.allSatisfy { scalar in
+            scalar.isASCII && (CharacterSet.alphanumerics.contains(scalar) || punctuation.contains(scalar))
+        }
+        return safe ? text : self.shellQuote(text)
+    }
+
     /// `moat policy check` for this action, so the person can see the verdict
     /// and rule again without running anything. `nil` for kinds it can't check.
     public static func policyCheck(_ action: Action) -> String? {
