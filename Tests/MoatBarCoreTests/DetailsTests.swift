@@ -218,7 +218,7 @@ final class DetailsTests: XCTestCase {
 
     func test_doctor_olderLines_keepTheirWords() throws {
         let report = try Fixture.decode(DoctorReport.self, "doctor")
-        XCTAssertEqual(report.checks.map(\.title)[0 ... 2], ["state directory", "policy", "lock"])
+        XCTAssertEqual(report.checks.map(\.title)[0...2], ["state directory", "policy", "lock"])
         XCTAssertTrue(report.checks.allSatisfy { CheckText.fix($0) == nil })
         XCTAssertEqual(report.checks[6].topic, .other)
     }
