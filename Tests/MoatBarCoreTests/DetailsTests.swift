@@ -131,7 +131,7 @@ final class DetailsTests: XCTestCase {
         XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["lock"])
     }
 
-    // MARK: - Doctor lines from OpenMoat 0.5.7 and later
+    // MARK: - Newer doctor lines (OpenMoat 0.5.7 and main)
 
     func test_doctor_groupsLikeChecksTogether_andNamesTheirTopic() throws {
         let report = try Fixture.decode(DoctorReport.self, "doctor-signed")

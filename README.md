@@ -48,13 +48,16 @@ copy into Terminal.
 **Notices in the menu** (OpenMoat 0.5.7 and later):
 - "Policy update available" when a newer default policy has changes, with `moat policy upgrade` to copy. It shows each change and asks first.
 - "OpenMoat's files changed" when a file OpenMoat pinned was changed or removed, with the list and `moat doctor`.
+- "MCP server changes wait for you" when an MCP server's definition or tools changed since you accepted them. OpenMoat refuses that server's tool calls until then; MoatBar lists the changes and gives `moat mcp accept <server>` to copy for each server.
+
+**Rules explained.** A call's details say in one line why its rule exists, including the newer ones (a package name one typo from a popular one, a token or secret about to leave in a push or a request, a changed MCP server) and rules from a policy pack or a repository's own policy. A call decided while a pinned settings file had drifted in a harmless way gets a note saying so.
 
 **The Details window** (from the menu, OpenMoat 0.5.5 and later):
 - What you allowed: permanent rules, session grants with when they end, and trusted repositories, each with the command that takes it back.
 - Secrets: each brokered secret's id, host and where its value is read from, and whether the agent can still read it there.
-- Checks: every `moat doctor` check, grouped into problems, things to look at, notes and fine.
+- Checks: every `moat doctor` check, grouped into problems, things to look at, notes and fine, with checks about the same thing (policy, hooks, MCP servers, audit log, ...) kept together and labelled. Newer checks get a line on what they mean: whether a repository policy is signed by a key you trust, a changed policy pack, the last audit anchor, a Claude Code hook that lets calls run when it fails, and MCP servers to accept, with the command to copy.
 
-With an older moat these show a short note saying which version they need.
+With an older moat these show a short note saying which version they need. Lines and fields an older moat doesn't print simply don't show.
 
 **The Activity window** (⌘A) shows today, 7 days or 30 days:
 - Filter by agent, verdict and rule.

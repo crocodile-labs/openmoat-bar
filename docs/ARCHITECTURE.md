@@ -26,6 +26,7 @@ moat --version                   ─┘        │
 | --- | --- | --- |
 | Menu counts, Today bar, lists, one decision | `show --since today` | yes |
 | Agents, red state | `status` | yes |
+| Policy update, changed files, MCP server changes | `status` (`policy_update`, `lock_drift`, `mcp_changes`) | OpenMoat 0.5.7 and later |
 | Proxy line | `proxy status` (macOS, Linux) | yes |
 | Activity window, 7 / 30 days | `report --since 7d` | yes |
 | Security checks | `doctor` as JSON | needs moat CLI work |
@@ -49,5 +50,6 @@ moat --version                   ─┘        │
   older moat each screen shows a note instead of an error, and the commands it lacks are not
   run. `moat doctor` exits 64 after printing its checks when one is a problem; that exit with
   output is read, not treated as a failure.
-- Commands to fix things are copied to the clipboard for the person to run.
+- Commands to fix things are copied to the clipboard for the person to run. That includes
+  `moat mcp accept <server>`, which moat itself refuses outside an interactive terminal.
 - Nothing leaves the machine. An update check, if added, is opt-in.

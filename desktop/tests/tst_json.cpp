@@ -190,7 +190,7 @@ private slots:
         QCOMPARE(CopyCommands::policyUpgrade(), u"moat policy upgrade"_s);
     }
 
-    // MARK: - OpenMoat 0.5.7 and later: doctor lines, MCP changes, new rules
+    // MARK: - Newer moats: doctor lines, MCP changes, new rules
 
     void doctorGroupsLikeChecksTogether() {
         const auto doctor = json::parseDoctor(fixture(u"doctor-signed"_s));
