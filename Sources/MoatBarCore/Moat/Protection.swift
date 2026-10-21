@@ -68,23 +68,30 @@ public struct StatusReport: Codable, Equatable {
     /// Whether moat sent `policy_update` and `lock_drift` at all. moat before
     /// 0.5.7 does not, so MoatBar can't say whether there is anything to show.
     public var hasUpdateNotices: Bool
+    /// MCP server definitions and held tools that wait for `moat mcp accept`,
+    /// one line each: ``MCP server `gh` in /path changed``. Empty when nothing
+    /// waits, and from a moat that doesn't send it (before 0.5.7).
+    public var mcpChanges: [String]
 
     public init(
         agents: [Protection],
         policyUpdate: String? = nil,
         lockDrift: [String] = [],
-        hasUpdateNotices: Bool = true
+        hasUpdateNotices: Bool = true,
+        mcpChanges: [String] = []
     ) {
         self.agents = agents
         self.policyUpdate = policyUpdate
         self.lockDrift = lockDrift
         self.hasUpdateNotices = hasUpdateNotices
+        self.mcpChanges = mcpChanges
     }
 
     private enum CodingKeys: String, CodingKey {
         case agents
         case policyUpdate = "policy_update"
         case lockDrift = "lock_drift"
+        case mcpChanges = "mcp_changes"
     }
 
     public init(from decoder: Decoder) throws {
@@ -93,6 +100,7 @@ public struct StatusReport: Codable, Equatable {
         self.policyUpdate = try? c.decodeIfPresent(String.self, forKey: .policyUpdate)
         self.lockDrift = (try? c.decodeIfPresent([String].self, forKey: .lockDrift)) ?? []
         self.hasUpdateNotices = c.contains(.policyUpdate) || c.contains(.lockDrift)
+        self.mcpChanges = (try? c.decodeIfPresent([String].self, forKey: .mcpChanges)) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -101,6 +109,9 @@ public struct StatusReport: Codable, Equatable {
         if self.hasUpdateNotices {
             try c.encode(self.policyUpdate, forKey: .policyUpdate)
             try c.encode(self.lockDrift, forKey: .lockDrift)
+        }
+        if !self.mcpChanges.isEmpty {
+            try c.encode(self.mcpChanges, forKey: .mcpChanges)
         }
     }
 }

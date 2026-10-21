@@ -112,6 +112,16 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.bottomMargin: 4
         }
+        Label {
+            visible: (decision.d.driftNote || "").length > 0
+            text: "<b>Note:</b> " + decision.html(decision.d.driftNote || "")
+            textFormat: Text.StyledText
+            color: Theme.text
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+            Layout.bottomMargin: 4
+        }
     }
 
     Divider {}

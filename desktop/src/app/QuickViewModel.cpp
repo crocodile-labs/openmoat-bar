@@ -206,6 +206,19 @@ QVariantList QuickViewModel::notices() const {
             {u"command"_s, CopyCommands::doctor()},
         };
     }
+    if (!status.mcpChanges.isEmpty()) {
+        // One copy row per server: `moat mcp accept gh`, `moat mcp accept docs`.
+        const QStringList commands = McpNotices::acceptCommands(status.mcpChanges);
+        out << QVariantMap{
+            {u"title"_s, McpNotices::title()},
+            {u"text"_s, status.mcpChanges.join(u'\n')},
+            {u"note"_s, McpNotices::note()},
+            {u"tone"_s, u"warn"_s},
+            {u"commandTitle"_s, commands.size() == 1 ? u"Copy the command"_s : u"Copy"_s},
+            {u"command"_s, commands.first()},
+            {u"moreCommands"_s, QStringList(commands.mid(1))},
+        };
+    }
     return out;
 }
 

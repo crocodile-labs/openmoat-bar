@@ -1,0 +1,19 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code",
+      "reason": null
+    }
+  ],
+  "policy_update": null,
+  "lock_drift": [],
+  "mcp_changes": [
+    "MCP server `gh` in /Users/you/.claude.json changed",
+    "MCP server `docs` in /Users/you/code/site/.mcp.json is new (not pinned yet)",
+    "MCP server `docs` lists 2 changed or new tool(s)",
+    "/Users/you/.cursor/mcp.json cannot be read: expected value at line 3 column 1"
+  ]
+}

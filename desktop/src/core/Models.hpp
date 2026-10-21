@@ -56,6 +56,10 @@ struct StatusReport {
     QStringList lockDrift;
     /// Whether moat sent `policy_update` and `lock_drift` at all (OpenMoat 0.5.7+).
     bool hasUpdateNotices = true;
+    /// MCP server definitions and held tools that wait for `moat mcp accept`, one
+    /// line each (``MCP server `gh` in /path changed``). Empty when nothing waits,
+    /// and from a moat that doesn't send it (before 0.5.7).
+    QStringList mcpChanges;
 };
 
 // MARK: - Verdicts and actions

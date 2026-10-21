@@ -184,22 +184,33 @@ ApplicationWindow {
                             }
                         }
 
-                        // A policy update and pinned files that changed: every tab.
+                        // A policy update, pinned files that changed and MCP server
+                        // changes to accept: every tab.
                         Repeater {
                             model: moatbar.notices
                             delegate: ColumnLayout {
+                                id: notice
                                 required property var modelData
                                 Layout.fillWidth: true
                                 spacing: 0
                                 Card {
-                                    title: modelData.title
-                                    text: modelData.text
-                                    note: modelData.note
-                                    tint: Theme.tone(modelData.tone)
+                                    title: notice.modelData.title
+                                    text: notice.modelData.text
+                                    note: notice.modelData.note
+                                    tint: Theme.tone(notice.modelData.tone)
                                 }
                                 CopyRow {
-                                    title: modelData.commandTitle
-                                    command: modelData.command
+                                    title: notice.modelData.commandTitle
+                                    command: notice.modelData.command
+                                }
+                                // One more per MCP server after the first.
+                                Repeater {
+                                    model: notice.modelData.moreCommands || []
+                                    delegate: CopyRow {
+                                        required property var modelData
+                                        title: notice.modelData.commandTitle
+                                        command: modelData
+                                    }
                                 }
                             }
                         }
@@ -745,11 +756,23 @@ ApplicationWindow {
                             }
                             Repeater {
                                 model: group.modelData.items
-                                delegate: DetailRow {
+                                delegate: ColumnLayout {
+                                    id: check
                                     required property var modelData
-                                    title: modelData.title
-                                    detail: modelData.subtitle
-                                    dotColor: Theme.tone(group.modelData.tone)
+                                    Layout.fillWidth: true
+                                    spacing: 0
+                                    DetailRow {
+                                        title: check.modelData.title
+                                        caption: check.modelData.topic || ""
+                                        detail: check.modelData.subtitle
+                                        hint: check.modelData.hint || ""
+                                        dotColor: Theme.tone(group.modelData.tone)
+                                    }
+                                    CopyRow {
+                                        visible: (check.modelData.command || "").length > 0
+                                        title: "Copy the command"
+                                        command: check.modelData.command || ""
+                                    }
                                 }
                             }
                         }

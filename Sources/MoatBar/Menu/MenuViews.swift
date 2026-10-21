@@ -226,6 +226,10 @@ struct DecisionView: View {
                 Text("Why: ").font(.system(size: 12, weight: .semibold))
                     + Text(why).font(.system(size: 12))
             }
+            if let note = RuleText.driftNote(self.event.rules) {
+                Text("Note: ").font(.system(size: 12, weight: .semibold))
+                    + Text(note).font(.system(size: 12))
+            }
         }
         .padding(.vertical, 6)
     }

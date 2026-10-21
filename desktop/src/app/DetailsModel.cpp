@@ -204,7 +204,13 @@ QVariantMap DetailsModel::checks() const {
     for (const DoctorGroup &group : report.groups()) {
         QVariantList items;
         for (const DoctorCheck &check : group.checks) {
-            items << QVariantMap{{u"title"_s, check.title()}, {u"subtitle"_s, check.subtitle()}};
+            items << QVariantMap{
+                {u"title"_s, check.title()},
+                {u"subtitle"_s, check.subtitle()},
+                {u"topic"_s, doctorTopicLabel(check.topic())},
+                {u"hint"_s, CheckText::hint(check).value_or(QString{})},
+                {u"command"_s, CheckText::fix(check).value_or(QString{})},
+            };
         }
         groups << QVariantMap{
             {u"title"_s, doctorStatusTitle(group.status)},

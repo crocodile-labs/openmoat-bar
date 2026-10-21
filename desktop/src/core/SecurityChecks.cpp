@@ -77,6 +77,12 @@ std::vector<SecurityCheck> securityChecks(const Snapshot &snapshot) {
         checks.push_back({u"lock"_s, Kind::Problem, UpdateNotices::driftTitle(),
                           snapshot.status.lockDrift.join(u'\n'), CopyCommands::doctor()});
     }
+    // OpenMoat 0.5.7 and later; an older moat sends nothing, so no check.
+    if (!snapshot.status.mcpChanges.isEmpty()) {
+        const QStringList commands = McpNotices::acceptCommands(snapshot.status.mcpChanges);
+        checks.push_back({u"mcp"_s, Kind::Warning, McpNotices::title(), snapshot.status.mcpChanges.join(u'\n'),
+                          commands.size() == 1 ? commands.first() : CopyCommands::mcpAccept(std::nullopt)});
+    }
     if (snapshot.status.policyUpdate) {
         checks.push_back({u"policy-update"_s, Kind::Info, UpdateNotices::updateTitle(), *snapshot.status.policyUpdate,
                           CopyCommands::policyUpgrade()});

@@ -147,7 +147,8 @@ void TrayMenu::addProblems(QMenu &menu) const {
         addCopy(*problem, u"Copy the fix"_s, CopyCommands::setUp());
         addLink(*problem, u"Known limits"_s, DocsLink::limits());
     }
-    // OpenMoat 0.5.7 and later: a newer default policy, pinned files that changed.
+    // OpenMoat 0.5.7 and later: a newer default policy, pinned files that changed,
+    // MCP server changes that wait for a person.
     const StatusReport &status = m_snapshot->status;
     if (status.policyUpdate) {
         QMenu *update = menu.addMenu(UpdateNotices::updateTitle());
@@ -164,6 +165,18 @@ void TrayMenu::addProblems(QMenu &menu) const {
         addNote(*drift, UpdateNotices::driftNote());
         drift->addSeparator();
         addCopy(*drift, u"Copy the check command"_s, CopyCommands::doctor());
+    }
+    if (!status.mcpChanges.isEmpty()) {
+        QMenu *mcp = menu.addMenu(u"⚠ "_s + McpNotices::title());
+        for (const QString &line : status.mcpChanges) {
+            addNote(*mcp, elide(line, 80));
+        }
+        addNote(*mcp, McpNotices::note());
+        mcp->addSeparator();
+        const QStringList commands = McpNotices::acceptCommands(status.mcpChanges);
+        for (const QString &command : commands) {
+            addCopy(*mcp, commands.size() == 1 ? u"Copy the command"_s : u"Copy"_s, command);
+        }
     }
 }
 
@@ -209,6 +222,9 @@ void TrayMenu::addDecision(QMenu &menu, const Event &event) const {
         if (const auto why = RuleText::why(*rule)) {
             addNote(menu, u"Why: "_s + *why);
         }
+    }
+    if (const auto note = RuleText::driftNote(event.rules)) {
+        addNote(menu, u"Note: "_s + *note);
     }
     menu.addSeparator();
     if (event.action) {

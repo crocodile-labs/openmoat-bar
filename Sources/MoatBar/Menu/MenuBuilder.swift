@@ -175,8 +175,9 @@ struct MenuBuilder {
         self.addNotices(snapshot.status, to: menu)
     }
 
-    /// A newer default policy to look at, and pinned files that changed. Both
-    /// are about OpenMoat itself, so every tab shows them.
+    /// A newer default policy to look at, pinned files that changed and MCP
+    /// server changes to accept. All are about OpenMoat itself, so every tab
+    /// shows them.
     private func addNotices(_ status: StatusReport, to menu: NSMenu) {
         if let update = status.policyUpdate {
             menu.addItem(hostedItem(ProblemCard(
@@ -195,6 +196,18 @@ struct MenuBuilder {
                 tint: Color(nsColor: .systemOrange)
             )))
             menu.addItem(copyItem("Copy the check command", command: CopyCommands.doctor))
+        }
+        if !status.mcpChanges.isEmpty {
+            menu.addItem(hostedItem(ProblemCard(
+                title: McpNotices.title,
+                text: status.mcpChanges.joined(separator: "\n"),
+                note: McpNotices.note,
+                tint: Color(nsColor: .systemOrange)
+            )))
+            let commands = McpNotices.acceptCommands(status.mcpChanges)
+            for command in commands {
+                menu.addItem(copyItem(commands.count == 1 ? "Copy the command" : "Copy", command: command))
+            }
         }
     }
 

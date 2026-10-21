@@ -151,6 +151,8 @@ Result<StatusReport> parseStatus(const QByteArray &bytes) {
     report.hasUpdateNotices = object.contains(u"policy_update") || object.contains(u"lock_drift");
     report.policyUpdate = optionalString(object, u"policy_update");
     report.lockDrift = stringList(object.value(u"lock_drift"));
+    // OpenMoat 0.5.7 and later; missing from an older moat, which shows nothing.
+    report.mcpChanges = stringList(object.value(u"mcp_changes"));
     return report;
 }
 

@@ -8,6 +8,42 @@ public enum UpdateNotices {
     public static let driftNote = "Files OpenMoat checks changed since it pinned them. moat doctor shows what changed."
 }
 
+/// Words for the MCP server changes in the main view, from `mcp_changes` in
+/// `moat status --format json` (OpenMoat 0.5.7 and later).
+public enum McpNotices {
+    public static let title = "MCP server changes wait for you"
+    public static let note = "OpenMoat refuses a changed server's tool calls until you accept it. "
+        + "moat mcp accept shows each change and asks."
+
+    /// The server a line names: ``MCP server `gh` in /path changed`` gives `gh`.
+    /// `nil` for a line about a file moat could not read.
+    public static func server(in line: String) -> String? {
+        let prefix = "MCP server `"
+        guard line.hasPrefix(prefix) else {
+            return nil
+        }
+        let rest = line.dropFirst(prefix.count)
+        guard let end = rest.firstIndex(of: "`") else {
+            return nil
+        }
+        let name = String(rest[..<end])
+        return name.isEmpty ? nil : name
+    }
+
+    /// The servers the lines name, each once, in moat's order.
+    public static func servers(_ lines: [String]) -> [String] {
+        var seen = Set<String>()
+        return lines.compactMap { self.server(in: $0) }.filter { seen.insert($0).inserted }
+    }
+
+    /// What to copy: `moat mcp accept <server>` per server, or plain
+    /// `moat mcp accept` when no line names one.
+    public static func acceptCommands(_ lines: [String]) -> [String] {
+        let servers = self.servers(lines)
+        return servers.isEmpty ? [CopyCommands.mcpAccept(nil)] : servers.map { CopyCommands.mcpAccept($0) }
+    }
+}
+
 /// Words for the What you allowed and Secrets screens.
 public enum DetailsText {
     /// The hint `moat secret list` prints for a secret whose source no deny rule covers.

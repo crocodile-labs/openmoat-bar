@@ -105,16 +105,26 @@ enum class DoctorStatus : std::uint8_t { Ok = 0, Note = 1, Warning = 2, Problem 
 /// The colour role QML draws a status in: `ok`, `info`, `warn`, `bad`.
 [[nodiscard]] QString doctorStatusTone(DoctorStatus status);
 
+/// What a `moat doctor` line is about, in the order the Checks page keeps them
+/// together. Same as the macOS app's DoctorTopic.
+enum class DoctorTopic : std::uint8_t { Moat, Policy, Lock, Hooks, Mcp, Sandbox, Proxy, Agents, Audit, Other };
+
+/// The caption beside a check: `MCP servers`, `Audit log`, ...
+[[nodiscard]] QString doctorTopicLabel(DoctorTopic topic);
+
 struct DoctorCheck {
     DoctorStatus status = DoctorStatus::Warning;
     std::optional<QString> area; ///< `policy`, `lock`, `hook`, ...
     QString name;                ///< the text output's left column; may be empty
     QString detail;
 
-    /// The name, or the detail when the line has no name.
-    [[nodiscard]] QString title() const { return name.isEmpty() ? detail : name; }
+    /// The name in plain words (`CheckText::label`), or the detail when the line
+    /// has no name.
+    [[nodiscard]] QString title() const;
     /// The detail under the title; empty when the title already is the detail.
     [[nodiscard]] QString subtitle() const { return name.isEmpty() ? QString{} : detail; }
+    /// From the line's `area`, or for notes and warnings (which have none) its name.
+    [[nodiscard]] DoctorTopic topic() const;
 };
 
 struct DoctorGroup {
@@ -127,7 +137,8 @@ struct DoctorReport {
     int problems = 0;
     std::vector<DoctorCheck> checks;
 
-    /// The checks by status, worst first, each in moat's order; no empty groups.
+    /// The checks by status, worst first; no empty groups. Inside a group, checks
+    /// about the same topic sit together, each topic in moat's order.
     [[nodiscard]] std::vector<DoctorGroup> groups() const;
 };
 
@@ -203,6 +214,24 @@ namespace DetailsText {
 /// The first 12 characters of a SHA-256.
 [[nodiscard]] QString shortHash(const QString &sha256);
 } // namespace DetailsText
+
+/// Words for `moat doctor` lines on the Checks page, the same as the macOS
+/// app's CheckText.swift: a plain name, one line on what a check means, and the
+/// command to copy when one helps. A line MoatBar doesn't know shows as moat wrote it.
+namespace CheckText {
+/// moat's left column in plain words: `repo policy` → `Repository policy`.
+[[nodiscard]] QString label(const QString &name);
+/// One line on what the check means; nothing when the detail says it all.
+[[nodiscard]] std::optional<QString> hint(const DoctorCheck &check);
+/// `moat mcp accept [server]` for MCP lines; nothing otherwise.
+[[nodiscard]] std::optional<QString> fix(const DoctorCheck &check);
+/// How the repository policy applies, from the end of moat's line.
+[[nodiscard]] std::optional<QString> repoPolicyHint(const QString &detail);
+/// Installed packs live in `~/.moat/policy.d/packs/`, listed in `~/.moat/packs.json`.
+[[nodiscard]] bool isPackFile(const QString &detail);
+/// The first name in backticks; nothing for an empty one or a command.
+[[nodiscard]] std::optional<QString> quotedName(const QString &text);
+} // namespace CheckText
 
 /// Words for the policy update and changed-file notices in the main view.
 namespace UpdateNotices {

@@ -1,0 +1,62 @@
+{
+  "healthy": false,
+  "problems": 3,
+  "checks": [
+    {
+      "status": "ok",
+      "area": "policy",
+      "name": "policy",
+      "detail": "lints (31 deny, 12 allow, 9 ask)"
+    },
+    {
+      "status": "note",
+      "name": "repo policy",
+      "detail": "/Users/you/code/site/.moat/policy.yaml  sha256:9f2c4e1a7b3d  trusted: signed by alice@example.com (2 deny, 1 ask, 3 allow)"
+    },
+    {
+      "status": "problem",
+      "area": "lock",
+      "name": "lock",
+      "detail": "/Users/you/.moat/policy.d/packs/team.yaml was modified"
+    },
+    {
+      "status": "ok",
+      "area": "hook",
+      "name": "Claude Code",
+      "detail": "hook installed  /Users/you/.claude/settings.json"
+    },
+    {
+      "status": "warning",
+      "name": "Claude Code",
+      "detail": "runs a tool call when its hook fails to start, crashes or times out: no `claude` 2.1.295 or later on PATH, so the hook has no `onFailure: \"block\"`; update Claude Code, then run `moat init`"
+    },
+    {
+      "status": "problem",
+      "area": "mcp",
+      "name": "mcp servers",
+      "detail": "`gh` in /Users/you/.claude.json changed; its tool calls are refused: `moat mcp accept gh` shows it and asks"
+    },
+    {
+      "status": "problem",
+      "area": "mcp",
+      "name": "mcp tools",
+      "detail": "`docs` lists 2 tool(s) that changed or are new, hidden until `moat mcp accept docs`"
+    },
+    {
+      "status": "ok",
+      "area": "audit",
+      "name": "audit log",
+      "detail": "1204 events, hash chain intact"
+    },
+    {
+      "status": "note",
+      "name": "audit log",
+      "detail": "head 3f9a0c; record it elsewhere (`moat audit anchor`), then `moat audit verify --against` it later"
+    },
+    {
+      "status": "note",
+      "name": "audit anchor",
+      "detail": "last made 2026-10-18 09:12:44 UTC (event 1198) in /Users/you/anchors (refs/moat/anchors)"
+    }
+  ]
+}
