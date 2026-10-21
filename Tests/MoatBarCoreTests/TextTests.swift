@@ -26,11 +26,48 @@ final class TextTests: XCTestCase {
         XCTAssertNil(CopyCommands.policyCheck(.patch(writes: ["a"])))
     }
 
+    /// Every rule group in openmoat 0.9.0's `default-v1.yaml`, in its order.
+    private let defaultPolicyRules = [
+        "secrets-paths", "build-credentials", "env-secrets", "env-dump", "env-poison", "pipe-to-shell", "destructive",
+        "kernel-self", "shell-rc", "cloud-metadata", "token-egress", "placeholder-egress",
+        "project-fs", "agent-temp", "dev-shell", "dev-readonly", "shell-locals", "dev-tools", "text-tools",
+        "registries", "safe-mcp",
+        "git-internals", "runs-later", "persistence", "home-sweep", "other-home", "secret-names", "opaque-code",
+        "package-near-miss", "docker-secrets", "local-net",
+    ]
+
+    /// The ids the guard, `openmoat run` and the proxy add themselves.
+    private let builtInRules = [
+        "kernel-integrity", "kernel-error", "unparseable", "ungoverned", "settings-drift", "config-change",
+        "session-taint", "approved-session", "run-session", "run-guard-token", "project-settings", "executables",
+        "push-secret", "push-runs-later", "push-unchecked", "mcp-server-changed", "mcp-tool-held", "mcp-proxy",
+        "proxy-address", "proxy-sni", "proxy-request", "proxy-upstream", "proxy-secret", "proxy-session",
+        "proxy-audit", "moat.cloud-metadata", "default",
+    ]
+
     func test_ruleText_knowsTheDefaultRules() {
-        for rule in ["secrets-paths", "destructive", "pipe-to-shell", "env-secrets", "kernel-self", "git-internals"] {
-            XCTAssertNotNil(RuleText.why(rule), rule)
+        for rule in self.defaultPolicyRules + self.builtInRules {
+            let why = RuleText.why(rule)
+            XCTAssertNotNil(why, rule)
+            XCTAssertEqual(why?.contains("\n"), false, "one line: \(rule)")
         }
         XCTAssertNil(RuleText.why("my-team-rule"))
+    }
+
+    func test_ruleText_namesTheKindBehindADefaultRule() {
+        XCTAssertEqual(
+            RuleText.why("default.fs.read"),
+            "No rule names this, so the policy's default for reading files decided."
+        )
+        XCTAssertEqual(
+            RuleText.why("default.mcp"),
+            "No rule names this, so the policy's default for MCP tools decided."
+        )
+        XCTAssertEqual(RuleText.why("default.net"), "The agent tried to reach a site that isn't on the allowed list.")
+        XCTAssertEqual(
+            RuleText.why("default.something-new"),
+            "No rule names this, so the policy's default for this kind of call decided."
+        )
     }
 
     func test_ruleText_explainsTheRulesMoatAdded() throws {

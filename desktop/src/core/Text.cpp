@@ -52,7 +52,75 @@ constexpr std::array kRuleWords{
               u"This MCP tool's description or inputs changed, so it stays hidden until a person accepts it."},
     RuleWords{u"settings-drift", u"A settings file OpenMoat pinned changed in a way that changes no decision, so "
                                  u"calls are decided as usual."},
+    // The rest of the default policy (openmoat 0.9.0).
+    RuleWords{u"build-credentials",
+              u"Maven and Gradle settings files hold registry passwords. Agents never read them; builds still can."},
+    RuleWords{u"env-poison",
+              u"This changes how later commands find programs or load code, so it could run something else."},
+    RuleWords{u"cloud-metadata",
+              u"Cloud metadata and link-local services hand out the machine's cloud credentials to any caller."},
+    RuleWords{u"agent-temp", u"The agent's own temporary files, which it writes and reads back."},
+    RuleWords{u"dev-readonly", u"A read-only inspection tool, or a variable that holds no secret."},
+    RuleWords{u"shell-locals", u"A shell's own variables, like the current directory or the prompt."},
+    RuleWords{u"dev-tools", u"A development tool reading or writing its own files."},
+    RuleWords{u"text-tools", u"A read-only text tool, like grep or sort, on files the agent may read."},
+    RuleWords{u"registries", u"A package registry OpenMoat knows, like npm or crates.io."},
+    RuleWords{u"safe-mcp", u"An MCP tool that only reads, on a server OpenMoat knows."},
+    RuleWords{u"persistence", u"This would run again later, on its own, outside this session."},
+    RuleWords{u"home-sweep", u"This reads your whole home folder, secrets included."},
+    RuleWords{u"other-home", u"This names another user's home folder, which OpenMoat can't place."},
+    RuleWords{u"secret-names", u"This names a secret's file in a folder OpenMoat can't see into."},
+    RuleWords{u"opaque-code", u"A program OpenMoat can't read could open any file or variable."},
+    RuleWords{u"docker-secrets", u"This hands secrets, the SSH agent or the host itself to a container build."},
+    RuleWords{u"local-net", u"A local service, which may expose a control API like Docker's or a database's."},
+    // Rules the guard, openmoat run and the proxy add themselves.
+    RuleWords{u"project-settings", u"A project settings file changed in a way that could switch OpenMoat off or run "
+                                   u"a program, so the change isn't loaded into this session."},
+    RuleWords{u"session-taint",
+              u"The agent read untrusted content earlier in this session, so what it does with it is asked about."},
+    RuleWords{u"config-change", u"The agent changed its own host's settings, which OpenMoat records and checks."},
+    RuleWords{u"kernel-error",
+              u"OpenMoat hit an error while deciding, so it stopped the call rather than let it through."},
+    RuleWords{u"unparseable", u"OpenMoat couldn't read this command well enough to judge it, so it asks."},
+    RuleWords{u"ungoverned", u"OpenMoat has no rules for this tool, so the agent's own permission flow decided."},
+    RuleWords{u"approved-session", u"You allowed this call again for the rest of its session with openmoat allow."},
+    RuleWords{u"run-session", u"This session runs under openmoat run, which links its calls to the proxy."},
+    RuleWords{u"run-guard-token",
+              u"A hook call came with the wrong token for this openmoat run, so it wasn't decided."},
+    RuleWords{u"executables", u"The program isn't the one OpenMoat pinned at that path, so it stays stopped."},
+    RuleWords{u"mcp-proxy", u"An MCP tool call that passed through OpenMoat's MCP proxy."},
+    RuleWords{u"proxy-address",
+              u"The proxy refused a connection to a local, link-local, metadata or unnamed address."},
+    RuleWords{u"proxy-sni", u"The proxy refused a connection that hides the server's name, which it can't check."},
+    RuleWords{u"proxy-request", u"The proxy refused a request it couldn't read or that broke its rules."},
+    RuleWords{u"proxy-upstream", u"The proxy couldn't reach or trust the server it was asked for."},
+    RuleWords{u"proxy-secret", u"The proxy stopped a brokered secret from going where it isn't meant to."},
+    RuleWords{u"proxy-session", u"The proxy didn't know the session this request claims to come from."},
+    RuleWords{u"proxy-audit", u"The proxy couldn't record the request in the audit log, so it refused it."},
+    RuleWords{u"moat.cloud-metadata",
+              u"Cloud metadata services hand out the machine's cloud credentials; never fetched."},
 };
+
+/// `default.fs.read` → `reading files`.
+QString kindWords(QStringView kind) {
+    struct Kind {
+        QStringView id;
+        QStringView words;
+    };
+    constexpr std::array kinds{
+        Kind{u"shell", u"commands"},          Kind{u"fs.read", u"reading files"},
+        Kind{u"fs.write", u"writing files"},  Kind{u"net", u"network"},
+        Kind{u"fetch", u"fetching pages"},    Kind{u"web.search", u"web searches"},
+        Kind{u"tool.unknown", u"unknown tools"}, Kind{u"env.read", u"reading variables"},
+        Kind{u"env.set", u"setting variables"}, Kind{u"mcp", u"MCP tools"},
+    };
+    for (const Kind &entry : kinds) {
+        if (entry.id == kind) {
+            return entry.words.toString();
+        }
+    }
+    return u"this kind of call"_s;
+}
 
 } // namespace
 
@@ -73,6 +141,11 @@ std::optional<QString> RuleText::why(QStringView rule) {
     // `repo:<id>`: a rule from the project's `.moat/policy.yaml` (openmoat `repo.rs`).
     if (rule.startsWith(u"repo:")) {
         return u"A rule from this repository's own OpenMoat policy file."_s;
+    }
+    // `default.<kind>`: no rule named this call, so the policy's default for its
+    // kind decided (`default.shell`, `default.fs.read`, `default.mcp`, ...).
+    if (rule.startsWith(u"default.")) {
+        return u"No rule names this, so the policy's default for %1 decided."_s.arg(kindWords(rule.mid(8)));
     }
     return std::nullopt;
 }
