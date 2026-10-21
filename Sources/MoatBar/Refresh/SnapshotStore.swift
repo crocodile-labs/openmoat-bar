@@ -32,7 +32,7 @@ final class SnapshotStore {
     /// Requests that arrived during the read in flight; they need a fresh one.
     private var waitingForNext: [Completion]?
 
-    /// How often moat status is read even when nothing else changes, so a
+    /// How often openmoat status is read even when nothing else changes, so a
     /// removed hook shows up within a minute.
     static let statusInterval: TimeInterval = 60
 

@@ -1,10 +1,10 @@
 import Foundation
 
-// `moat doctor --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
+// `openmoat doctor --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
 // `crates/openmoat-cli/src/commands/doctor/json.rs`. moat exits non-zero when
 // a check found a problem, after printing the document.
 
-/// Every check `moat doctor` ran.
+/// Every check `openmoat doctor` ran.
 public struct DoctorReport: Decodable, Equatable {
     public var healthy: Bool
     public var problems: Int
@@ -76,7 +76,7 @@ public enum DoctorStatus: Int, CaseIterable, Comparable, Decodable {
     }
 }
 
-/// One line of `moat doctor`.
+/// One line of `openmoat doctor`.
 public struct DoctorCheck: Decodable, Equatable, Identifiable {
     public var status: DoctorStatus
     /// What the check is about: `policy`, `lock`, `hook`, ... Absent for notes.
@@ -126,7 +126,7 @@ public struct DoctorCheck: Decodable, Equatable, Identifiable {
     }
 }
 
-/// What a `moat doctor` line is about, in the order the Checks screen keeps
+/// What a `openmoat doctor` line is about, in the order the Checks screen keeps
 /// them together. From the line's `area`, or for notes and warnings (which
 /// have none) from its name.
 public enum DoctorTopic: Int, CaseIterable, Comparable {
@@ -149,8 +149,9 @@ public enum DoctorTopic: Int, CaseIterable, Comparable {
         let name = check.name.lowercased()
         if let topic = Self.byName[name] {
             self = topic
-        } else if check.detail.contains("onFailure") {
-            // `Claude Code      runs a tool call when its hook fails…`
+        } else if check.detail.contains("onFailure") || check.detail.hasPrefix("hook runs the old") {
+            // `Claude Code      runs a tool call when its hook fails…`, and after the
+            // rename `Claude Code      hook runs the old `moat` name…`.
             self = .hooks
         } else if !name.isEmpty, Self.agentLines.contains(where: { check.detail.hasPrefix($0) }) {
             self = .agents
@@ -189,8 +190,12 @@ public enum DoctorTopic: Int, CaseIterable, Comparable {
     /// How the notes about one agent start (`Claude Code      protection: …`).
     private static let agentLines = ["protection:", "known gaps:", "host not found", "not set up"]
 
-    /// The left column of rows without an area.
+    /// The left column of rows without an area. `command`, `binary` and
+    /// `openmoat run` are the rows about the `moat` name and `openmoat run`
+    /// (openmoat `doctor/warnings.rs`).
     private static let byName: [String: DoctorTopic] = [
+        "command": .moat, "binary": .moat, "state directory": .moat, "environment": .moat,
+        "openmoat run": .moat, "moat run": .moat,
         "audit log": .audit, "audit anchor": .audit,
         "repo policy": .policy, "policy update": .policy,
         "mcp servers": .mcp, "mcp tools": .mcp,

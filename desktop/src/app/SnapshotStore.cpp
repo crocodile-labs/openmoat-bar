@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 namespace moatbar {
 namespace {
 
-/// How often moat status is read even when nothing else changes, so a removed
+/// How often openmoat status is read even when nothing else changes, so a removed
 /// hook shows up within a minute.
 constexpr auto kStatusInterval = 60s;
 /// Bursts of audit-log writes collapse into one read.

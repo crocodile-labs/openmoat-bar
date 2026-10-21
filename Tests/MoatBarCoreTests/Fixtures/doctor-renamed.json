@@ -1,0 +1,48 @@
+{
+  "healthy": true,
+  "problems": 0,
+  "checks": [
+    {
+      "status": "ok",
+      "area": "state",
+      "name": "state directory",
+      "detail": "/Users/you/.moat"
+    },
+    {
+      "status": "note",
+      "name": "repo policy",
+      "detail": "/Users/you/code/site/.moat/policy.yaml  sha256:9f2c4e1a7b3d  changed since `openmoat trust`: tightening only, allow rules ignored (2 deny, 1 ask, 3 allow)"
+    },
+    {
+      "status": "warning",
+      "name": "binary",
+      "detail": "the lock records /opt/homebrew/bin/moat, the old `moat` name of /opt/homebrew/bin/openmoat; it still works, and `openmoat init` moves the hooks and the lock to openmoat"
+    },
+    {
+      "status": "ok",
+      "area": "hook",
+      "name": "Claude Code",
+      "detail": "hook installed  /Users/you/.claude/settings.json"
+    },
+    {
+      "status": "warning",
+      "name": "Claude Code",
+      "detail": "hook runs the old `moat` name; it still works, and `openmoat init` switches it to openmoat"
+    },
+    {
+      "status": "warning",
+      "name": "openmoat run",
+      "detail": "macOS 12.7 is older than the 13 `openmoat run` needs; the agent hooks still apply the policy"
+    },
+    {
+      "status": "note",
+      "name": "command",
+      "detail": "`moat` is the old name of `openmoat`; it still works for now and will be removed in a later release"
+    },
+    {
+      "status": "note",
+      "name": "mcp servers",
+      "detail": "not pinned yet: `openmoat mcp accept` shows them and pins them, so a server that changes later is held back"
+    }
+  ]
+}

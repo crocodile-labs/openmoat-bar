@@ -157,8 +157,15 @@ DoctorTopic DoctorCheck::topic() const {
     if (lower == u"guard" || lower == u"hook file") {
         return DoctorTopic::Hooks;
     }
-    if (detail.contains(u"onFailure")) {
-        return DoctorTopic::Hooks; // `Claude Code      runs a tool call when its hook fails…`
+    // The rows about the `moat` name and `openmoat run` (openmoat doctor/warnings.rs).
+    if (lower == u"command" || lower == u"binary" || lower == u"state directory" || lower == u"environment" ||
+        lower == u"openmoat run" || lower == u"moat run") {
+        return DoctorTopic::Moat;
+    }
+    if (detail.contains(u"onFailure") || detail.startsWith(u"hook runs the old")) {
+        // `Claude Code      runs a tool call when its hook fails…`, and after the
+        // rename `Claude Code      hook runs the old `moat` name…`.
+        return DoctorTopic::Hooks;
     }
     // How the notes about one agent start (`Claude Code      protection: …`).
     constexpr std::array agentLines{QStringView{u"protection:"}, QStringView{u"known gaps:"},
@@ -190,6 +197,9 @@ std::vector<DoctorGroup> DoctorReport::groups() const {
 
 QString CheckText::label(const QString &name) {
     const QString lower = name.toLower();
+    if (lower == u"command") {
+        return u"Command name"_s;
+    }
     if (lower == u"audit anchor") {
         return u"Audit anchor"_s;
     }
@@ -218,7 +228,7 @@ std::optional<QString> CheckText::hint(const DoctorCheck &check) {
     case DoctorTopic::Audit:
         if (name == u"audit anchor") {
             return u"A copy of the audit log's latest hash, kept outside it. "
-                   u"moat audit verify --against checks the log against it later."_s;
+                   u"openmoat audit verify --against checks the log against it later."_s;
         }
         return std::nullopt;
     case DoctorTopic::Policy:
@@ -266,7 +276,7 @@ std::optional<QString> CheckText::repoPolicyHint(const QString &detail) {
     if (detail.contains(u"not signed by a trusted key")) {
         return u"Not signed by a key you trust, so only its deny and ask rules apply."_s;
     }
-    if (detail.contains(u"changed since `moat trust`")) {
+    if (detail.contains(u"changed since `")) {
         return u"Changed since you trusted it, so only its deny and ask rules apply."_s;
     }
     if (detail.contains(u"not trusted")) {
@@ -276,7 +286,7 @@ std::optional<QString> CheckText::repoPolicyHint(const QString &detail) {
         return u"It only adds deny and ask rules."_s;
     }
     if (detail.contains(u"trusted (")) {
-        return u"Trusted with moat trust, so its allow rules apply too."_s;
+        return u"Trusted with openmoat trust, so its allow rules apply too."_s;
     }
     return std::nullopt;
 }
@@ -296,7 +306,7 @@ std::optional<QString> CheckText::quotedName(const QString &text) {
         return std::nullopt;
     }
     const QString name = text.mid(start + 1, end - start - 1);
-    // `moat mcp accept` in the "not pinned yet" line is a command, not a server.
+    // `openmoat mcp accept` in the "not pinned yet" line is a command, not a server.
     if (name.isEmpty() || name.contains(u' ')) {
         return std::nullopt;
     }
@@ -306,7 +316,7 @@ std::optional<QString> CheckText::quotedName(const QString &text) {
 // MARK: - Older moat
 
 QString MoatRequirement::note(QStringView minimum) {
-    return u"This needs OpenMoat %1 or later. Update moat to see it here."_s.arg(minimum);
+    return u"This needs OpenMoat %1 or later. Update OpenMoat to see it here."_s.arg(minimum);
 }
 
 std::optional<QString> MoatRequirement::updateNoticesNote(bool hasUpdateNotices) {
@@ -378,7 +388,7 @@ QString DetailsText::plainHttpHint() {
 }
 
 QString DetailsText::lint() {
-    return u"moat policy lint"_s;
+    return u"openmoat policy lint"_s;
 }
 
 QString DetailsText::endsIn(std::int64_t expiresAtMs, std::int64_t nowMs) {
@@ -404,7 +414,7 @@ QString UpdateNotices::updateTitle() {
 }
 
 QString UpdateNotices::updateNote() {
-    return u"moat policy upgrade shows each change and asks before it applies any."_s;
+    return u"openmoat policy upgrade shows each change and asks before it applies any."_s;
 }
 
 QString UpdateNotices::driftTitle() {
@@ -412,7 +422,7 @@ QString UpdateNotices::driftTitle() {
 }
 
 QString UpdateNotices::driftNote() {
-    return u"Files OpenMoat checks changed since it pinned them. moat doctor shows what changed."_s;
+    return u"Files OpenMoat checks changed since it pinned them. openmoat doctor shows what changed."_s;
 }
 
 } // namespace moatbar

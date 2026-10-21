@@ -31,13 +31,13 @@ public struct SecurityCheck: Equatable, Identifiable {
 }
 
 /// Checks built from what moat already reports (status, proxy status,
-/// version). `moat doctor` checks more; MoatBar shows those once moat can
+/// version). `openmoat doctor` checks more; MoatBar shows those once moat can
 /// print them as JSON.
 public enum SecurityChecks {
     public static func from(_ snapshot: Snapshot) -> [SecurityCheck] {
         var checks: [SecurityCheck] = []
         if let version = snapshot.moatVersion {
-            checks.append(SecurityCheck(id: "moat", kind: .ok, title: "moat \(version) is installed"))
+            checks.append(SecurityCheck(id: "moat", kind: .ok, title: "openmoat \(version) is installed"))
         }
         for agent in snapshot.status.agents {
             if let check = self.agentCheck(agent) {
@@ -115,7 +115,7 @@ public enum SecurityChecks {
                 id: id,
                 kind: .info,
                 title: "\(agent.name) is installed but not set up",
-                detail: "moat asks before it changes anything and shows the diff.",
+                detail: "openmoat asks before it changes anything and shows the diff.",
                 fix: CopyCommands.setUp
             )
         case .notFound, .unknown:
@@ -134,10 +134,12 @@ public enum SecurityChecks {
                 kind: .info,
                 title: "Network proxy isn't kept running",
                 detail: "Without it, kept-back tokens can't be added to requests.",
-                fix: "moat proxy install"
+                fix: "openmoat proxy install"
             )
         case .stopped:
-            return SecurityCheck(id: id, kind: .warning, title: "Network proxy is stopped", fix: "moat proxy install")
+            return SecurityCheck(
+                id: id, kind: .warning, title: "Network proxy is stopped", fix: "openmoat proxy install"
+            )
         case .driftBlocked:
             return SecurityCheck(
                 id: id,
@@ -152,7 +154,7 @@ public enum SecurityChecks {
                 kind: .warning,
                 title: "Network proxy keeps crashing",
                 detail: "Check the service log, then start it again.",
-                fix: "moat proxy install"
+                fix: "openmoat proxy install"
             )
         case let .unknown(details):
             return SecurityCheck(id: id, kind: .info, title: "Network proxy: state unknown", detail: details)

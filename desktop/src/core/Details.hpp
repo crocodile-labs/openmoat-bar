@@ -34,14 +34,14 @@ struct RulePatterns {
     friend bool operator==(const RulePatterns &, const RulePatterns &) = default;
 };
 
-/// One permanent rule from `moat allow --always`, `--site` or `--dir`.
+/// One permanent rule from `openmoat allow --always`, `--site` or `--dir`.
 struct AllowedRule {
     QString id;
     std::optional<QString> reason;
-    std::vector<RulePatterns> patterns; ///< in the order `moat allowed` prints them
+    std::vector<RulePatterns> patterns; ///< in the order `openmoat allowed` prints them
 };
 
-/// One `moat allow --last` answer that still applies to its session.
+/// One `openmoat allow --last` answer that still applies to its session.
 struct SessionGrant {
     QString host;
     QString sessionId;
@@ -50,7 +50,7 @@ struct SessionGrant {
     std::int64_t expiresAtMs = 0;
 };
 
-/// A repository whose `.moat/policy.yaml` was trusted with `moat trust`.
+/// A repository whose `.moat/policy.yaml` was trusted with `openmoat trust`.
 struct TrustedRepo {
     QString root;
     QString sha256;
@@ -96,7 +96,7 @@ struct SecretList {
 
 // MARK: - Checks
 
-/// How a `moat doctor` line reads, from fine to worst. A status a newer moat
+/// How a `openmoat doctor` line reads, from fine to worst. A status a newer moat
 /// adds reads as a warning: never as fine.
 enum class DoctorStatus : std::uint8_t { Ok = 0, Note = 1, Warning = 2, Problem = 3 };
 
@@ -105,7 +105,7 @@ enum class DoctorStatus : std::uint8_t { Ok = 0, Note = 1, Warning = 2, Problem 
 /// The colour role QML draws a status in: `ok`, `info`, `warn`, `bad`.
 [[nodiscard]] QString doctorStatusTone(DoctorStatus status);
 
-/// What a `moat doctor` line is about, in the order the Checks page keeps them
+/// What a `openmoat doctor` line is about, in the order the Checks page keeps them
 /// together. Same as the macOS app's DoctorTopic.
 enum class DoctorTopic : std::uint8_t { Moat, Policy, Lock, Hooks, Mcp, Sandbox, Proxy, Agents, Audit, Other };
 
@@ -145,9 +145,9 @@ struct DoctorReport {
 // MARK: - Older moat
 
 namespace MoatRequirement {
-/// `moat allowed`, `moat secret list` and `moat doctor` with `--format json`.
+/// `openmoat allowed`, `openmoat secret list` and `openmoat doctor` with `--format json`.
 [[nodiscard]] inline QString screens() { return QStringLiteral("0.5.5"); }
-/// `policy_update` and `lock_drift` in `moat status --format json`.
+/// `policy_update` and `lock_drift` in `openmoat status --format json`.
 [[nodiscard]] inline QString updateNotices() { return QStringLiteral("0.5.7"); }
 
 /// What a screen says when moat is older than `minimum`.
@@ -203,7 +203,7 @@ struct Details {
 // MARK: - Words
 
 namespace DetailsText {
-/// The hint `moat secret list` prints for a source no deny rule covers.
+/// The hint `openmoat secret list` prints for a source no deny rule covers.
 [[nodiscard]] QString exposedHint();
 [[nodiscard]] QString coveredHint();
 [[nodiscard]] QString plainHttpHint();
@@ -215,7 +215,7 @@ namespace DetailsText {
 [[nodiscard]] QString shortHash(const QString &sha256);
 } // namespace DetailsText
 
-/// Words for `moat doctor` lines on the Checks page, the same as the macOS
+/// Words for `openmoat doctor` lines on the Checks page, the same as the macOS
 /// app's CheckText.swift: a plain name, one line on what a check means, and the
 /// command to copy when one helps. A line MoatBar doesn't know shows as moat wrote it.
 namespace CheckText {
@@ -223,7 +223,7 @@ namespace CheckText {
 [[nodiscard]] QString label(const QString &name);
 /// One line on what the check means; nothing when the detail says it all.
 [[nodiscard]] std::optional<QString> hint(const DoctorCheck &check);
-/// `moat mcp accept [server]` for MCP lines; nothing otherwise.
+/// `openmoat mcp accept [server]` for MCP lines; nothing otherwise.
 [[nodiscard]] std::optional<QString> fix(const DoctorCheck &check);
 /// How the repository policy applies, from the end of moat's line.
 [[nodiscard]] std::optional<QString> repoPolicyHint(const QString &detail);

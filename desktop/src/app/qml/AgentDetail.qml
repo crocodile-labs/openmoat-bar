@@ -45,7 +45,8 @@ ColumnLayout {
         }
         Label {
             visible: agent.detail.installed === false
-            text: (agent.detail.name || "") + " isn't installed on this computer. Once it is, run moat to protect it."
+            text: (agent.detail.name || "")
+                  + " isn't installed on this computer. Once it is, run openmoat to protect it."
             color: Theme.secondary
             font.pixelSize: 12
             wrapMode: Text.WordWrap

@@ -5,15 +5,16 @@ MoatBar shows what OpenMoat already knows. It reads moat; it never writes to it.
 ## Data flow
 
 ```
-moat status --format json        ─┐
-moat show --since today --json   ─┼─► MoatClient ─► Snapshot ─► menu, windows, icon
-moat proxy status --format json  ─┤        ▲
-moat --version                   ─┘        │
+openmoat status --format json        ─┐
+openmoat show --since today --json   ─┼─► MoatClient ─► Snapshot ─► menu, windows, icon
+openmoat proxy status --format json  ─┤        ▲
+openmoat --version                   ─┘        │
                                    CommandRunner (ProcessRunner in the app, a stub in tests)
 ```
 
-- `MoatClient` finds the moat binary (`PATH`, then `/opt/homebrew/bin`, `/usr/local/bin`,
-  `~/.cargo/bin`), runs one read-only command with a 3 second limit, and decodes the JSON.
+- `MoatClient` finds `openmoat` (`PATH`, then `/opt/homebrew/bin`, `/usr/local/bin`,
+  `~/.cargo/bin`, `~/.local/bin`), or `moat` from an install before OpenMoat 0.8.0 renamed
+  it, runs one read-only command with a 3 second limit, and decodes the JSON.
 - `Snapshot` is one read: protection per agent, today's events, the proxy state. Every
   number on screen is computed from it (counts per verdict, per agent, per hour, sessions,
   top rules), so the UI holds no logic of its own.
@@ -45,11 +46,11 @@ moat --version                   ─┘        │
 
 - Only `MoatClient.allowedCommands` are ever run, matched as whole command lines (so
   `doctor --accept`, `secret add` or a bare `proxy` can never run); a test pins the list.
-- The Details screens (What you allowed, Secrets, Checks) read `moat allowed`,
-  `moat secret list` and `moat doctor` with `--format json`, OpenMoat 0.5.5 and later. On an
+- The Details screens (What you allowed, Secrets, Checks) read `openmoat allowed`,
+  `openmoat secret list` and `openmoat doctor` with `--format json`, OpenMoat 0.5.5 and later. On an
   older moat each screen shows a note instead of an error, and the commands it lacks are not
-  run. `moat doctor` exits 64 after printing its checks when one is a problem; that exit with
+  run. `openmoat doctor` exits 64 after printing its checks when one is a problem; that exit with
   output is read, not treated as a failure.
 - Commands to fix things are copied to the clipboard for the person to run. That includes
-  `moat mcp accept <server>`, which moat itself refuses outside an interactive terminal.
+  `openmoat mcp accept <server>`, which moat itself refuses outside an interactive terminal.
 - Nothing leaves the machine. An update check, if added, is opt-in.

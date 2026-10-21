@@ -67,7 +67,7 @@ ApplicationWindow {
 
         Heading { text: "OpenMoat" }
         Label {
-            text: "moat: " + (prefs.moatPath.length > 0 ? prefs.moatPath : "not found")
+            text: "openmoat: " + (prefs.moatPath.length > 0 ? prefs.moatPath : "not found")
                   + (prefs.moatVersion.length > 0 ? " · " + prefs.moatVersion : "")
             color: Theme.text
             font.pixelSize: 12
@@ -75,7 +75,7 @@ ApplicationWindow {
             Layout.fillWidth: true
         }
         Label {
-            text: "MoatBar reads moat's status and audit log. It never writes to them."
+            text: "MoatBar reads OpenMoat's status and audit log. It never writes to them."
             color: Theme.secondary
             font.pixelSize: 12
             wrapMode: Text.WordWrap

@@ -122,7 +122,7 @@ private slots:
         auto runner = std::make_shared<StubRunner>();
         runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n"));
         const Details details = MoatClient(u"moat"_s, runner).details();
-        const QString note = u"This needs OpenMoat 0.5.5 or later. Update moat to see it here."_s;
+        const QString note = u"This needs OpenMoat 0.5.5 or later. Update OpenMoat to see it here."_s;
         QCOMPARE(details.allowed.needsNewerMoat.value_or(QString{}), note);
         QCOMPARE(details.secrets.needsNewerMoat.value_or(QString{}), note);
         QCOMPARE(details.checks.needsNewerMoat.value_or(QString{}), note);
@@ -148,7 +148,7 @@ private slots:
         const auto timeout = readScreen<int>(u"0.5.5", std::nullopt, [] {
             return Result<int>{MoatError{MoatError::Kind::TimedOut, u"doctor --format json"_s, {}}};
         });
-        QCOMPARE(timeout.failed.value_or(QString{}), u"moat doctor --format json took too long"_s);
+        QCOMPARE(timeout.failed.value_or(QString{}), u"openmoat doctor --format json took too long"_s);
     }
 
     void versionsCompareByNumber() {
@@ -175,24 +175,33 @@ private slots:
     }
 #endif
 
-    void locatePrefersPathThenInstallerPlaces() {
+    void locatePrefersOpenmoatOverMoatOnPathThenInstallerPlaces() {
         QProcessEnvironment env;
 #ifdef Q_OS_WIN
         env.insert(u"PATH"_s, u"C:/Windows;C:/custom/bin"_s);
         env.insert(u"USERPROFILE"_s, u"C:/Users/you"_s);
-        const QString onPath = u"C:/custom/bin/moat.exe"_s;
-        const QString cargo = u"C:/Users/you/.cargo/bin/moat.exe"_s;
+        const QString onPath = u"C:/custom/bin/openmoat.exe"_s;
+        const QString cargo = u"C:/Users/you/.cargo/bin/openmoat.exe"_s;
+        const QString older = u"C:/custom/bin/moat.exe"_s;
 #else
         env.insert(u"PATH"_s, u"/usr/bin:/custom/bin"_s);
         env.insert(u"HOME"_s, u"/home/you"_s);
-        const QString onPath = u"/custom/bin/moat"_s;
-        const QString cargo = u"/home/you/.cargo/bin/moat"_s;
+        const QString onPath = u"/custom/bin/openmoat"_s;
+        const QString cargo = u"/home/you/.cargo/bin/openmoat"_s;
+        const QString older = u"/custom/bin/moat"_s;
 #endif
-        const auto only = [](const QString &wanted) {
-            return [wanted](const QString &path) { return QDir::fromNativeSeparators(path) == wanted; };
+        const auto only = [](const QStringList &wanted) {
+            return [wanted](const QString &path) { return wanted.contains(QDir::fromNativeSeparators(path)); };
         };
-        QCOMPARE(QDir::fromNativeSeparators(MoatClient::locate(env, only(onPath)).value_or(QString{})), onPath);
-        QCOMPARE(QDir::fromNativeSeparators(MoatClient::locate(env, only(cargo)).value_or(QString{})), cargo);
+        const auto found = [&env, &only](const QStringList &wanted) {
+            return QDir::fromNativeSeparators(MoatClient::locate(env, only(wanted)).value_or(QString{}));
+        };
+        QCOMPARE(found({onPath}), onPath);
+        QCOMPARE(found({cargo}), cargo);
+        // An install from before the rename has only `moat`.
+        QCOMPARE(found({older}), older);
+        // openmoat anywhere beats a leftover moat earlier on PATH.
+        QCOMPARE(found({older, cargo}), cargo);
         QVERIFY(!MoatClient::locate(env, [](const QString &) { return false; }).has_value());
     }
 };

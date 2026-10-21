@@ -38,7 +38,7 @@ public enum Action: Equatable {
         }
     }
 
-    /// The command line, for actions `moat policy check` can check again.
+    /// The command line, for actions `openmoat policy check` can check again.
     public var shellCommand: String? {
         if case let .shell(command) = self {
             return command

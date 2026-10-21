@@ -3,17 +3,18 @@ import Foundation
 /// Words for the policy update and changed-file notices in the main view.
 public enum UpdateNotices {
     public static let updateTitle = "Policy update available"
-    public static let updateNote = "moat policy upgrade shows each change and asks before it applies any."
+    public static let updateNote = "openmoat policy upgrade shows each change and asks before it applies any."
     public static let driftTitle = "OpenMoat's files changed"
-    public static let driftNote = "Files OpenMoat checks changed since it pinned them. moat doctor shows what changed."
+    public static let driftNote =
+        "Files OpenMoat checks changed since it pinned them. openmoat doctor shows what changed."
 }
 
 /// Words for the MCP server changes in the main view, from `mcp_changes` in
-/// `moat status --format json` (OpenMoat 0.5.7 and later).
+/// `openmoat status --format json` (OpenMoat 0.5.7 and later).
 public enum McpNotices {
     public static let title = "MCP server changes wait for you"
     public static let note = "OpenMoat refuses a changed server's tool calls until you accept it. "
-        + "moat mcp accept shows each change and asks."
+        + "openmoat mcp accept shows each change and asks."
 
     /// The server a line names: ``MCP server `gh` in /path changed`` gives `gh`.
     /// `nil` for a line about a file moat could not read.
@@ -36,8 +37,8 @@ public enum McpNotices {
         return lines.compactMap { self.server(in: $0) }.filter { seen.insert($0).inserted }
     }
 
-    /// What to copy: `moat mcp accept <server>` per server, or plain
-    /// `moat mcp accept` when no line names one.
+    /// What to copy: `openmoat mcp accept <server>` per server, or plain
+    /// `openmoat mcp accept` when no line names one.
     public static func acceptCommands(_ lines: [String]) -> [String] {
         let servers = self.servers(lines)
         return servers.isEmpty ? [CopyCommands.mcpAccept(nil)] : servers.map { CopyCommands.mcpAccept($0) }
@@ -46,14 +47,14 @@ public enum McpNotices {
 
 /// Words for the What you allowed and Secrets screens.
 public enum DetailsText {
-    /// The hint `moat secret list` prints for a secret whose source no deny rule covers.
+    /// The hint `openmoat secret list` prints for a secret whose source no deny rule covers.
     public static let exposedHint = "No deny rule covers its source: the agent can read the value there."
     /// What a covered source means.
     public static let coveredHint = "The agent can't read the value where OpenMoat reads it."
     /// What a plain-HTTP secret means.
     public static let plainHttpHint = "Also added to plain-HTTP requests, where it travels unencrypted."
     /// The command whose warning shows how to cover a source.
-    public static let lint = "moat policy lint"
+    public static let lint = "openmoat policy lint"
 
     /// `Ends in 3 h 20 min`, `Ends in 5 min`, `Ended`.
     public static func endsIn(_ expiresAtMs: Int64, nowMs: Int64) -> String {

@@ -26,7 +26,7 @@ std::optional<SecurityCheck> agentCheck(const Protection &agent) {
                              CopyCommands::setUp()};
     case Level::NotSetUp:
         return SecurityCheck{id, Kind::Info, agent.name + u" is installed but not set up"_s,
-                             u"moat asks before it changes anything and shows the diff."_s, CopyCommands::setUp()};
+                             u"openmoat asks before it changes anything and shows the diff."_s, CopyCommands::setUp()};
     case Level::NotFound:
     case Level::Unknown:
         return std::nullopt;
@@ -36,7 +36,7 @@ std::optional<SecurityCheck> agentCheck(const Protection &agent) {
 
 SecurityCheck proxyCheck(const ProxyState &proxy) {
     const QString id = u"proxy"_s;
-    const QString install = u"moat proxy install"_s;
+    const QString install = u"openmoat proxy install"_s;
     switch (proxy.kind) {
     case ProxyState::Kind::Running:
         return {id, Kind::Ok, u"Network proxy is running"_s, {}, {}};
@@ -62,7 +62,7 @@ SecurityCheck proxyCheck(const ProxyState &proxy) {
 std::vector<SecurityCheck> securityChecks(const Snapshot &snapshot) {
     std::vector<SecurityCheck> checks;
     if (snapshot.moatVersion) {
-        checks.push_back({u"moat"_s, Kind::Ok, u"moat %1 is installed"_s.arg(*snapshot.moatVersion), {}, {}});
+        checks.push_back({u"moat"_s, Kind::Ok, u"openmoat %1 is installed"_s.arg(*snapshot.moatVersion), {}, {}});
     }
     for (const Protection &agent : snapshot.status.agents) {
         if (auto check = agentCheck(agent)) {

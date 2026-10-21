@@ -5,7 +5,7 @@ import Foundation
 public protocol CommandRunner {
     func run(_ executable: URL, arguments: [String], timeout: TimeInterval) throws -> Data
     /// The same, but an exit code in `okExitCodes` that printed something is
-    /// not a failure: `moat doctor` exits non-zero after printing its checks
+    /// not a failure: `openmoat doctor` exits non-zero after printing its checks
     /// when one found a problem.
     func run(_ executable: URL, arguments: [String], timeout: TimeInterval, okExitCodes: Set<Int32>) throws -> Data
 }

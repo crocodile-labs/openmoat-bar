@@ -14,11 +14,11 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`).
 | Agents, sessions, security checks | Yes | Yes |
 | Refresh | Row with a spinner, menu stays open | The same, in the Quick View |
 | What you allowed, Secrets, Checks | The Details window, from the menu; one tab each | Three Quick View pages, from the overview or the tray menu |
-| Policy update, changed files, MCP server changes | A card in the menu with the command to copy (`moat mcp accept <server>` per server); also in Security checks | The same, in the Quick View and the tray menu |
+| Policy update, changed files, MCP server changes | A card in the menu with the command to copy (`openmoat mcp accept <server>` per server); also in Security checks | The same, in the Quick View and the tray menu |
 | Checks page | Grouped by status, checks about the same thing kept together with a topic label; one-line explanations for the newer checks; the accept command on MCP lines | The same |
 | Rule explanations | One line per rule in a call's details, the same table on both (`RuleText.swift`, `Text.cpp`); a note for settings drift | The same, in the Quick View and the tray menu |
 | Older moat | A note per screen: needs OpenMoat 0.5.5 (0.5.7 for the update notices) | The same |
-| Activity window | Today / 7 days / 30 days, filters, one call in full, export | The same. The export keeps each event exactly as `moat show` printed it |
+| Activity window | Today / 7 days / 30 days, filters, one call in full, export | The same. The export keeps each event exactly as `openmoat show` printed it |
 | Welcome window | Once, on the first launch | The same |
 | Settings | Open at login (macOS 13 and later), block notifications, where moat is | Start at login (XDG autostart on Linux, the per-user Run key on Windows), block notifications, where moat is |
 | Notifications | Lost protection always; blocks opt-in, one per rule per 10 minutes, never the command | The same. Without a tray they go to the freedesktop service on D-Bus |

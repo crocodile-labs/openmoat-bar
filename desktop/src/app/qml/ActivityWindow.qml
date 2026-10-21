@@ -93,7 +93,7 @@ ApplicationWindow {
                 onClicked: activity.exportRows()
                 ToolTip.visible: hovered
                 ToolTip.delay: 600
-                ToolTip.text: "Save the calls shown, one JSON object per line, as moat printed them"
+                ToolTip.text: "Save the calls shown, one JSON object per line, as openmoat printed them"
             }
         }
 

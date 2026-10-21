@@ -84,7 +84,7 @@ final class RefreshMenuRow: NSView {
             self.status.textColor = .tertiaryLabelColor
             self.spinner.stopAnimation(nil)
         case .refreshing:
-            self.status.stringValue = "Reading moat…"
+            self.status.stringValue = "Reading OpenMoat…"
             self.status.textColor = .secondaryLabelColor
             self.spinner.startAnimation(nil)
         case .done:

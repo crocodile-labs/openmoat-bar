@@ -1,6 +1,6 @@
 import Foundation
 
-/// One audit event. `moat show --format json` prints an array of these.
+/// One audit event. `openmoat show --format json` prints an array of these.
 /// Shape: openmoat `crates/openmoat-audit/src/store.rs` (`Event`).
 public struct Event: Codable, Equatable, Identifiable {
     /// Row id in hex (`"1f"`); older moat builds wrote an integer.

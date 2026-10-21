@@ -30,7 +30,7 @@ public:
                                                  std::chrono::milliseconds timeout) = 0;
 
     /// The same, but an exit code in `okExitCodes` that printed something is
-    /// not a failure (`moat doctor` after a failed check). Runners with canned
+    /// not a failure (`openmoat doctor` after a failed check). Runners with canned
     /// output (tests) need not override it.
     [[nodiscard]] virtual Result<QByteArray> runAccepting(const QString &program, const QStringList &arguments,
                                                           std::chrono::milliseconds timeout,
@@ -80,7 +80,7 @@ public:
     [[nodiscard]] Result<AllowedReport> allowed() const;
     /// Brokered secrets, never their values (OpenMoat 0.5.5 and later).
     [[nodiscard]] Result<SecretList> secrets() const;
-    /// Every `moat doctor` check (OpenMoat 0.5.5 and later).
+    /// Every `openmoat doctor` check (OpenMoat 0.5.5 and later).
     [[nodiscard]] Result<DoctorReport> doctor() const;
 
     /// The three detail screens. A moat older than 0.5.5 gets a note per

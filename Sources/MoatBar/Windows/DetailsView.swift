@@ -2,7 +2,7 @@ import AppKit
 import MoatBarCore
 import SwiftUI
 
-/// What you allowed, the brokered secrets and every `moat doctor` check, one
+/// What you allowed, the brokered secrets and every `openmoat doctor` check, one
 /// screen each. Nothing here changes OpenMoat: each change is a command to copy.
 struct DetailsView: View {
     @ObservedObject var model: DetailsModel
@@ -60,7 +60,7 @@ struct DetailsView: View {
             case .checks: self.screen(details.checks) { self.checks($0) }
             }
         } else {
-            Text("Reading moat…").foregroundColor(.secondary)
+            Text("Reading OpenMoat…").foregroundColor(.secondary)
         }
     }
 
@@ -81,7 +81,7 @@ struct DetailsView: View {
         case let .needsNewerMoat(note):
             DetailsNote(text: note, color: .secondary)
         case let .failed(message):
-            DetailsNote(text: "\(message). moat doctor shows what is wrong.", color: Color(nsColor: .systemOrange))
+            DetailsNote(text: "\(message). openmoat doctor shows what is wrong.", color: Color(nsColor: .systemOrange))
         }
     }
 
@@ -91,7 +91,7 @@ struct DetailsView: View {
         VStack(alignment: .leading, spacing: 14) {
             DetailsSection(title: "Permanent rules", count: report.rules.count) {
                 if report.rules.isEmpty {
-                    DetailsEmpty(text: "None. moat allow --always, --site and --dir add them.")
+                    DetailsEmpty(text: "None. openmoat allow --always, --site and --dir add them.")
                 }
                 ForEach(report.rules) { rule in
                     DetailsRow(title: rule.id, monospaced: true, lines: self.ruleLines(rule)) {
@@ -101,7 +101,7 @@ struct DetailsView: View {
             }
             DetailsSection(title: "Session grants", count: report.sessionGrants.count) {
                 if report.sessionGrants.isEmpty {
-                    DetailsEmpty(text: "None. moat allow --last allows one call again for the rest of its session.")
+                    DetailsEmpty(text: "None. openmoat allow --last allows one call again for the rest of its session.")
                 }
                 ForEach(report.sessionGrants) { grant in
                     DetailsRow(title: grant.what, monospaced: true, lines: [self.grantLine(grant)])
@@ -109,7 +109,7 @@ struct DetailsView: View {
             }
             DetailsSection(title: "Trusted repositories", count: report.trustedRepos.count) {
                 if report.trustedRepos.isEmpty {
-                    DetailsEmpty(text: "None. moat trust lets a repository's own policy allow calls.")
+                    DetailsEmpty(text: "None. openmoat trust lets a repository's own policy allow calls.")
                 }
                 ForEach(report.trustedRepos) { repo in
                     DetailsRow(
@@ -145,7 +145,9 @@ struct DetailsView: View {
     private func secrets(_ list: SecretList) -> some View {
         DetailsSection(title: "Brokered secrets", count: list.secrets.count) {
             if list.secrets.isEmpty {
-                DetailsEmpty(text: "None. moat secret add keeps a token away from the agent and adds it to requests.")
+                DetailsEmpty(
+                    text: "None. openmoat secret add keeps a token away from the agent and adds it to requests."
+                )
             }
             ForEach(list.secrets) { secret in
                 VStack(alignment: .leading, spacing: 4) {

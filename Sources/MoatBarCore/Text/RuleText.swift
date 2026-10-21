@@ -38,7 +38,7 @@ public enum RuleText {
             return nil
         }
         return "A settings file OpenMoat pinned changed in a way that changes no decision. "
-            + "moat doctor shows the change."
+            + "openmoat doctor shows the change."
     }
 
     private static let table: [String: String] = [
@@ -51,7 +51,7 @@ public enum RuleText {
         "env-dump": "Printing environment variables would show tokens to the agent and to whatever it talks to.",
         "shell-rc": "Changing your shell's startup files would run code in every terminal you open later.",
         "kernel-self": "Agents can't change OpenMoat's own rules, hooks or binary. Only a person can, in a terminal.",
-        "kernel-integrity": "A file OpenMoat watches was changed outside moat, so calls stop until a person looks.",
+        "kernel-integrity": "A file OpenMoat watches was changed outside OpenMoat, so calls stop until a person looks.",
         "git-internals": "This changes which hooks git runs, which would run code on later git commands.",
         "runs-later": "This changes something that runs on its own later, like CI settings or editor tasks.",
         "default.net": "The agent tried to reach a site that isn't on the allowed list.",
@@ -67,7 +67,8 @@ public enum RuleText {
         "token-egress": "A known kind of token was about to go to a host that isn't its own service.",
         "placeholder-egress": "A brokered secret's placeholder was about to go to a host that secret isn't for.",
         "mcp-server-changed":
-            "This MCP server's definition changed since a person accepted it, so its tools wait for moat mcp accept.",
+            "This MCP server's definition changed since a person accepted it, "
+                + "so its tools wait for openmoat mcp accept.",
         "mcp-tool-held": "This MCP tool's description or inputs changed, so it stays hidden until a person accepts it.",
         "settings-drift":
             "A settings file OpenMoat pinned changed in a way that changes no decision, so calls are decided as usual.",

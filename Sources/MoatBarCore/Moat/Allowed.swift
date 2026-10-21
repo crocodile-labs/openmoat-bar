@@ -1,6 +1,6 @@
 import Foundation
 
-// `moat allowed --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
+// `openmoat allowed --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
 // `crates/openmoat-cli/src/commands/allowed.rs`; a rule is a `RuleGroup` from
 // `crates/openmoat-core/src/policy.rs`.
 
@@ -35,11 +35,11 @@ public struct AllowedReport: Decodable, Equatable {
     }
 }
 
-/// One permanent rule from `moat allow --always`, `--site` or `--dir`.
+/// One permanent rule from `openmoat allow --always`, `--site` or `--dir`.
 public struct AllowedRule: Decodable, Equatable, Identifiable {
     public var id: String
     public var reason: String?
-    /// The patterns per kind, in the order `moat allowed` prints them.
+    /// The patterns per kind, in the order `openmoat allowed` prints them.
     public var patterns: [RulePatterns]
 
     public init(id: String, reason: String? = nil, patterns: [RulePatterns]) {
@@ -110,7 +110,7 @@ public struct RulePatterns: Equatable {
     }
 }
 
-/// One `moat allow --last` answer that still applies to its session.
+/// One `openmoat allow --last` answer that still applies to its session.
 public struct SessionGrant: Decodable, Equatable, Identifiable {
     /// Agent host id: `claude-code`, `codex`.
     public var host: String
@@ -141,7 +141,7 @@ public struct SessionGrant: Decodable, Equatable, Identifiable {
     }
 }
 
-/// A repository whose `.moat/policy.yaml` was trusted with `moat trust`.
+/// A repository whose `.moat/policy.yaml` was trusted with `openmoat trust`.
 public struct TrustedRepo: Decodable, Equatable, Identifiable {
     public var root: String
     /// SHA-256 of the trusted policy file; a change to the file ends the trust.

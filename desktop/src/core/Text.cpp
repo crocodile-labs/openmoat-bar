@@ -30,7 +30,7 @@ constexpr std::array kRuleWords{
     RuleWords{u"kernel-self",
               u"Agents can't change OpenMoat's own rules, hooks or binary. Only a person can, in a terminal."},
     RuleWords{u"kernel-integrity",
-              u"A file OpenMoat watches was changed outside moat, so calls stop until a person looks."},
+              u"A file OpenMoat watches was changed outside OpenMoat, so calls stop until a person looks."},
     RuleWords{u"git-internals", u"This changes which hooks git runs, which would run code on later git commands."},
     RuleWords{u"runs-later", u"This changes something that runs on its own later, like CI settings or editor tasks."},
     RuleWords{u"default.net", u"The agent tried to reach a site that isn't on the allowed list."},
@@ -47,7 +47,7 @@ constexpr std::array kRuleWords{
     RuleWords{u"placeholder-egress",
               u"A brokered secret's placeholder was about to go to a host that secret isn't for."},
     RuleWords{u"mcp-server-changed", u"This MCP server's definition changed since a person accepted it, so its tools "
-                                     u"wait for moat mcp accept."},
+                                     u"wait for openmoat mcp accept."},
     RuleWords{u"mcp-tool-held",
               u"This MCP tool's description or inputs changed, so it stays hidden until a person accepts it."},
     RuleWords{u"settings-drift", u"A settings file OpenMoat pinned changed in a way that changes no decision, so "
@@ -82,15 +82,15 @@ std::optional<QString> RuleText::driftNote(const QStringList &rules) {
         return std::nullopt;
     }
     return u"A settings file OpenMoat pinned changed in a way that changes no decision. "
-           u"moat doctor shows the change."_s;
+           u"openmoat doctor shows the change."_s;
 }
 
 QString CopyCommands::setUp() {
-    return u"moat"_s;
+    return u"openmoat"_s;
 }
 
 QString CopyCommands::doctor() {
-    return u"moat doctor"_s;
+    return u"openmoat doctor"_s;
 }
 
 QString CopyCommands::install(Shell shell) {
@@ -98,26 +98,26 @@ QString CopyCommands::install(Shell shell) {
         return u"powershell -ExecutionPolicy Bypass -c \"irm "
                u"https://github.com/crocodile-labs/openmoat/releases/latest/download/openmoat-installer.ps1 | iex\""_s;
     }
-    return u"brew install crocodile-labs/tap/moat"_s;
+    return u"brew install crocodile-labs/tap/openmoat"_s;
 }
 
 QString CopyCommands::policyUpgrade() {
-    return u"moat policy upgrade"_s;
+    return u"openmoat policy upgrade"_s;
 }
 
 QString CopyCommands::mcpAccept(const std::optional<QString> &server, Shell shell) {
     if (!server || server->isEmpty()) {
-        return u"moat mcp accept"_s;
+        return u"openmoat mcp accept"_s;
     }
-    return u"moat mcp accept "_s + quoteIfNeeded(*server, shell);
+    return u"openmoat mcp accept "_s + quoteIfNeeded(*server, shell);
 }
 
 QString CopyCommands::removeRule(const QString &id, Shell shell) {
-    return u"moat allow --remove "_s + quoteIfNeeded(id, shell);
+    return u"openmoat allow --remove "_s + quoteIfNeeded(id, shell);
 }
 
 QString CopyCommands::revokeTrust(const QString &root, Shell shell) {
-    return u"moat trust --revoke "_s + quoteIfNeeded(root, shell);
+    return u"openmoat trust --revoke "_s + quoteIfNeeded(root, shell);
 }
 
 QString CopyCommands::quoteIfNeeded(const QString &text, Shell shell) {
@@ -150,7 +150,7 @@ std::optional<QString> CopyCommands::policyCheck(const Action &action, Shell she
     case Action::Kind::McpTool: kind = u"mcp"_s; break;
     default: return std::nullopt;
     }
-    QString line = u"moat policy check "_s + quote(action.target, shell);
+    QString line = u"openmoat policy check "_s + quote(action.target, shell);
     if (!kind.isEmpty()) {
         line += u" --kind "_s + kind;
     }
@@ -163,7 +163,7 @@ QString McpNotices::title() {
 
 QString McpNotices::note() {
     return u"OpenMoat refuses a changed server's tool calls until you accept it. "
-           u"moat mcp accept shows each change and asks."_s;
+           u"openmoat mcp accept shows each change and asks."_s;
 }
 
 std::optional<QString> McpNotices::server(const QString &line) {

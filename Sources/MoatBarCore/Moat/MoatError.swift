@@ -18,11 +18,11 @@ public enum MoatError: Error, Equatable {
         case .notInstalled:
             return "OpenMoat isn't installed"
         case let .timedOut(command):
-            return "moat \(command) took too long"
+            return "openmoat \(command) took too long"
         case let .failed(command, message):
-            return "moat \(command): \(message)"
+            return "openmoat \(command): \(message)"
         case let .unreadable(command):
-            return "moat \(command) gave output MoatBar can't read. Update moat."
+            return "openmoat \(command) gave output MoatBar can't read. Update OpenMoat."
         }
     }
 }

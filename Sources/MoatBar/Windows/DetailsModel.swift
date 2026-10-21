@@ -20,7 +20,7 @@ enum DetailsTab: String, CaseIterable, Identifiable {
     }
 }
 
-/// Loads what you allowed, the brokered secrets and every `moat doctor` check
+/// Loads what you allowed, the brokered secrets and every `openmoat doctor` check
 /// for the Details window. Reads run off the main thread; results land on the
 /// main thread. Read-only like the rest of MoatBar.
 final class DetailsModel: ObservableObject {
@@ -51,7 +51,7 @@ final class DetailsModel: ObservableObject {
         self.queue.async {
             let result: Result<Details, MoatError>
             if let binary = MoatClient.locate() {
-                // `moat doctor` checks every sandbox, which can take a few seconds.
+                // `openmoat doctor` checks every sandbox, which can take a few seconds.
                 result = .success(MoatClient(binary: binary, timeout: 15).details())
             } else {
                 result = .failure(.notInstalled)

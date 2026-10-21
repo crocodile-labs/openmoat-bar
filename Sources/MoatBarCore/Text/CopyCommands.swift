@@ -3,35 +3,35 @@ import Foundation
 /// Commands MoatBar offers to copy. MoatBar never runs these; the person pastes
 /// them into Terminal.
 public enum CopyCommands {
-    /// Set up or repair protection: `moat` alone shows the change and asks first.
-    public static let setUp = "moat"
+    /// Set up or repair protection: `openmoat` alone shows the change and asks first.
+    public static let setUp = "openmoat"
 
     /// Install OpenMoat with Homebrew.
-    public static let install = "brew install crocodile-labs/tap/moat"
+    public static let install = "brew install crocodile-labs/tap/openmoat"
 
     /// Run every security check.
-    public static let doctor = "moat doctor"
+    public static let doctor = "openmoat doctor"
 
     /// Show the newer default policy's changes and ask before applying them.
-    public static let policyUpgrade = "moat policy upgrade"
+    public static let policyUpgrade = "openmoat policy upgrade"
 
     /// Show what changed in one MCP server (or, without a name, in every one)
     /// and ask before accepting it. Only a person in a terminal can run it.
     public static func mcpAccept(_ server: String?) -> String {
         guard let server, !server.isEmpty else {
-            return "moat mcp accept"
+            return "openmoat mcp accept"
         }
-        return "moat mcp accept \(self.shellQuoteIfNeeded(server))"
+        return "openmoat mcp accept \(self.shellQuoteIfNeeded(server))"
     }
 
-    /// Take back a permanent rule `moat allow` wrote, as `moat allowed` prints it.
+    /// Take back a permanent rule `openmoat allow` wrote, as `openmoat allowed` prints it.
     public static func removeRule(_ id: String) -> String {
-        "moat allow --remove \(self.shellQuoteIfNeeded(id))"
+        "openmoat allow --remove \(self.shellQuoteIfNeeded(id))"
     }
 
-    /// Stop trusting a repository's policy, as `moat allowed` prints it.
+    /// Stop trusting a repository's policy, as `openmoat allowed` prints it.
     public static func revokeTrust(_ root: String) -> String {
-        "moat trust --revoke \(self.shellQuoteIfNeeded(root))"
+        "openmoat trust --revoke \(self.shellQuoteIfNeeded(root))"
     }
 
     /// Quoted only when the shell would split or expand it.
@@ -43,7 +43,7 @@ public enum CopyCommands {
         return safe ? text : self.shellQuote(text)
     }
 
-    /// `moat policy check` for this action, so the person can see the verdict
+    /// `openmoat policy check` for this action, so the person can see the verdict
     /// and rule again without running anything. `nil` for kinds it can't check.
     public static func policyCheck(_ action: Action) -> String? {
         let (subject, kind): (String, String?)
@@ -56,7 +56,7 @@ public enum CopyCommands {
         case let .mcpTool(name): (subject, kind) = (name, "mcp")
         default: return nil
         }
-        var line = "moat policy check \(self.shellQuote(subject))"
+        var line = "openmoat policy check \(self.shellQuote(subject))"
         if let kind {
             line += " --kind \(kind)"
         }

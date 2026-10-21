@@ -12,7 +12,7 @@
 namespace moatbar {
 
 /// The Quick View's detail pages, as plain maps for QML: What you allowed,
-/// Secrets and every `moat doctor` check. Each page map has `state`
+/// Secrets and every `openmoat doctor` check. Each page map has `state`
 /// (`loading`, `loaded`, `note` for an older moat, `failed`) and `note`.
 /// Reads moat off the GUI thread; read-only like the rest: every change is a
 /// command to copy.

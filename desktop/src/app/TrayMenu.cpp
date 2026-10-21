@@ -130,7 +130,7 @@ void TrayMenu::addHeader(QMenu &menu) const {
     QString updated = m_error ? u"Last good data %1 · %2"_s.arg(clock(m_snapshot->takenAt), m_error->message())
                               : u"Updated %1"_s.arg(clock(m_snapshot->takenAt));
     if (m_snapshot->moatVersion) {
-        updated += u" · moat "_s + *m_snapshot->moatVersion;
+        updated += u" · openmoat "_s + *m_snapshot->moatVersion;
     }
     addNote(menu, updated);
 }
@@ -142,7 +142,7 @@ void TrayMenu::addProblems(QMenu &menu) const {
             addNote(*problem, u"OpenMoat says: "_s + *agent.reason);
         }
         addNote(*problem, u"Its calls are not being checked."_s);
-        addNote(*problem, u"Run moat in a terminal. It shows the change and asks first."_s);
+        addNote(*problem, u"Run openmoat in a terminal. It shows the change and asks first."_s);
         problem->addSeparator();
         addCopy(*problem, u"Copy the fix"_s, CopyCommands::setUp());
         addLink(*problem, u"Known limits"_s, DocsLink::limits());
@@ -249,7 +249,7 @@ void TrayMenu::addAgents(QMenu &menu) const {
         QMenu *detail = menu.addMenu(agentIcon(agent.host), u"%1  —  %2"_s.arg(agent.name, levelLabel(agent.level)));
         if (agent.level == Level::NotFound) {
             addNote(*detail, u"%1 isn't installed on this computer."_s.arg(agent.name));
-            addNote(*detail, u"Once it is, run moat to protect it."_s);
+            addNote(*detail, u"Once it is, run openmoat to protect it."_s);
             continue;
         }
         addNote(*detail, u"Today: blocked %1 · asked %2 · %3 calls"_s.arg(counts[Verdict::Deny])

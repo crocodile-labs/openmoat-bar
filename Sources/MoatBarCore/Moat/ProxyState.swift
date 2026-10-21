@@ -1,6 +1,6 @@
 import Foundation
 
-/// `moat proxy status --format json` (macOS and Linux; Windows has no proxy
+/// `openmoat proxy status --format json` (macOS and Linux; Windows has no proxy
 /// service yet). Shape: openmoat `crates/openmoat-cli/src/commands/service.rs`.
 ///
 ///     {"path": "...", "service": "launchd user agent", "state": {"state": "running"}}

@@ -152,7 +152,7 @@ struct MenuBuilder {
         } else {
             updated = "Updated \(Format.relative(snapshot.takenAt, now: self.now))"
         }
-        let version = snapshot.moatVersion.map { "moat \($0)" } ?? ""
+        let version = snapshot.moatVersion.map { "openmoat \($0)" } ?? ""
         menu.addItem(hostedItem(HeaderView(
             title: title,
             trailing: version,
@@ -168,7 +168,7 @@ struct MenuBuilder {
             menu.addItem(hostedItem(ProblemCard(
                 title: "\(agent.name) is not protected",
                 text: "\(why)Its calls are not being checked.",
-                note: "Run moat in Terminal. It shows the change and asks first. This goes away on the next check."
+                note: "Run openmoat in Terminal. It shows the change and asks first. This goes away on the next check."
             )))
             menu.addItem(copyItem("Copy the fix", command: CopyCommands.setUp))
         }
@@ -367,7 +367,7 @@ struct MenuBuilder {
             menu.addItem(hostedItem(ProblemCard(
                 title: "OpenMoat isn't installed",
                 text: "MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts.",
-                note: "MoatBar looks for moat again every minute.",
+                note: "MoatBar looks for openmoat again every minute.",
                 tint: Color(nsColor: .secondaryLabelColor)
             )))
             menu.addItem(copyItem("Copy the install command", command: CopyCommands.install))
@@ -376,7 +376,7 @@ struct MenuBuilder {
             menu.addItem(hostedItem(ProblemCard(
                 title: "Couldn't read OpenMoat",
                 text: "\(error.message). Your agents are still checked; only this view is out of date.",
-                note: "moat doctor shows what is wrong.",
+                note: "openmoat doctor shows what is wrong.",
                 tint: Color(nsColor: .systemOrange)
             )))
             menu.addItem(copyItem("Copy the check command", command: CopyCommands.doctor))

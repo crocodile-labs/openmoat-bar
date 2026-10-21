@@ -3,14 +3,14 @@ import Foundation
 /// The OpenMoat versions MoatBar's newer screens need, and the note shown on
 /// an older one instead of an error.
 public enum MoatRequirement {
-    /// `moat allowed`, `moat secret list` and `moat doctor` with `--format json`.
+    /// `openmoat allowed`, `openmoat secret list` and `openmoat doctor` with `--format json`.
     public static let screens = "0.5.5"
-    /// `policy_update` and `lock_drift` in `moat status --format json`.
+    /// `policy_update` and `lock_drift` in `openmoat status --format json`.
     public static let updateNotices = "0.5.7"
 
     /// What a screen says when moat is older than `minimum`.
     public static func note(_ minimum: String) -> String {
-        "This needs OpenMoat \(minimum) or later. Update moat to see it here."
+        "This needs OpenMoat \(minimum) or later. Update OpenMoat to see it here."
     }
 
     /// The note for a status without update notices; `nil` when moat sends them.
@@ -93,7 +93,7 @@ public enum ScreenState<Value: Equatable>: Equatable {
 }
 
 /// The three detail screens from one read of moat: what you allowed, the
-/// brokered secrets and every `moat doctor` check.
+/// brokered secrets and every `openmoat doctor` check.
 public struct Details: Equatable {
     public var allowed: ScreenState<AllowedReport>
     public var secrets: ScreenState<SecretList>
