@@ -60,6 +60,11 @@ struct StatusReport {
     /// line each (``MCP server `gh` in /path changed``). Empty when nothing waits,
     /// and from a moat that doesn't send it (before 0.5.7).
     QStringList mcpChanges;
+    /// Project settings files that could switch OpenMoat off or run a program, one
+    /// line each (``/path/.claude/settings.json: `hooks` adds hooks that run commands.
+    /// A Claude Code session started here loads it; …``). Empty when there are none,
+    /// and from a moat that doesn't send it (before 0.8.0).
+    QStringList projectSettings;
 };
 
 // MARK: - Verdicts and actions

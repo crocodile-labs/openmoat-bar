@@ -83,6 +83,11 @@ std::vector<SecurityCheck> securityChecks(const Snapshot &snapshot) {
         checks.push_back({u"mcp"_s, Kind::Warning, McpNotices::title(), snapshot.status.mcpChanges.join(u'\n'),
                           commands.size() == 1 ? commands.first() : CopyCommands::mcpAccept(std::nullopt)});
     }
+    // OpenMoat 0.8.0 and later: a warning, as openmoat doctor counts it.
+    if (!snapshot.status.projectSettings.isEmpty()) {
+        checks.push_back({u"project-settings"_s, Kind::Warning, UpdateNotices::projectSettingsTitle(),
+                          snapshot.status.projectSettings.join(u'\n'), CopyCommands::doctor()});
+    }
     if (snapshot.status.policyUpdate) {
         checks.push_back({u"policy-update"_s, Kind::Info, UpdateNotices::updateTitle(), *snapshot.status.policyUpdate,
                           CopyCommands::policyUpgrade()});

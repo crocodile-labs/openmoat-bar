@@ -67,6 +67,16 @@ public enum SecurityChecks {
                 fix: commands.count == 1 ? commands[0] : CopyCommands.mcpAccept(nil)
             ))
         }
+        // OpenMoat 0.8.0 and later: a warning, as openmoat doctor counts it.
+        if !snapshot.status.projectSettings.isEmpty {
+            checks.append(SecurityCheck(
+                id: "project-settings",
+                kind: .warning,
+                title: UpdateNotices.projectSettingsTitle,
+                detail: snapshot.status.projectSettings.joined(separator: "\n"),
+                fix: CopyCommands.doctor
+            ))
+        }
         if let update = snapshot.status.policyUpdate {
             checks.append(SecurityCheck(
                 id: "policy-update",

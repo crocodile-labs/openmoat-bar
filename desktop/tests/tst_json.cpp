@@ -176,6 +176,19 @@ private slots:
         QVERIFY(empty.ok() && empty.value().hasUpdateNotices && !empty.value().policyUpdate);
     }
 
+    void statusDecodesProjectSettings() {
+        const auto status = json::parseStatus(fixture(u"status-project-settings"_s));
+        QVERIFY(status.ok());
+        const QStringList &lines = status.value().projectSettings;
+        QCOMPARE(lines.size(), 2);
+        QVERIFY(lines[0].startsWith(u"/Users/you/code/site/.claude/settings.json: `hooks`"_s));
+        QVERIFY(status.value().mcpChanges.isEmpty());
+        QVERIFY(status.value().hasUpdateNotices);
+        // A moat before 0.8.0 sends nothing, so nothing shows.
+        const auto older = json::parseStatus(fixture(u"status-mcp"_s));
+        QVERIFY(older.ok() && older.value().projectSettings.isEmpty());
+    }
+
     void detailWordsAndCommands() {
         const std::int64_t now = 1792061000000;
         QCOMPARE(DetailsText::endsIn(now + 11400000, now), u"Ends in 3 h 10 min"_s);

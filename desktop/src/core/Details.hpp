@@ -239,6 +239,9 @@ namespace UpdateNotices {
 [[nodiscard]] QString updateNote();
 [[nodiscard]] QString driftTitle();
 [[nodiscard]] QString driftNote();
+/// `project_settings` in `openmoat status --format json` (OpenMoat 0.8.0 and later).
+[[nodiscard]] QString projectSettingsTitle();
+[[nodiscard]] QString projectSettingsNote();
 } // namespace UpdateNotices
 
 } // namespace moatbar

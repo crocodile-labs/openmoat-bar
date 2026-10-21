@@ -425,4 +425,13 @@ QString UpdateNotices::driftNote() {
     return u"Files OpenMoat checks changed since it pinned them. openmoat doctor shows what changed."_s;
 }
 
+QString UpdateNotices::projectSettingsTitle() {
+    return u"Project settings need a look"_s;
+}
+
+QString UpdateNotices::projectSettingsNote() {
+    return u"An agent loads these when a session starts in that folder, before any hook runs, "
+           u"so OpenMoat can only point at them."_s;
+}
+
 } // namespace moatbar

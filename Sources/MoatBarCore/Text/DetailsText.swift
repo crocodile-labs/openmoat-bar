@@ -7,6 +7,10 @@ public enum UpdateNotices {
     public static let driftTitle = "OpenMoat's files changed"
     public static let driftNote =
         "Files OpenMoat checks changed since it pinned them. openmoat doctor shows what changed."
+    /// `project_settings` in `openmoat status --format json` (OpenMoat 0.8.0 and later).
+    public static let projectSettingsTitle = "Project settings need a look"
+    public static let projectSettingsNote = "An agent loads these when a session starts in that folder, "
+        + "before any hook runs, so OpenMoat can only point at them."
 }
 
 /// Words for the MCP server changes in the main view, from `mcp_changes` in

@@ -120,6 +120,19 @@ private slots:
         QCOMPARE(attention.front().id, u"lock"_s);
     }
 
+    void projectSettingsNeedALook() {
+        const auto checks = securityChecks(makeSnapshot(u"status-project-settings"_s));
+        const auto settings = std::ranges::find(checks, u"project-settings"_s, &SecurityCheck::id);
+        QVERIFY(settings != checks.end());
+        QVERIFY(settings->kind == SecurityCheck::Kind::Warning);
+        QCOMPARE(settings->title, u"Project settings need a look"_s);
+        QCOMPARE(settings->detail.value_or(QString{}).split(u'\n').size(), 2);
+        QCOMPARE(settings->fix.value_or(QString{}), u"openmoat doctor"_s);
+        const auto attention = needingAttention(checks);
+        QCOMPARE(attention.size(), std::size_t{1});
+        QCOMPARE(attention.front().id, u"project-settings"_s);
+    }
+
     void mcpChangesNeedALook() {
         const auto checks = securityChecks(makeSnapshot(u"status-mcp"_s));
         const auto mcp = std::ranges::find(checks, u"mcp"_s, &SecurityCheck::id);

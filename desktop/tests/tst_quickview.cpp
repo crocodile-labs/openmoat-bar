@@ -210,6 +210,18 @@ private slots:
         QVERIFY(mcp.value(u"text"_s).toString().contains(u"cannot be read"_s));
     }
 
+    void noticesShowProjectSettingsToReview() {
+        QuickViewModel model;
+        model.setData(makeSnapshot(u"status-project-settings"_s), std::nullopt, kNow);
+        const QVariantList notices = model.notices();
+        QCOMPARE(column(notices, u"title"_s), QStringList{u"Project settings need a look"_s});
+        const QVariantMap settings = notices[0].toMap();
+        QCOMPARE(settings.value(u"tone"_s).toString(), u"warn"_s);
+        QCOMPARE(settings.value(u"command"_s).toString(), u"openmoat doctor"_s);
+        QVERIFY(settings.value(u"text"_s).toString().contains(u".gemini/settings.json"_s));
+        QVERIFY(settings.value(u"note"_s).toString().contains(u"before any hook runs"_s));
+    }
+
     void decisionNotesSettingsDrift() {
         QuickViewModel model;
         Snapshot snapshot = makeSnapshot(u"status"_s);

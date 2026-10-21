@@ -28,6 +28,7 @@ openmoat --version                   ─┘        │
 | Menu counts, Today bar, lists, one decision | `show --since today` | yes |
 | Agents, red state | `status` | yes |
 | Policy update, changed files, MCP server changes | `status` (`policy_update`, `lock_drift`, `mcp_changes`) | OpenMoat 0.5.7 and later |
+| Project settings to review | `status` (`project_settings`) | OpenMoat 0.8.0 and later |
 | Proxy line | `proxy status` (macOS, Linux) | yes |
 | Activity window, 7 / 30 days | `report --since 7d` | yes |
 | Security checks | `doctor` as JSON | needs moat CLI work |
