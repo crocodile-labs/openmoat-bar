@@ -33,7 +33,7 @@ or dark. Keys: Ctrl+R refresh, Ctrl+A Activity, Esc back or close, Ctrl+Q quit.
 
 Every call in today, the last 7 days or the last 30 days, filtered by agent, verdict and rule,
 with one call in full beside the list. Export saves the calls the filter matches as JSON lines,
-each one exactly as `moat show` printed it. Opened from the Quick View (Ctrl+A, "Show all in
+each one exactly as `openmoat show` printed it. Opened from the Quick View (Ctrl+A, "Show all in
 Activity…"), and from the tray menu.
 
 ## Welcome, Settings and notifications
@@ -98,7 +98,7 @@ without it MoatBar runs from the app menu (see above).
 ## Rules
 
 The same as the Mac app (see `../AGENTS.md`):
-- MoatBar runs only `moat status`, `show`, `report`, `proxy status` and `--version`.
+- MoatBar runs only `openmoat status`, `show`, `report`, `proxy status` and `--version`.
 - It never writes under `~/.moat`.
 - Fixes are commands the person copies into a terminal.
 

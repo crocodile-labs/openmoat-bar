@@ -1,6 +1,6 @@
 import Foundation
 
-// `moat secret list --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
+// `openmoat secret list --format json` (OpenMoat 0.5.5 and later). Shape: openmoat
 // `crates/openmoat-cli/src/commands/secret.rs`; a secret is `Secret` from
 // `crates/openmoat-core/src/secret.rs`. moat never prints the values.
 

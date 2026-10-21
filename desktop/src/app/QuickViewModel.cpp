@@ -100,7 +100,7 @@ QVariantMap QuickViewModel::unavailable() const {
         return {
             {u"title"_s, u"OpenMoat isn't installed"_s},
             {u"text"_s, u"MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts."_s},
-            {u"note"_s, u"MoatBar looks for moat again every minute."_s},
+            {u"note"_s, u"MoatBar looks for openmoat again every minute."_s},
             {u"tone"_s, u"muted"_s},
             {u"commandTitle"_s, u"Copy the install command"_s},
             {u"command"_s, CopyCommands::install()},
@@ -111,7 +111,7 @@ QVariantMap QuickViewModel::unavailable() const {
     return {
         {u"title"_s, u"Couldn't read OpenMoat"_s},
         {u"text"_s, QString(m_error->message() + u". Your agents are still checked; only this view is out of date."_s)},
-        {u"note"_s, u"moat doctor shows what is wrong."_s},
+        {u"note"_s, u"openmoat doctor shows what is wrong."_s},
         {u"tone"_s, u"warn"_s},
         {u"commandTitle"_s, u"Copy the check command"_s},
         {u"command"_s, CopyCommands::doctor()},
@@ -155,7 +155,7 @@ QVariantMap QuickViewModel::header() const {
     }
     out[u"updated"_s] = m_error ? u"Last good data %1 · %2"_s.arg(Format::clock(m_snapshot->takenAt), m_error->message())
                                 : u"Updated %1"_s.arg(Format::relative(m_snapshot->takenAt, m_now));
-    out[u"version"_s] = m_snapshot->moatVersion ? QString(u"moat "_s + *m_snapshot->moatVersion) : QString{};
+    out[u"version"_s] = m_snapshot->moatVersion ? QString(u"openmoat "_s + *m_snapshot->moatVersion) : QString{};
     return out;
 }
 
@@ -172,7 +172,7 @@ QVariantList QuickViewModel::problems() const {
         out << QVariantMap{
             {u"title"_s, u"%1 is not protected"_s.arg(agent.name)},
             {u"text"_s, QString(why + u"Its calls are not being checked."_s)},
-            {u"note"_s, u"Run moat in a terminal. It shows the change and asks first. "
+            {u"note"_s, u"Run openmoat in a terminal. It shows the change and asks first. "
                         u"This goes away on the next check."_s},
             {u"command"_s, CopyCommands::setUp()},
         };
@@ -207,7 +207,7 @@ QVariantList QuickViewModel::notices() const {
         };
     }
     if (!status.mcpChanges.isEmpty()) {
-        // One copy row per server: `moat mcp accept gh`, `moat mcp accept docs`.
+        // One copy row per server: `openmoat mcp accept gh`, `openmoat mcp accept docs`.
         const QStringList commands = McpNotices::acceptCommands(status.mcpChanges);
         out << QVariantMap{
             {u"title"_s, McpNotices::title()},
@@ -394,7 +394,7 @@ void QuickViewModel::refresh() {
     if (!m_refreshHandler || m_refreshState == u"refreshing") {
         return;
     }
-    setRefresh(u"refreshing"_s, u"Reading moat…"_s);
+    setRefresh(u"refreshing"_s, u"Reading OpenMoat…"_s);
     m_refreshHandler();
 }
 

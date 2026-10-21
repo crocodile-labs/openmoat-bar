@@ -124,10 +124,10 @@ final class DetailsTests: XCTestCase {
 
         let lock = try XCTUnwrap(checks.first { $0.id == "lock" })
         XCTAssertEqual(lock.kind, .problem)
-        XCTAssertEqual(lock.fix, "moat doctor")
+        XCTAssertEqual(lock.fix, "openmoat doctor")
         let update = try XCTUnwrap(checks.first { $0.id == "policy-update" })
         XCTAssertEqual(update.kind, .info)
-        XCTAssertEqual(update.fix, "moat policy upgrade")
+        XCTAssertEqual(update.fix, "openmoat policy upgrade")
         XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["lock"])
     }
 
@@ -169,12 +169,12 @@ final class DetailsTests: XCTestCase {
         XCTAssertEqual(CheckText.hint(other), "Not signed by a key you trust, so only its deny and ask rules apply.")
 
         XCTAssertEqual(
-            CheckText.repoPolicyHint("p  sha256:1  changed since `moat trust`: tightening only (1 deny)"),
+            CheckText.repoPolicyHint("p  sha256:1  changed since `openmoat trust`: tightening only (1 deny)"),
             "Changed since you trusted it, so only its deny and ask rules apply."
         )
         XCTAssertEqual(
             CheckText.repoPolicyHint("p  sha256:1  trusted (1 deny, 0 ask, 1 allow)"),
-            "Trusted with moat trust, so its allow rules apply too."
+            "Trusted with openmoat trust, so its allow rules apply too."
         )
         XCTAssertEqual(
             CheckText.repoPolicyHint("p  sha256:1  tightening only (1 deny, 0 ask, 0 allow)"),
@@ -197,12 +197,12 @@ final class DetailsTests: XCTestCase {
         let mcp = report.checks.filter { $0.topic == .mcp }
 
         XCTAssertEqual(mcp.map(\.title), ["MCP servers", "MCP tools"])
-        XCTAssertEqual(mcp.map { CheckText.fix($0) }, ["moat mcp accept gh", "moat mcp accept docs"])
+        XCTAssertEqual(mcp.map { CheckText.fix($0) }, ["openmoat mcp accept gh", "openmoat mcp accept docs"])
         XCTAssertEqual(CheckText.hint(mcp[0]), "Its tool calls are refused until you accept the change.")
 
         let unpinned = try Fixture.decode(DoctorReport.self, "doctor-mcp-unpinned").checks[0]
         XCTAssertEqual(unpinned.topic, .mcp)
-        XCTAssertEqual(CheckText.fix(unpinned), "moat mcp accept")
+        XCTAssertEqual(CheckText.fix(unpinned), "openmoat mcp accept")
         XCTAssertEqual(CheckText.hint(unpinned)?.hasPrefix("Once pinned"), true)
     }
 
@@ -216,6 +216,26 @@ final class DetailsTests: XCTestCase {
         XCTAssertEqual(CheckText.hint(row)?.contains("still runs when the OpenMoat hook crashes"), true)
     }
 
+    func test_doctor_renamedLines_areAboutOpenMoatAndHooks() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-renamed")
+
+        XCTAssertEqual(report.groups.map(\.status), [.warning, .note, .ok])
+        // Warnings: the lock's old binary name and `openmoat run` first, then the hook that runs the old name.
+        XCTAssertEqual(report.groups[0].checks.map(\.topic), [.moat, .moat, .hooks])
+        XCTAssertEqual(report.groups[1].checks.map(\.topic), [.moat, .policy, .mcp])
+        XCTAssertEqual(report.groups[2].checks.map(\.topic), [.moat, .hooks])
+
+        let alias = try XCTUnwrap(report.checks.first { $0.name == "command" })
+        XCTAssertEqual(alias.title, "Command name")
+        XCTAssertTrue(alias.subtitle.hasPrefix("`moat` is the old name of `openmoat`"))
+
+        // The newer wording of lines MoatBar matches on.
+        let repo = try XCTUnwrap(report.checks.first { $0.name == "repo policy" })
+        XCTAssertEqual(CheckText.hint(repo), "Changed since you trusted it, so only its deny and ask rules apply.")
+        let unpinned = try XCTUnwrap(report.checks.first { $0.name == "mcp servers" })
+        XCTAssertEqual(CheckText.fix(unpinned), "openmoat mcp accept")
+    }
+
     func test_doctor_olderLines_keepTheirWords() throws {
         let report = try Fixture.decode(DoctorReport.self, "doctor")
         XCTAssertEqual(report.checks.map(\.title)[0...2], ["state directory", "policy", "lock"])
@@ -223,14 +243,17 @@ final class DetailsTests: XCTestCase {
         XCTAssertEqual(report.checks[6].topic, .other)
     }
 
-    // MARK: - MCP server changes from moat status
+    // MARK: - MCP server changes from openmoat status
 
     func test_status_decodesMcpChanges() throws {
         let status = try Fixture.decode(StatusReport.self, "status-mcp")
 
         XCTAssertEqual(status.mcpChanges.count, 4)
         XCTAssertEqual(McpNotices.servers(status.mcpChanges), ["gh", "docs"])
-        XCTAssertEqual(McpNotices.acceptCommands(status.mcpChanges), ["moat mcp accept gh", "moat mcp accept docs"])
+        XCTAssertEqual(
+            McpNotices.acceptCommands(status.mcpChanges),
+            ["openmoat mcp accept gh", "openmoat mcp accept docs"]
+        )
         XCTAssertNil(McpNotices.server(in: status.mcpChanges[3]))
     }
 
@@ -245,8 +268,8 @@ final class DetailsTests: XCTestCase {
 
     func test_mcpNotices_unnamedLines_copyThePlainCommand() {
         let lines = ["/Users/you/.cursor/mcp.json cannot be read: denied"]
-        XCTAssertEqual(McpNotices.acceptCommands(lines), ["moat mcp accept"])
-        XCTAssertEqual(CopyCommands.mcpAccept("team docs"), "moat mcp accept 'team docs'")
+        XCTAssertEqual(McpNotices.acceptCommands(lines), ["openmoat mcp accept"])
+        XCTAssertEqual(CopyCommands.mcpAccept("team docs"), "openmoat mcp accept 'team docs'")
         XCTAssertNil(McpNotices.server(in: "MCP server `` in /x changed"))
     }
 
@@ -257,12 +280,12 @@ final class DetailsTests: XCTestCase {
         let mcp = try XCTUnwrap(checks.first { $0.id == "mcp" })
         XCTAssertEqual(mcp.kind, .warning)
         XCTAssertEqual(mcp.title, McpNotices.title)
-        XCTAssertEqual(mcp.fix, "moat mcp accept", "two servers: the command that shows every change")
+        XCTAssertEqual(mcp.fix, "openmoat mcp accept", "two servers: the command that shows every change")
         XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["mcp"])
 
         let one = StatusReport(agents: status.agents, mcpChanges: ["MCP server `gh` in /x changed"])
         let single = SecurityChecks.from(Snapshot(status: one, events: [])).first { $0.id == "mcp" }
-        XCTAssertEqual(single?.fix, "moat mcp accept gh")
+        XCTAssertEqual(single?.fix, "openmoat mcp accept gh")
     }
 
     // MARK: - Older moat
@@ -284,7 +307,10 @@ final class DetailsTests: XCTestCase {
             return 1
         }
         XCTAssertFalse(ran)
-        XCTAssertEqual(state, .needsNewerMoat(note: "This needs OpenMoat 0.5.5 or later. Update moat to see it here."))
+        XCTAssertEqual(
+            state,
+            .needsNewerMoat(note: "This needs OpenMoat 0.5.5 or later. Update OpenMoat to see it here.")
+        )
     }
 
     func test_screen_unknownVersion_unknownCommand_givesTheNote() {
@@ -303,12 +329,12 @@ final class DetailsTests: XCTestCase {
         let state = ScreenState<Int>.read(minimum: "0.5.5", version: "0.5.6") {
             throw MoatError.failed(command: "allowed", message: "error: unrecognized subcommand 'allowed'")
         }
-        XCTAssertEqual(state, .failed(message: "moat allowed: error: unrecognized subcommand 'allowed'"))
+        XCTAssertEqual(state, .failed(message: "openmoat allowed: error: unrecognized subcommand 'allowed'"))
 
         let timeout = ScreenState<Int>.read(minimum: "0.5.5", version: nil) {
             throw MoatError.timedOut(command: "doctor --format json")
         }
-        XCTAssertEqual(timeout, .failed(message: "moat doctor --format json took too long"))
+        XCTAssertEqual(timeout, .failed(message: "openmoat doctor --format json took too long"))
     }
 
     func test_details_readsAllThreeScreens() throws {
@@ -354,12 +380,12 @@ final class DetailsTests: XCTestCase {
     }
 
     func test_takeBackCommands_matchMoatAllowed() {
-        XCTAssertEqual(CopyCommands.removeRule("approved-1"), "moat allow --remove approved-1")
-        XCTAssertEqual(CopyCommands.revokeTrust("/Users/you/code/app"), "moat trust --revoke /Users/you/code/app")
+        XCTAssertEqual(CopyCommands.removeRule("approved-1"), "openmoat allow --remove approved-1")
+        XCTAssertEqual(CopyCommands.revokeTrust("/Users/you/code/app"), "openmoat trust --revoke /Users/you/code/app")
         XCTAssertEqual(
             CopyCommands.revokeTrust("/Users/you/code/team app"),
-            "moat trust --revoke '/Users/you/code/team app'"
+            "openmoat trust --revoke '/Users/you/code/team app'"
         )
-        XCTAssertEqual(CopyCommands.policyUpgrade, "moat policy upgrade")
+        XCTAssertEqual(CopyCommands.policyUpgrade, "openmoat policy upgrade")
     }
 }

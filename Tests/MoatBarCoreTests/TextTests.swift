@@ -6,22 +6,22 @@ final class TextTests: XCTestCase {
     func test_policyCheck_quotesTheCommand() {
         XCTAssertEqual(
             CopyCommands.policyCheck(.shell(command: "cat .env")),
-            "moat policy check 'cat .env'"
+            "openmoat policy check 'cat .env'"
         )
         XCTAssertEqual(
             CopyCommands.policyCheck(.shell(command: "echo 'hi'")),
-            "moat policy check 'echo '\\''hi'\\'''"
+            "openmoat policy check 'echo '\\''hi'\\'''"
         )
     }
 
     func test_policyCheck_addsTheKind() {
         XCTAssertEqual(
             CopyCommands.policyCheck(.fsRead(path: "~/.ssh/id_ed25519")),
-            "moat policy check '~/.ssh/id_ed25519' --kind fs-read"
+            "openmoat policy check '~/.ssh/id_ed25519' --kind fs-read"
         )
         XCTAssertEqual(
             CopyCommands.policyCheck(.fetch(url: "https://docs.rs")),
-            "moat policy check 'https://docs.rs' --kind fetch"
+            "openmoat policy check 'https://docs.rs' --kind fetch"
         )
         XCTAssertNil(CopyCommands.policyCheck(.patch(writes: ["a"])))
     }

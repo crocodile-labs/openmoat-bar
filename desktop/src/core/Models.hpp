@@ -38,7 +38,7 @@ enum class Level : std::uint8_t {
     return level == Level::HookAndOsSandbox || level == Level::HookOnly;
 }
 
-/// One agent's protection: `agents[]` in `moat status --format json`.
+/// One agent's protection: `agents[]` in `openmoat status --format json`.
 struct Protection {
     QString host; ///< `claude-code`, `codex`, `cursor`
     QString name; ///< `Claude Code`
@@ -47,16 +47,16 @@ struct Protection {
     QString gaps;
 };
 
-/// The whole `moat status --format json` document (commands/status.rs).
+/// The whole `openmoat status --format json` document (commands/status.rs).
 struct StatusReport {
     std::vector<Protection> agents;
-    /// `3 changes from the OpenMoat 0.5.7 default` when `moat policy upgrade` has changes.
+    /// `3 changes from the OpenMoat 0.5.7 default` when `openmoat policy upgrade` has changes.
     std::optional<QString> policyUpdate;
     /// Pinned files that changed since: `… was modified`, `… is missing`.
     QStringList lockDrift;
     /// Whether moat sent `policy_update` and `lock_drift` at all (OpenMoat 0.5.7+).
     bool hasUpdateNotices = true;
-    /// MCP server definitions and held tools that wait for `moat mcp accept`, one
+    /// MCP server definitions and held tools that wait for `openmoat mcp accept`, one
     /// line each (``MCP server `gh` in /path changed``). Empty when nothing waits,
     /// and from a moat that doesn't send it (before 0.5.7).
     QStringList mcpChanges;
@@ -90,11 +90,11 @@ struct Action {
 
     /// One line a person can read.
     [[nodiscard]] QString display() const;
-    /// The command line, for actions `moat policy check` can check again.
+    /// The command line, for actions `openmoat policy check` can check again.
     [[nodiscard]] std::optional<QString> shellCommand() const;
 };
 
-/// One audit event. `moat show --format json` prints an array of these.
+/// One audit event. `openmoat show --format json` prints an array of these.
 struct Event {
     QString id; ///< hex row id; older moat builds wrote an integer
     std::int64_t tsMs = 0;
@@ -124,7 +124,7 @@ struct RuleCount {
     friend bool operator==(const RuleCount &, const RuleCount &) = default;
 };
 
-/// Totals for a window: `moat report --since <window> --format json`.
+/// Totals for a window: `openmoat report --since <window> --format json`.
 struct Summary {
     std::int64_t sinceMs = 0;
     int total = 0;
@@ -138,7 +138,7 @@ struct Summary {
     int activeHours = 0;
 };
 
-/// The proxy service's state (`moat proxy status`, macOS and Linux only).
+/// The proxy service's state (`openmoat proxy status`, macOS and Linux only).
 struct ProxyState {
     enum class Kind : std::uint8_t { NotInstalled, Stopped, Running, DriftBlocked, Crashlooping, Unknown };
     Kind kind = Kind::Unknown;

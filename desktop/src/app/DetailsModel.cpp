@@ -13,7 +13,7 @@ using namespace std::chrono_literals;
 namespace moatbar {
 namespace {
 
-/// `moat doctor` checks every sandbox, which can take a few seconds.
+/// `openmoat doctor` checks every sandbox, which can take a few seconds.
 constexpr auto kReadTimeout = 15s;
 
 Result<Details> readDetails() {
@@ -32,10 +32,10 @@ std::optional<QVariantMap> notLoaded(const Screen<T> &screen) {
     }
     if (screen.failed) {
         return QVariantMap{{u"state"_s, u"failed"_s},
-                           {u"note"_s, QString(*screen.failed + u". moat doctor shows what is wrong."_s)}};
+                           {u"note"_s, QString(*screen.failed + u". openmoat doctor shows what is wrong."_s)}};
     }
     if (!screen.value) {
-        return QVariantMap{{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading moat…"_s}};
+        return QVariantMap{{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading OpenMoat…"_s}};
     }
     return std::nullopt;
 }
@@ -105,7 +105,7 @@ QVariantMap DetailsModel::allowed() const {
         return {{u"state"_s, u"failed"_s}, {u"note"_s, *m_error}};
     }
     if (!m_details) {
-        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading moat…"_s}};
+        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading OpenMoat…"_s}};
     }
     if (auto other = notLoaded(m_details->allowed)) {
         return *other;
@@ -159,7 +159,7 @@ QVariantMap DetailsModel::secrets() const {
         return {{u"state"_s, u"failed"_s}, {u"note"_s, *m_error}};
     }
     if (!m_details) {
-        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading moat…"_s}};
+        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading OpenMoat…"_s}};
     }
     if (auto other = notLoaded(m_details->secrets)) {
         return *other;
@@ -194,7 +194,7 @@ QVariantMap DetailsModel::checks() const {
         return {{u"state"_s, u"failed"_s}, {u"note"_s, *m_error}};
     }
     if (!m_details) {
-        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading moat…"_s}};
+        return {{u"state"_s, u"loading"_s}, {u"note"_s, u"Reading OpenMoat…"_s}};
     }
     if (auto other = notLoaded(m_details->checks)) {
         return *other;

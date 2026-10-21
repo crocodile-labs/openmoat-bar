@@ -53,7 +53,7 @@ ApplicationWindow {
         openOverview();
         stack.push(checksPage);
     }
-    // `allowed`, `secrets` or `checks` (every moat doctor check).
+    // `allowed`, `secrets` or `checks` (every openmoat doctor check).
     function openPage(page) {
         openOverview();
         if (page === "allowed") {
@@ -290,7 +290,7 @@ ApplicationWindow {
                         }
                         NavRow {
                             title: "Checks"
-                            subtitle: "Every moat doctor check"
+                            subtitle: "Every openmoat doctor check"
                             onClicked: root.openPage("checks")
                         }
                     }
@@ -391,7 +391,7 @@ ApplicationWindow {
                     }
                     Label {
                         visible: page.d.id === undefined
-                        text: "moat no longer lists this call."
+                        text: "OpenMoat no longer lists this call."
                         color: Theme.secondary
                         Layout.leftMargin: Theme.gutter
                     }
@@ -540,7 +540,7 @@ ApplicationWindow {
                         }
                         Label {
                             visible: (page.a.rules || []).length === 0
-                            text: "None. moat allow --always, --site and --dir add them."
+                            text: "None. openmoat allow --always, --site and --dir add them."
                             color: Theme.secondary
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
@@ -572,7 +572,7 @@ ApplicationWindow {
                         }
                         Label {
                             visible: (page.a.grants || []).length === 0
-                            text: "None. moat allow --last allows one call again for the rest of its session."
+                            text: "None. openmoat allow --last allows one call again for the rest of its session."
                             color: Theme.secondary
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
@@ -596,7 +596,7 @@ ApplicationWindow {
                         }
                         Label {
                             visible: (page.a.repos || []).length === 0
-                            text: "None. moat trust lets a repository's own policy allow calls."
+                            text: "None. openmoat trust lets a repository's own policy allow calls."
                             color: Theme.secondary
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
@@ -664,7 +664,7 @@ ApplicationWindow {
                     }
                     Label {
                         visible: page.s.state === "loaded" && (page.s.items || []).length === 0
-                        text: "None. moat secret add keeps a token away from the agent and adds it to requests."
+                        text: "None. openmoat secret add keeps a token away from the agent and adds it to requests."
                         color: Theme.secondary
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
@@ -697,7 +697,7 @@ ApplicationWindow {
         }
     }
 
-    // MARK: - Every moat doctor check
+    // MARK: - Every openmoat doctor check
 
     Component {
         id: doctorPage

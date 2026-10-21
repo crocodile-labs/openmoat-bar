@@ -28,7 +28,7 @@ copy into Terminal.
 - Today's calls per hour, with blocks in red.
 - Blocked, Asked, Left to your agent and Allowed, with counts.
   - Hover one for the list.
-  - Hover a call for the whole story: what ran, the rule, what the agent was told, and why. You can copy a `moat policy check` command or report a wrong block.
+  - Hover a call for the whole story: what ran, the rule, what the agent was told, and why. You can copy a `openmoat policy check` command or report a wrong block.
 - Each agent with its protection level, today's numbers and last call. Security checks cover each agent, the network proxy and moat itself.
 
 <p align="center">
@@ -46,16 +46,16 @@ copy into Terminal.
 | Faded | OpenMoat isn't installed or can't be read |
 
 **Notices in the menu** (OpenMoat 0.5.7 and later):
-- "Policy update available" when a newer default policy has changes, with `moat policy upgrade` to copy. It shows each change and asks first.
-- "OpenMoat's files changed" when a file OpenMoat pinned was changed or removed, with the list and `moat doctor`.
-- "MCP server changes wait for you" when an MCP server's definition or tools changed since you accepted them. OpenMoat refuses that server's tool calls until then; MoatBar lists the changes and gives `moat mcp accept <server>` to copy for each server.
+- "Policy update available" when a newer default policy has changes, with `openmoat policy upgrade` to copy. It shows each change and asks first.
+- "OpenMoat's files changed" when a file OpenMoat pinned was changed or removed, with the list and `openmoat doctor`.
+- "MCP server changes wait for you" when an MCP server's definition or tools changed since you accepted them. OpenMoat refuses that server's tool calls until then; MoatBar lists the changes and gives `openmoat mcp accept <server>` to copy for each server.
 
 **Rules explained.** A call's details say in one line why its rule exists, including the newer ones (a package name one typo from a popular one, a token or secret about to leave in a push or a request, a changed MCP server) and rules from a policy pack or a repository's own policy. A call decided while a pinned settings file had drifted in a harmless way gets a note saying so.
 
 **The Details window** (from the menu, OpenMoat 0.5.5 and later):
 - What you allowed: permanent rules, session grants with when they end, and trusted repositories, each with the command that takes it back.
 - Secrets: each brokered secret's id, host and where its value is read from, and whether the agent can still read it there.
-- Checks: every `moat doctor` check, grouped into problems, things to look at, notes and fine, with checks about the same thing (policy, hooks, MCP servers, audit log, ...) kept together and labelled. Newer checks get a line on what they mean: whether a repository policy is signed by a key you trust, a changed policy pack, the last audit anchor, a Claude Code hook that lets calls run when it fails, and MCP servers to accept, with the command to copy.
+- Checks: every `openmoat doctor` check, grouped into problems, things to look at, notes and fine, with checks about the same thing (policy, hooks, MCP servers, audit log, ...) kept together and labelled. Newer checks get a line on what they mean: whether a repository policy is signed by a key you trust, a changed policy pack, the last audit anchor, a Claude Code hook that lets calls run when it fails, and MCP servers to accept, with the command to copy.
 
 With an older moat these show a short note saying which version they need. Lines and fields an older moat doesn't print simply don't show.
 
@@ -109,7 +109,7 @@ Until then, or to build it yourself:
 ### macOS
 
 ```bash
-brew install crocodile-labs/tap/moat
+brew install crocodile-labs/tap/openmoat
 git clone https://github.com/crocodile-labs/moatbar
 cd moatbar
 make app            # needs Swift 5.7 or later (Xcode or the Command Line Tools)
@@ -122,7 +122,7 @@ open MoatBar.app
 ### Linux
 
 ```bash
-brew install crocodile-labs/tap/moat
+brew install crocodile-labs/tap/openmoat
 
 # Build tools and Qt 6.4 or later with Qt Quick, for your distribution
 # Ubuntu 24.04+, Debian 12+:
@@ -188,14 +188,16 @@ open the run under Actions, then download `moatbar-linux-screenshots` or
 ## How it works
 
 MoatBar runs only these read-only moat commands and reads their JSON:
-- `moat status`
-- `moat show`
-- `moat report`
-- `moat proxy status`
-- `moat --version`
-- `moat allowed`, `moat secret list` and `moat doctor`, for the Details screens
+- `openmoat status`
+- `openmoat show`
+- `openmoat report`
+- `openmoat proxy status`
+- `openmoat --version`
+- `openmoat allowed`, `openmoat secret list` and `openmoat doctor`, for the Details screens
 
-Each with `--format json`. MoatBar matches whole command lines, so `moat doctor --accept` or `moat secret add` can never run.
+Each with `--format json`. MoatBar matches whole command lines, so `openmoat doctor --accept` or `openmoat secret add` can never run.
+
+OpenMoat 0.8.0 renamed the command from `moat` to `openmoat`. MoatBar looks for `openmoat` first and falls back to `moat` from an older install. The commands it offers to copy say `openmoat`; an older install does not have that name until you update it.
 
 It re-reads when OpenMoat's audit log changes (within 2 seconds), every minute, and when you open the menu. It writes nothing to `~/.moat`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

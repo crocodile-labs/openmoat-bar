@@ -42,9 +42,9 @@ struct SettingsView: View {
             }
 
             Section {
-                Text("moat: \(self.moatPath ?? "not found")\(self.moatVersion.map { " · \($0)" } ?? "")")
+                Text("openmoat: \(self.moatPath ?? "not found")\(self.moatVersion.map { " · \($0)" } ?? "")")
                     .textSelection(.enabled)
-                Text("MoatBar reads moat's status and audit log. It never writes to them.")
+                Text("MoatBar reads OpenMoat's status and audit log. It never writes to them.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Button("How to turn OpenMoat off ↗") {

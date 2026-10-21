@@ -262,7 +262,7 @@ struct AgentDetailView: View {
                 Text(reason).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
             }
             if self.agent.level == .notFound {
-                Text("\(self.agent.name) isn't installed on this Mac. Once it is, run moat to protect it.")
+                Text("\(self.agent.name) isn't installed on this Mac. Once it is, run openmoat to protect it.")
                     .font(.system(size: 12))
                     .fixedSize(horizontal: false, vertical: true)
             }

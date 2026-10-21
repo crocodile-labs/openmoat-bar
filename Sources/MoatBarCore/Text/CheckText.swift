@@ -1,6 +1,6 @@
 import Foundation
 
-/// Words for `moat doctor` lines on the Checks screen: a plain name, one line
+/// Words for `openmoat doctor` lines on the Checks screen: a plain name, one line
 /// on what a check means, and the command to copy when one helps. The lines
 /// come from openmoat `crates/openmoat-cli/src/commands/doctor.rs` (and
 /// `doctor/mcp.rs`, `repo.rs`); a line MoatBar doesn't know shows as moat
@@ -18,7 +18,7 @@ public enum CheckText {
         switch check.topic {
         case .audit where name == "audit anchor":
             return "A copy of the audit log's latest hash, kept outside it. "
-                + "moat audit verify --against checks the log against it later."
+                + "openmoat audit verify --against checks the log against it later."
         case .policy where name == "repo policy":
             return self.repoPolicyHint(detail)
         case .mcp where detail.contains("not pinned yet"):
@@ -52,7 +52,7 @@ public enum CheckText {
         if detail.contains("not signed by a trusted key") {
             return "Not signed by a key you trust, so only its deny and ask rules apply."
         }
-        if detail.contains("changed since `moat trust`") {
+        if detail.contains("changed since `") {
             return "Changed since you trusted it, so only its deny and ask rules apply."
         }
         if detail.contains("not trusted") {
@@ -62,7 +62,7 @@ public enum CheckText {
             return "It only adds deny and ask rules."
         }
         if detail.contains("trusted (") {
-            return "Trusted with moat trust, so its allow rules apply too."
+            return "Trusted with openmoat trust, so its allow rules apply too."
         }
         return nil
     }
@@ -82,11 +82,12 @@ public enum CheckText {
             return nil
         }
         let name = String(rest[..<end])
-        // `moat mcp accept` in the "not pinned yet" line is a command, not a server.
+        // `openmoat mcp accept` in the "not pinned yet" line is a command, not a server.
         return name.isEmpty || name.contains(" ") ? nil : name
     }
 
     private static let labels: [String: String] = [
+        "command": "Command name",
         "audit anchor": "Audit anchor",
         "audit log": "Audit log",
         "repo policy": "Repository policy",

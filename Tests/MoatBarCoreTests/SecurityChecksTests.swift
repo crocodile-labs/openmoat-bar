@@ -12,10 +12,10 @@ final class SecurityChecksTests: XCTestCase {
 
         XCTAssertEqual(checks.map(\.id), ["proxy", "agent-codex", "moat", "agent-claude-code"])
         XCTAssertEqual(checks[0].kind, .warning)
-        XCTAssertEqual(checks[0].fix, "moat proxy install")
+        XCTAssertEqual(checks[0].fix, "openmoat proxy install")
         XCTAssertEqual(checks[1].kind, .info)
         XCTAssertEqual(checks[1].detail, "the sandbox profile is older than the policy")
-        XCTAssertEqual(checks[1].fix, "moat")
+        XCTAssertEqual(checks[1].fix, "openmoat")
     }
 
     func test_lostProtection_isAProblem_andNotFoundIsLeftOut() throws {

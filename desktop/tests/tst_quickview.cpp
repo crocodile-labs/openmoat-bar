@@ -57,7 +57,7 @@ private slots:
         QCOMPARE(byKey(model.tabs(), u"host"_s, u"cursor"_s).value(u"installed"_s).toBool(), false);
         QCOMPARE(model.header().value(u"title"_s).toString(), u"All agents"_s);
         QCOMPARE(model.header().value(u"detail"_s).toString(), u"2 of 2 protected"_s);
-        QCOMPARE(model.header().value(u"version"_s).toString(), u"moat 0.5.3"_s);
+        QCOMPARE(model.header().value(u"version"_s).toString(), u"openmoat 0.5.3"_s);
         QCOMPARE(model.header().value(u"updated"_s).toString(), u"Updated just now"_s);
         QCOMPARE(column(model.verdicts(), u"title"_s),
                  (QStringList{u"Blocked"_s, u"Asked"_s, u"Left to your agent"_s, u"Allowed"_s}));
@@ -191,7 +191,7 @@ private slots:
         const QVariantList notices = model.notices();
         QCOMPARE(column(notices, u"title"_s),
                  (QStringList{u"Policy update available"_s, u"OpenMoat's files changed"_s}));
-        QCOMPARE(column(notices, u"command"_s), (QStringList{u"moat policy upgrade"_s, u"moat doctor"_s}));
+        QCOMPARE(column(notices, u"command"_s), (QStringList{u"openmoat policy upgrade"_s, u"openmoat doctor"_s}));
         QVERIFY(notices[1].toMap().value(u"text"_s).toString().contains(u"hooks.json is missing"_s));
 
         model.setData(makeSnapshot(u"status"_s), std::nullopt, kNow);
@@ -205,8 +205,8 @@ private slots:
         QCOMPARE(column(notices, u"title"_s), QStringList{u"MCP server changes wait for you"_s});
         const QVariantMap mcp = notices[0].toMap();
         QCOMPARE(mcp.value(u"tone"_s).toString(), u"warn"_s);
-        QCOMPARE(mcp.value(u"command"_s).toString(), u"moat mcp accept gh"_s);
-        QCOMPARE(mcp.value(u"moreCommands"_s).toStringList(), QStringList{u"moat mcp accept docs"_s});
+        QCOMPARE(mcp.value(u"command"_s).toString(), u"openmoat mcp accept gh"_s);
+        QCOMPARE(mcp.value(u"moreCommands"_s).toStringList(), QStringList{u"openmoat mcp accept docs"_s});
         QVERIFY(mcp.value(u"text"_s).toString().contains(u"cannot be read"_s));
     }
 
@@ -236,7 +236,7 @@ private slots:
         const QVariantList problems = groups[0].toMap().value(u"items"_s).toList();
         QCOMPARE(column(problems, u"topic"_s), (QStringList{u"Pinned files"_s, u"MCP servers"_s, u"MCP servers"_s}));
         QCOMPARE(column(problems, u"command"_s),
-                 (QStringList{QString{}, u"moat mcp accept gh"_s, u"moat mcp accept docs"_s}));
+                 (QStringList{QString{}, u"openmoat mcp accept gh"_s, u"openmoat mcp accept docs"_s}));
         const QVariantList notes = groups[2].toMap().value(u"items"_s).toList();
         QCOMPARE(column(notes, u"title"_s), (QStringList{u"Repository policy"_s, u"Audit log"_s, u"Audit anchor"_s}));
         QVERIFY(byKey(notes, u"title"_s, u"Audit anchor"_s).value(u"hint"_s).toString().startsWith(u"A copy of"_s));
@@ -257,7 +257,7 @@ private slots:
         const QVariantList rules = allowed.value(u"rules"_s).toList();
         QCOMPARE(column(rules, u"title"_s),
                  (QStringList{u"approved-1"_s, u"approved-site-docs-rs"_s, u"approved-dir-1"_s}));
-        QCOMPARE(rules[0].toMap().value(u"command"_s).toString(), u"moat allow --remove approved-1"_s);
+        QCOMPARE(rules[0].toMap().value(u"command"_s).toString(), u"openmoat allow --remove approved-1"_s);
         const QVariantList grants = allowed.value(u"grants"_s).toList();
         QCOMPARE(grants[0].toMap().value(u"detail"_s).toString(), u"Claude Code · session 5b1c2d3e · Ends in 3 h 10 min"_s);
         QCOMPARE(grants[1].toMap().value(u"detail"_s).toString(), u"Codex · session 019a-cod · Ended"_s);
@@ -266,7 +266,7 @@ private slots:
         const QVariantList items = secrets.value(u"items"_s).toList();
         QCOMPARE(items.size(), 4);
         QCOMPARE(items[0].toMap().value(u"tone"_s).toString(), u"warn"_s);
-        QCOMPARE(items[0].toMap().value(u"command"_s).toString(), u"moat policy lint"_s);
+        QCOMPARE(items[0].toMap().value(u"command"_s).toString(), u"openmoat policy lint"_s);
         QVERIFY(items[0].toMap().value(u"hint"_s).toString().startsWith(u"No deny rule covers its source"_s));
         QCOMPARE(items[1].toMap().value(u"tone"_s).toString(), u"ok"_s);
         QCOMPARE(secrets.value(u"hint"_s).toString(), u"1 readable by the agent"_s);
@@ -285,7 +285,8 @@ private slots:
         details.setData(MoatClient(u"moat"_s, runner).details(), kNow);
         for (const QVariantMap &page : {details.allowed(), details.secrets(), details.checks()}) {
             QCOMPARE(page.value(u"state"_s).toString(), u"note"_s);
-            QCOMPARE(page.value(u"note"_s).toString(), u"This needs OpenMoat 0.5.5 or later. Update moat to see it here."_s);
+            QCOMPARE(page.value(u"note"_s).toString(),
+                     u"This needs OpenMoat 0.5.5 or later. Update OpenMoat to see it here."_s);
         }
     }
 };

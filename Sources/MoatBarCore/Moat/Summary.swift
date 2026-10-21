@@ -1,6 +1,6 @@
 import Foundation
 
-/// Totals for a time window: `moat report --since <window> --format json`.
+/// Totals for a time window: `openmoat report --since <window> --format json`.
 /// Shape: openmoat `crates/openmoat-audit/src/query.rs` (`Summary`).
 public struct Summary: Codable, Equatable {
     public var sinceMs: Int64

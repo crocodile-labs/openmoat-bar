@@ -110,11 +110,11 @@ private slots:
         const auto lock = std::ranges::find(checks, u"lock"_s, &SecurityCheck::id);
         QVERIFY(lock != checks.end());
         QVERIFY(lock->kind == SecurityCheck::Kind::Problem);
-        QCOMPARE(lock->fix.value_or(QString{}), u"moat doctor"_s);
+        QCOMPARE(lock->fix.value_or(QString{}), u"openmoat doctor"_s);
         const auto update = std::ranges::find(checks, u"policy-update"_s, &SecurityCheck::id);
         QVERIFY(update != checks.end());
         QVERIFY(update->kind == SecurityCheck::Kind::Info);
-        QCOMPARE(update->fix.value_or(QString{}), u"moat policy upgrade"_s);
+        QCOMPARE(update->fix.value_or(QString{}), u"openmoat policy upgrade"_s);
         const auto attention = needingAttention(checks);
         QCOMPARE(attention.size(), std::size_t{1});
         QCOMPARE(attention.front().id, u"lock"_s);
@@ -126,7 +126,7 @@ private slots:
         QVERIFY(mcp != checks.end());
         QVERIFY(mcp->kind == SecurityCheck::Kind::Warning);
         // Two servers: the command that shows every change.
-        QCOMPARE(mcp->fix.value_or(QString{}), u"moat mcp accept"_s);
+        QCOMPARE(mcp->fix.value_or(QString{}), u"openmoat mcp accept"_s);
         QVERIFY(mcp->detail.value_or(QString{}).contains(u"MCP server `gh`"_s));
         const auto attention = needingAttention(checks);
         QCOMPARE(attention.size(), std::size_t{1});
@@ -137,7 +137,7 @@ private slots:
         const auto single = securityChecks(one);
         const auto gh = std::ranges::find(single, u"mcp"_s, &SecurityCheck::id);
         QVERIFY(gh != single.end());
-        QCOMPARE(gh->fix.value_or(QString{}), u"moat mcp accept gh"_s);
+        QCOMPARE(gh->fix.value_or(QString{}), u"openmoat mcp accept gh"_s);
 
         // An older moat sends no mcp_changes: no check at all.
         for (const QString &name : {u"status"_s, u"status-notices"_s}) {
@@ -162,7 +162,7 @@ private slots:
     void copyCommandsQuoteForEachShell() {
         const Action read{Action::Kind::FsRead, u"~/.ssh/id_ed25519"_s, {}, {}, u"fs_read"_s};
         QCOMPARE(CopyCommands::policyCheck(read, Shell::Posix).value_or(QString{}),
-                 u"moat policy check '~/.ssh/id_ed25519' --kind fs-read"_s);
+                 u"openmoat policy check '~/.ssh/id_ed25519' --kind fs-read"_s);
         QCOMPARE(CopyCommands::quote(u"it's"_s, Shell::Posix), u"'it'\\''s'"_s);
         QCOMPARE(CopyCommands::quote(u"it's"_s, Shell::PowerShell), u"'it''s'"_s);
         const Action patch{Action::Kind::Patch, {}, {}, {u"a"_s}, u"patch"_s};

@@ -41,6 +41,15 @@ final class MoatClientTests: XCTestCase {
         XCTAssertNil(snapshot.moatVersion)
     }
 
+    func test_version_readsTheNewAndTheOldName() throws {
+        let runner = StubRunner()
+        runner.outputs = ["--version": .success(Data("openmoat 0.9.0 (OpenMoat)\n".utf8))]
+        XCTAssertEqual(try MoatClient(binary: self.binary, runner: runner).version(), "0.9.0")
+
+        runner.outputs = ["--version": .success(Data("moat 0.5.3 (OpenMoat)\n".utf8))]
+        XCTAssertEqual(try MoatClient(binary: self.binary, runner: runner).version(), "0.5.3")
+    }
+
     func test_statusFailure_failsTheSnapshot() {
         let runner = StubRunner()
         runner.outputs = ["status": .failure(.timedOut(command: "status --format json"))]
@@ -95,14 +104,23 @@ final class MoatClientTests: XCTestCase {
         }
     }
 
-    func test_locate_prefersPathThenKnownPlaces() {
+    func test_locate_prefersOpenmoatOverMoat_onPathThenKnownPlaces() {
         let env = ["PATH": "/usr/bin:/custom/bin", "HOME": "/Users/you"]
 
-        let onPath = MoatClient.locate(environment: env) { $0 == "/custom/bin/moat" }
-        XCTAssertEqual(onPath?.path, "/custom/bin/moat")
+        let onPath = MoatClient.locate(environment: env) { $0 == "/custom/bin/openmoat" }
+        XCTAssertEqual(onPath?.path, "/custom/bin/openmoat")
 
-        let cargo = MoatClient.locate(environment: env) { $0 == "/Users/you/.cargo/bin/moat" }
-        XCTAssertEqual(cargo?.path, "/Users/you/.cargo/bin/moat")
+        let cargo = MoatClient.locate(environment: env) { $0 == "/Users/you/.cargo/bin/openmoat" }
+        XCTAssertEqual(cargo?.path, "/Users/you/.cargo/bin/openmoat")
+
+        // An install from before the rename has only `moat`.
+        let older = MoatClient.locate(environment: env) { $0 == "/custom/bin/moat" }
+        XCTAssertEqual(older?.path, "/custom/bin/moat")
+
+        // openmoat anywhere beats a leftover moat earlier on PATH.
+        let both = ["/custom/bin/moat", "/Users/you/.cargo/bin/openmoat"]
+        let found = MoatClient.locate(environment: env) { both.contains($0) }
+        XCTAssertEqual(found?.path, "/Users/you/.cargo/bin/openmoat")
 
         XCTAssertNil(MoatClient.locate(environment: env) { _ in false })
     }

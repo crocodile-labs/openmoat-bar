@@ -10,11 +10,11 @@ QString MoatError::message() const {
     case Kind::NotInstalled:
         return u"OpenMoat isn't installed"_s;
     case Kind::TimedOut:
-        return u"moat %1 took too long"_s.arg(command);
+        return u"openmoat %1 took too long"_s.arg(command);
     case Kind::Failed:
-        return u"moat %1: %2"_s.arg(command, detail);
+        return u"openmoat %1: %2"_s.arg(command, detail);
     case Kind::Unreadable:
-        return u"moat %1 gave output MoatBar can't read. Update moat."_s.arg(command);
+        return u"openmoat %1 gave output MoatBar can't read. Update OpenMoat."_s.arg(command);
     }
     return {};
 }

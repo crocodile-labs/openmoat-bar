@@ -50,14 +50,14 @@ namespace CopyCommands {
 /// Show what changed in one MCP server (or, without a name, every one) and ask
 /// before accepting it. Only a person in a terminal can run it.
 [[nodiscard]] QString mcpAccept(const std::optional<QString> &server, Shell shell = nativeShell());
-/// Take back a permanent rule, as `moat allowed` prints it.
+/// Take back a permanent rule, as `openmoat allowed` prints it.
 [[nodiscard]] QString removeRule(const QString &id, Shell shell = nativeShell());
-/// Stop trusting a repository's policy, as `moat allowed` prints it.
+/// Stop trusting a repository's policy, as `openmoat allowed` prints it.
 [[nodiscard]] QString revokeTrust(const QString &root, Shell shell = nativeShell());
 /// `text` as is when the shell would leave it alone, else `quote(text)`.
 [[nodiscard]] QString quoteIfNeeded(const QString &text, Shell shell = nativeShell());
 
-/// `moat policy check` for this action, so the person can see the verdict and
+/// `openmoat policy check` for this action, so the person can see the verdict and
 /// rule again without running anything. Nothing for kinds it can't check.
 [[nodiscard]] std::optional<QString> policyCheck(const Action &action, Shell shell = nativeShell());
 
@@ -66,7 +66,7 @@ namespace CopyCommands {
 } // namespace CopyCommands
 
 /// Words for the MCP server changes in the main view, from `mcp_changes` in
-/// `moat status --format json` (OpenMoat 0.5.7 and later).
+/// `openmoat status --format json` (OpenMoat 0.5.7 and later).
 namespace McpNotices {
 [[nodiscard]] QString title();
 [[nodiscard]] QString note();
@@ -75,7 +75,7 @@ namespace McpNotices {
 [[nodiscard]] std::optional<QString> server(const QString &line);
 /// The servers the lines name, each once, in moat's order.
 [[nodiscard]] QStringList servers(const QStringList &lines);
-/// `moat mcp accept <server>` per server, or plain `moat mcp accept` when no
+/// `openmoat mcp accept <server>` per server, or plain `openmoat mcp accept` when no
 /// line names one.
 [[nodiscard]] QStringList acceptCommands(const QStringList &lines, Shell shell = nativeShell());
 } // namespace McpNotices

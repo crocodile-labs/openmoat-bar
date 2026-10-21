@@ -96,7 +96,7 @@ struct AgentRow: View {
 
     private var detail: String {
         if self.agent.level == .notSetUp {
-            return "Run moat in Terminal to protect it"
+            return "Run openmoat in Terminal to protect it"
         }
         let calls = self.counts.values.reduce(0, +)
         var line = "Blocked \(self.counts[.deny] ?? 0) · Asked \(self.counts[.ask] ?? 0) · \(Format.count(calls)) calls"

@@ -91,10 +91,10 @@ std::optional<QString> MoatClient::locate(const QProcessEnvironment &environment
         };
     }
 #ifdef Q_OS_WIN
-    const QString name = u"moat.exe"_s;
+    const QStringList names{u"openmoat.exe"_s, u"moat.exe"_s};
     const QString home = environment.value(u"USERPROFILE"_s, QDir::homePath());
 #else
-    const QString name = u"moat"_s;
+    const QStringList names{u"openmoat"_s, u"moat"_s};
     const QString home = environment.value(u"HOME"_s, QDir::homePath());
 #endif
     // A tray app started by the desktop session can get a short PATH, so the
@@ -105,10 +105,14 @@ std::optional<QString> MoatClient::locate(const QProcessEnvironment &environment
     dirs << u"/home/linuxbrew/.linuxbrew/bin"_s << QDir(home).filePath(u".local/bin"_s) << u"/usr/local/bin"_s
          << u"/opt/homebrew/bin"_s;
 #endif
-    for (const QString &dir : std::as_const(dirs)) {
-        const QString candidate = QDir(dir).filePath(name);
-        if (executable(candidate)) {
-            return QDir::toNativeSeparators(candidate);
+    // An install from before the rename has only `moat`: looked for everywhere
+    // after `openmoat`, since the old name goes away in a later release.
+    for (const QString &name : names) {
+        for (const QString &dir : std::as_const(dirs)) {
+            const QString candidate = QDir(dir).filePath(name);
+            if (executable(candidate)) {
+                return QDir::toNativeSeparators(candidate);
+            }
         }
     }
     return std::nullopt;

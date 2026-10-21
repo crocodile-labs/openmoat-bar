@@ -182,12 +182,12 @@ private slots:
         QCOMPARE(DetailsText::endsIn(now + 7200000, now), u"Ends in 2 h"_s);
         QCOMPARE(DetailsText::endsIn(now + 30000, now), u"Ends in 1 min"_s);
         QCOMPARE(DetailsText::endsIn(now - 1, now), u"Ended"_s);
-        QCOMPARE(CopyCommands::removeRule(u"approved-1"_s, Shell::Posix), u"moat allow --remove approved-1"_s);
+        QCOMPARE(CopyCommands::removeRule(u"approved-1"_s, Shell::Posix), u"openmoat allow --remove approved-1"_s);
         QCOMPARE(CopyCommands::revokeTrust(u"/Users/you/code/team app"_s, Shell::Posix),
-                 u"moat trust --revoke '/Users/you/code/team app'"_s);
+                 u"openmoat trust --revoke '/Users/you/code/team app'"_s);
         QCOMPARE(CopyCommands::revokeTrust(u"C:\\Users\\you\\code\\app"_s, Shell::PowerShell),
-                 u"moat trust --revoke C:\\Users\\you\\code\\app"_s);
-        QCOMPARE(CopyCommands::policyUpgrade(), u"moat policy upgrade"_s);
+                 u"openmoat trust --revoke C:\\Users\\you\\code\\app"_s);
+        QCOMPARE(CopyCommands::policyUpgrade(), u"openmoat policy upgrade"_s);
     }
 
     // MARK: - Newer moats: doctor lines, MCP changes, new rules
@@ -233,8 +233,8 @@ private slots:
         const DoctorCheck hook = find(u"Claude Code", u"onFailure");
         QVERIFY(hook.topic() == DoctorTopic::Hooks);
         QVERIFY(CheckText::hint(hook).value_or(QString{}).contains(u"still runs when the OpenMoat hook crashes"_s));
-        QCOMPARE(CheckText::fix(find(u"mcp servers")).value_or(QString{}), u"moat mcp accept gh"_s);
-        QCOMPARE(CheckText::fix(find(u"mcp tools")).value_or(QString{}), u"moat mcp accept docs"_s);
+        QCOMPARE(CheckText::fix(find(u"mcp servers")).value_or(QString{}), u"openmoat mcp accept gh"_s);
+        QCOMPARE(CheckText::fix(find(u"mcp tools")).value_or(QString{}), u"openmoat mcp accept docs"_s);
         QCOMPARE(CheckText::hint(find(u"mcp servers")).value_or(QString{}),
                  u"Its tool calls are refused until you accept the change."_s);
 
@@ -242,21 +242,47 @@ private slots:
         QVERIFY(unpinned.ok());
         const DoctorCheck &mcp = unpinned.value().checks[0];
         QVERIFY(mcp.topic() == DoctorTopic::Mcp);
-        QCOMPARE(CheckText::fix(mcp).value_or(QString{}), u"moat mcp accept"_s);
+        QCOMPARE(CheckText::fix(mcp).value_or(QString{}), u"openmoat mcp accept"_s);
         QCOMPARE(CheckText::hint(unpinned.value().checks[1]).value_or(QString{}),
                  u"Not signed by a key you trust, so only its deny and ask rules apply."_s);
     }
 
     void doctorRepoPolicyStates() {
-        QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  changed since `moat trust`: tightening only"_s).value_or(QString{}),
+        const QString changed = u"p  sha256:1  changed since `openmoat trust`: tightening only"_s;
+        QCOMPARE(CheckText::repoPolicyHint(changed).value_or(QString{}),
                  u"Changed since you trusted it, so only its deny and ask rules apply."_s);
         QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  trusted (1 deny, 0 ask, 1 allow)"_s).value_or(QString{}),
-                 u"Trusted with moat trust, so its allow rules apply too."_s);
+                 u"Trusted with openmoat trust, so its allow rules apply too."_s);
         QCOMPARE(CheckText::repoPolicyHint(u"p  sha256:1  tightening only (1 deny)"_s).value_or(QString{}),
                  u"It only adds deny and ask rules."_s);
         QVERIFY(!CheckText::repoPolicyHint(u"something a newer moat says"_s));
         QVERIFY(CheckText::isPackFile(u"C:\\Users\\you\\.moat\\policy.d\\packs\\team.yaml was modified"_s));
         QVERIFY(!CheckText::isPackFile(u"/Users/you/.moat/policy.yaml was modified"_s));
+    }
+
+    void doctorRenamedLinesAreAboutOpenMoatAndHooks() {
+        const auto doctor = json::parseDoctor(fixture(u"doctor-renamed"_s));
+        QVERIFY(doctor.ok());
+        const auto groups = doctor.value().groups();
+        QCOMPARE(groups.size(), std::size_t{3});
+        const auto topics = [](const DoctorGroup &group) {
+            QStringList out;
+            for (const DoctorCheck &check : group.checks) {
+                out << doctorTopicLabel(check.topic());
+            }
+            return out;
+        };
+        // Warnings: the lock's old binary name and `openmoat run` first, then the hook that runs the old name.
+        QCOMPARE(topics(groups[0]), (QStringList{u"OpenMoat"_s, u"OpenMoat"_s, u"Hooks"_s}));
+        QCOMPARE(topics(groups[1]), (QStringList{u"OpenMoat"_s, u"Policy"_s, u"MCP servers"_s}));
+        QCOMPARE(topics(groups[2]), (QStringList{u"OpenMoat"_s, u"Hooks"_s}));
+        const DoctorCheck &alias = groups[1].checks[0];
+        QCOMPARE(alias.title(), u"Command name"_s);
+        QVERIFY(alias.subtitle().startsWith(u"`moat` is the old name of `openmoat`"_s));
+        // The newer wording of lines MoatBar matches on.
+        QCOMPARE(CheckText::hint(groups[1].checks[1]).value_or(QString{}),
+                 u"Changed since you trusted it, so only its deny and ask rules apply."_s);
+        QCOMPARE(CheckText::fix(groups[1].checks[2]).value_or(QString{}), u"openmoat mcp accept"_s);
     }
 
     void doctorOlderLinesKeepTheirWords() {
@@ -275,13 +301,13 @@ private slots:
         QCOMPARE(lines.size(), 4);
         QCOMPARE(McpNotices::servers(lines), (QStringList{u"gh"_s, u"docs"_s}));
         QCOMPARE(McpNotices::acceptCommands(lines, Shell::Posix),
-                 (QStringList{u"moat mcp accept gh"_s, u"moat mcp accept docs"_s}));
+                 (QStringList{u"openmoat mcp accept gh"_s, u"openmoat mcp accept docs"_s}));
         QVERIFY(!McpNotices::server(lines[3]));
         QVERIFY(!McpNotices::server(u"MCP server `` in /x changed"_s));
         QCOMPARE(McpNotices::acceptCommands(QStringList{u"/x cannot be read: denied"_s}, Shell::Posix),
-                 QStringList{u"moat mcp accept"_s});
-        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::Posix), u"moat mcp accept 'team docs'"_s);
-        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::PowerShell), u"moat mcp accept 'team docs'"_s);
+                 QStringList{u"openmoat mcp accept"_s});
+        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::Posix), u"openmoat mcp accept 'team docs'"_s);
+        QCOMPARE(CopyCommands::mcpAccept(u"team docs"_s, Shell::PowerShell), u"openmoat mcp accept 'team docs'"_s);
 
         for (const QString &name : {u"status"_s, u"status-notices"_s}) {
             const auto older = json::parseStatus(fixture(name));
@@ -329,6 +355,7 @@ private slots:
     }
 
     void versionTakesTheSecondWord() {
+        QCOMPARE(json::parseVersion(QByteArrayLiteral("openmoat 0.9.0 (OpenMoat)\n")).value(), u"0.9.0"_s);
         QCOMPARE(json::parseVersion(QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n")).value(), u"0.5.3"_s);
         QVERIFY(!json::parseVersion(QByteArrayLiteral("moat")).ok());
     }

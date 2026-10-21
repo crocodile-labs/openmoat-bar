@@ -35,10 +35,12 @@ public struct MoatClient {
         self.timeout = timeout
     }
 
-    // MARK: - Locating moat
+    // MARK: - Locating openmoat
 
-    /// Find moat on `PATH`, then where the installers put it. A menu bar app
+    /// Find openmoat on `PATH`, then where the installers put it. A menu bar app
     /// launched by macOS gets a short `PATH`, so the usual places are listed.
+    /// An install from before the rename has only `moat`; that is looked for
+    /// everywhere after `openmoat`, since the old name goes away in a later release.
     public static func locate(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         isExecutable: (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }
@@ -52,10 +54,12 @@ public struct MoatClient {
             "/home/linuxbrew/.linuxbrew/bin",
             "\(home)/.local/bin",
         ]
-        for dir in dirs where !dir.isEmpty {
-            let path = (dir as NSString).appendingPathComponent("moat")
-            if isExecutable(path) {
-                return URL(fileURLWithPath: path)
+        for name in ["openmoat", "moat"] {
+            for dir in dirs where !dir.isEmpty {
+                let path = (dir as NSString).appendingPathComponent(name)
+                if isExecutable(path) {
+                    return URL(fileURLWithPath: path)
+                }
             }
         }
         return nil
@@ -86,7 +90,7 @@ public struct MoatClient {
         try self.decode(ProxyReport.self, ["proxy", "status", "--format", "json"]).state
     }
 
-    /// `moat 0.5.3 (OpenMoat)` → `0.5.3`.
+    /// `openmoat 0.9.0 (OpenMoat)` → `0.9.0`; before the rename, `moat 0.5.3 (OpenMoat)`.
     public func version() throws -> String {
         let text = try String(bytes: self.run(["--version"]), encoding: .utf8) ?? ""
         let words = text.split(separator: " ")
@@ -106,7 +110,7 @@ public struct MoatClient {
         try self.decode(SecretList.self, ["secret", "list", "--format", "json"])
     }
 
-    /// Every `moat doctor` check (OpenMoat 0.5.5 and later). moat exits 64
+    /// Every `openmoat doctor` check (OpenMoat 0.5.5 and later). moat exits 64
     /// after printing them when one is a problem.
     public func doctor() throws -> DoctorReport {
         try self.decode(DoctorReport.self, ["doctor", "--format", "json"], okExitCodes: [0, 64])
@@ -152,7 +156,7 @@ public struct MoatClient {
 
     func run(_ arguments: [String], okExitCodes: Set<Int32> = [0]) throws -> Data {
         guard Self.isAllowed(arguments) else {
-            preconditionFailure("MoatBar only runs read-only moat commands")
+            preconditionFailure("MoatBar only runs read-only openmoat commands")
         }
         if okExitCodes == [0] {
             return try self.runner.run(self.binary, arguments: arguments, timeout: self.timeout)

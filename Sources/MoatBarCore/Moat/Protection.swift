@@ -1,6 +1,6 @@
 import Foundation
 
-// `moat status --format json`. Shape: openmoat `crates/openmoat-cli/src/protection.rs`.
+// `openmoat status --format json`. Shape: openmoat `crates/openmoat-cli/src/protection.rs`.
 
 /// How much of the policy is enforced for one agent.
 public enum Level: String, Codable, Equatable {
@@ -35,7 +35,7 @@ public enum Level: String, Codable, Equatable {
     }
 }
 
-/// One agent's protection: `agents[]` in `moat status --format json`.
+/// One agent's protection: `agents[]` in `openmoat status --format json`.
 public struct Protection: Codable, Equatable {
     /// Host id: `claude-code`, `codex`, `cursor`.
     public var host: String
@@ -56,11 +56,11 @@ public struct Protection: Codable, Equatable {
     }
 }
 
-/// The whole `moat status --format json` document. Shape: openmoat
+/// The whole `openmoat status --format json` document. Shape: openmoat
 /// `crates/openmoat-cli/src/commands/status.rs`.
 public struct StatusReport: Codable, Equatable {
     public var agents: [Protection]
-    /// `3 changes from the OpenMoat 0.5.7 default` when `moat policy upgrade`
+    /// `3 changes from the OpenMoat 0.5.7 default` when `openmoat policy upgrade`
     /// has changes to offer.
     public var policyUpdate: String?
     /// Files OpenMoat pinned that changed since: `… was modified`, `… is missing`.
@@ -68,7 +68,7 @@ public struct StatusReport: Codable, Equatable {
     /// Whether moat sent `policy_update` and `lock_drift` at all. moat before
     /// 0.5.7 does not, so MoatBar can't say whether there is anything to show.
     public var hasUpdateNotices: Bool
-    /// MCP server definitions and held tools that wait for `moat mcp accept`,
+    /// MCP server definitions and held tools that wait for `openmoat mcp accept`,
     /// one line each: ``MCP server `gh` in /path changed``. Empty when nothing
     /// waits, and from a moat that doesn't send it (before 0.5.7).
     public var mcpChanges: [String]
