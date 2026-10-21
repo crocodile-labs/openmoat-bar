@@ -37,7 +37,7 @@ public enum Level: String, Codable, Equatable {
 
 /// One agent's protection: `agents[]` in `openmoat status --format json`.
 public struct Protection: Codable, Equatable {
-    /// Host id: `claude-code`, `codex`, `cursor`.
+    /// Host id: `claude-code`, `codex`, `cursor`, `openclaw`, `copilot-cli`, `pi`, `gemini-cli`.
     public var host: String
     /// Display name: `Claude Code`.
     public var name: String

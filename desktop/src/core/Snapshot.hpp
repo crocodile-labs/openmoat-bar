@@ -55,6 +55,9 @@ struct Snapshot {
     [[nodiscard]] std::vector<Protection> unprotected() const;
     [[nodiscard]] int protectedCount() const;
     [[nodiscard]] const Protection *agent(QStringView host) const;
+    /// The agent's display name, or for a host `openmoat status` doesn't list
+    /// (OpenMoat's proxy, `openmoat run`) its name from `HostText`.
+    [[nodiscard]] QString agentName(const QString &host) const;
 
     // MARK: Events (`host` empty means every agent)
 

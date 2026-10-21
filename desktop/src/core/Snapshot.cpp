@@ -1,4 +1,5 @@
 #include "core/Snapshot.hpp"
+#include "core/Text.hpp"
 
 #include <QDir>
 #include <QSet>
@@ -46,6 +47,11 @@ int Snapshot::protectedCount() const {
 const Protection *Snapshot::agent(QStringView host) const {
     const auto it = std::ranges::find_if(status.agents, [host](const Protection &agent) { return agent.host == host; });
     return it == status.agents.end() ? nullptr : &*it;
+}
+
+QString Snapshot::agentName(const QString &host) const {
+    const Protection *found = agent(host);
+    return found ? found->name : HostText::otherName(host);
 }
 
 std::vector<Event> Snapshot::eventsFor(QStringView host) const {

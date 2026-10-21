@@ -115,8 +115,7 @@ void TrayMenu::fill(QMenu &menu) const {
 }
 
 QString TrayMenu::agentName(const QString &host) const {
-    const Protection *agent = m_snapshot ? m_snapshot->agent(host) : nullptr;
-    return agent ? agent->name : host;
+    return m_snapshot ? m_snapshot->agentName(host) : HostText::otherName(host);
 }
 
 // MARK: - Header and problems

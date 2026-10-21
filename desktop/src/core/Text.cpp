@@ -85,6 +85,32 @@ std::optional<QString> RuleText::driftNote(const QStringList &rules) {
            u"openmoat doctor shows the change."_s;
 }
 
+QString HostText::shortName(const QString &name) {
+    if (name == u"Claude Code") {
+        return u"Claude"_s;
+    }
+    if (name == u"GitHub Copilot CLI") {
+        return u"Copilot"_s;
+    }
+    if (name == u"Gemini CLI") {
+        return u"Gemini"_s;
+    }
+    return name;
+}
+
+QString HostText::otherName(const QString &host) {
+    if (host == u"proxy") {
+        return u"Network proxy"_s;
+    }
+    if (host == u"mcp-proxy") {
+        return u"MCP proxy"_s;
+    }
+    if (host == u"moat-run") {
+        return u"openmoat run"_s;
+    }
+    return host;
+}
+
 QString CopyCommands::setUp() {
     return u"openmoat"_s;
 }

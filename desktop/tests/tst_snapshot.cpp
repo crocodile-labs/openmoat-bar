@@ -95,6 +95,28 @@ private slots:
         QCOMPARE(makeSnapshot(u"status-unprotected"_s).unprotected().front().host, u"claude-code"_s);
     }
 
+    void agentNameCoversEveryHost() {
+        const Snapshot snapshot{
+            json::parseStatus(fixture(u"status-hosts"_s)).value(),
+            json::parseEvents(fixture(u"show-hosts"_s)).value(),
+            std::nullopt,
+            u"0.9.0"_s,
+            QDateTime::fromMSecsSinceEpoch(1792061000000),
+        };
+        QStringList names;
+        for (const Event &event : snapshot.events) {
+            names << snapshot.agentName(event.host);
+        }
+        QCOMPARE(names, (QStringList{u"Gemini CLI"_s, u"Network proxy"_s, u"MCP proxy"_s, u"openmoat run"_s}));
+        QCOMPARE(snapshot.agentName(u"a-host-from-the-future"_s), u"a-host-from-the-future"_s);
+        QCOMPARE(snapshot.unprotected().size(), std::size_t{1});
+        QCOMPARE(snapshot.unprotected().front().host, u"gemini-cli"_s);
+        QVERIFY(snapshot.agent(u"gemini-cli")->reason.value_or(QString{}).startsWith(u"hook turned off by"_s));
+        QCOMPARE(snapshot.protectedCount(), 3);
+        QCOMPARE(HostText::shortName(u"GitHub Copilot CLI"_s), u"Copilot"_s);
+        QCOMPARE(HostText::shortName(u"pi"_s), u"pi"_s);
+    }
+
     void iconPriority() {
         const Snapshot fine = makeSnapshot(u"status"_s);
         const Snapshot broken = makeSnapshot(u"status-unprotected"_s);

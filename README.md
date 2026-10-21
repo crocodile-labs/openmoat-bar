@@ -8,7 +8,7 @@
   See what <a href="https://github.com/crocodile-labs/openmoat">OpenMoat</a> does for your coding agents, from the menu bar.
 </p>
 
-MoatBar shows which of your agents (Claude Code, Codex, Cursor) are protected, what OpenMoat
+MoatBar shows which of your agents (Claude Code, Codex, Cursor, OpenClaw, GitHub Copilot CLI, pi, Gemini CLI) are protected, what OpenMoat
 blocked today and why, and tells you when protection drops.
 
 It is read-only. MoatBar never allows anything or changes a rule; every fix is a command you

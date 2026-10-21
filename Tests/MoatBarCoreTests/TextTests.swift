@@ -68,6 +68,22 @@ final class TextTests: XCTestCase {
         XCTAssertTrue(events.filter { $0.id != drifted.id }.allSatisfy { RuleText.driftNote($0.rules) == nil })
     }
 
+    func test_hostText_shortensTabTitles_andNamesOpenMoatsOwnHosts() throws {
+        let status = try Fixture.decode(StatusReport.self, "status-hosts")
+
+        XCTAssertEqual(status.agents.map(\.host), [
+            "claude-code", "codex", "cursor", "openclaw", "copilot-cli", "pi", "gemini-cli",
+        ])
+        XCTAssertEqual(
+            status.agents.map { HostText.short($0.name) },
+            ["Claude", "Codex", "Cursor", "OpenClaw", "Copilot", "pi", "Gemini"]
+        )
+        XCTAssertEqual(HostText.name(forOther: "proxy"), "Network proxy")
+        XCTAssertEqual(HostText.name(forOther: "mcp-proxy"), "MCP proxy")
+        XCTAssertEqual(HostText.name(forOther: "moat-run"), "openmoat run")
+        XCTAssertEqual(HostText.name(forOther: "a-host-from-the-future"), "a-host-from-the-future")
+    }
+
     func test_reportLink_carriesOnlyTheRule() {
         let url = DocsLink.reportWrongBlock(rule: "secrets-paths")
 

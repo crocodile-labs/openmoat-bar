@@ -112,7 +112,7 @@ public struct RulePatterns: Equatable {
 
 /// One `openmoat allow --last` answer that still applies to its session.
 public struct SessionGrant: Decodable, Equatable, Identifiable {
-    /// Agent host id: `claude-code`, `codex`.
+    /// Agent host id: `claude-code`, `codex`, `gemini-cli`, ...
     public var host: String
     public var sessionId: String
     /// What it allows, in moat's words: `run "npm install"`.

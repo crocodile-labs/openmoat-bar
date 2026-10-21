@@ -24,6 +24,20 @@ namespace RuleText {
 [[nodiscard]] std::optional<QString> driftNote(const QStringList &rules);
 } // namespace RuleText
 
+/// Names for the hosts in moat's output: the agents `openmoat status` lists
+/// (`claude-code`, `codex`, `cursor`, `openclaw`, `copilot-cli`, `pi`, `gemini-cli`;
+/// openmoat crates/openmoat-hosts/src/lib.rs) and the other hosts an audit event
+/// can carry. The same words as the macOS app's HostText.swift.
+namespace HostText {
+/// The tab title: the display name without a trailing `Code` or `CLI`, so every
+/// tab fits in one row. `Claude Code` → `Claude`, `GitHub Copilot CLI` → `Copilot`.
+[[nodiscard]] QString shortName(const QString &name);
+/// What to call an event's host when `openmoat status` lists no agent for it:
+/// OpenMoat's own parts write events too (`proxy`, `mcp-proxy`, `moat-run`). A
+/// host MoatBar doesn't know shows as its id.
+[[nodiscard]] QString otherName(const QString &host);
+} // namespace HostText
+
 /// Which shell a copied command will be pasted into.
 enum class Shell : std::uint8_t {
     Posix,      ///< bash, zsh: Linux and macOS

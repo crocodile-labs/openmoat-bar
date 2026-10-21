@@ -7,7 +7,8 @@ public struct Event: Codable, Equatable, Identifiable {
     public var id: String
     /// Milliseconds since the epoch.
     public var tsMs: Int64
-    /// Host id: `claude-code`, `codex`, `cursor`.
+    /// Host id: an agent (`claude-code`, `codex`, `cursor`, `openclaw`, `copilot-cli`, `pi`,
+    /// `gemini-cli`), or a part of OpenMoat that writes events (`proxy`, `mcp-proxy`, `moat-run`).
     public var host: String
     public var sessionId: String
     public var cwd: String?
