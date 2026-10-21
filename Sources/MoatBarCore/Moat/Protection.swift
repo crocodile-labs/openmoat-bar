@@ -72,19 +72,26 @@ public struct StatusReport: Codable, Equatable {
     /// one line each: ``MCP server `gh` in /path changed``. Empty when nothing
     /// waits, and from a moat that doesn't send it (before 0.5.7).
     public var mcpChanges: [String]
+    /// Project settings files that could switch OpenMoat off or run a program,
+    /// one line each: ``/path/.claude/settings.json: `hooks` adds hooks that run
+    /// commands. A Claude Code session started here loads it; …``. Empty when
+    /// there are none, and from a moat that doesn't send it (before 0.8.0).
+    public var projectSettings: [String]
 
     public init(
         agents: [Protection],
         policyUpdate: String? = nil,
         lockDrift: [String] = [],
         hasUpdateNotices: Bool = true,
-        mcpChanges: [String] = []
+        mcpChanges: [String] = [],
+        projectSettings: [String] = []
     ) {
         self.agents = agents
         self.policyUpdate = policyUpdate
         self.lockDrift = lockDrift
         self.hasUpdateNotices = hasUpdateNotices
         self.mcpChanges = mcpChanges
+        self.projectSettings = projectSettings
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -92,6 +99,7 @@ public struct StatusReport: Codable, Equatable {
         case policyUpdate = "policy_update"
         case lockDrift = "lock_drift"
         case mcpChanges = "mcp_changes"
+        case projectSettings = "project_settings"
     }
 
     public init(from decoder: Decoder) throws {
@@ -101,6 +109,7 @@ public struct StatusReport: Codable, Equatable {
         self.lockDrift = (try? c.decodeIfPresent([String].self, forKey: .lockDrift)) ?? []
         self.hasUpdateNotices = c.contains(.policyUpdate) || c.contains(.lockDrift)
         self.mcpChanges = (try? c.decodeIfPresent([String].self, forKey: .mcpChanges)) ?? []
+        self.projectSettings = (try? c.decodeIfPresent([String].self, forKey: .projectSettings)) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -112,6 +121,9 @@ public struct StatusReport: Codable, Equatable {
         }
         if !self.mcpChanges.isEmpty {
             try c.encode(self.mcpChanges, forKey: .mcpChanges)
+        }
+        if !self.projectSettings.isEmpty {
+            try c.encode(self.projectSettings, forKey: .projectSettings)
         }
     }
 }

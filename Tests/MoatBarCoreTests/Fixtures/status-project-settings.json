@@ -1,0 +1,18 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code",
+      "reason": null
+    }
+  ],
+  "policy_update": null,
+  "lock_drift": [],
+  "mcp_changes": [],
+  "project_settings": [
+    "/Users/you/code/site/.claude/settings.json: `hooks` adds hooks that run commands; `env` sets environment variables for the session (an API endpoint, a key, a proxy). A Claude Code session started here loads it; review the file and remove what you did not add",
+    "/Users/you/code/site/.gemini/settings.json: `hooks` adds hooks that run commands. A Gemini CLI session started here loads it; review the file and remove what you did not add"
+  ]
+}

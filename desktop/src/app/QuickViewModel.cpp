@@ -219,6 +219,16 @@ QVariantList QuickViewModel::notices() const {
             {u"moreCommands"_s, QStringList(commands.mid(1))},
         };
     }
+    if (!status.projectSettings.isEmpty()) {
+        out << QVariantMap{
+            {u"title"_s, UpdateNotices::projectSettingsTitle()},
+            {u"text"_s, status.projectSettings.join(u'\n')},
+            {u"note"_s, UpdateNotices::projectSettingsNote()},
+            {u"tone"_s, u"warn"_s},
+            {u"commandTitle"_s, u"Copy the check command"_s},
+            {u"command"_s, CopyCommands::doctor()},
+        };
+    }
     return out;
 }
 

@@ -153,6 +153,8 @@ Result<StatusReport> parseStatus(const QByteArray &bytes) {
     report.lockDrift = stringList(object.value(u"lock_drift"));
     // OpenMoat 0.5.7 and later; missing from an older moat, which shows nothing.
     report.mcpChanges = stringList(object.value(u"mcp_changes"));
+    // OpenMoat 0.8.0 and later; missing from an older moat, which shows nothing.
+    report.projectSettings = stringList(object.value(u"project_settings"));
     return report;
 }
 

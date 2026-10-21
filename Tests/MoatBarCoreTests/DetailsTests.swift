@@ -273,6 +273,32 @@ final class DetailsTests: XCTestCase {
         XCTAssertNil(McpNotices.server(in: "MCP server `` in /x changed"))
     }
 
+    // MARK: - Project settings from openmoat status (OpenMoat 0.8.0 and later)
+
+    func test_status_decodesProjectSettings() throws {
+        let status = try Fixture.decode(StatusReport.self, "status-project-settings")
+
+        XCTAssertEqual(status.projectSettings.count, 2)
+        XCTAssertTrue(status.projectSettings[0].hasPrefix("/Users/you/code/site/.claude/settings.json: `hooks`"))
+        XCTAssertTrue(status.mcpChanges.isEmpty)
+        XCTAssertTrue(status.hasUpdateNotices)
+
+        let older = try Fixture.decode(StatusReport.self, "status-mcp")
+        XCTAssertEqual(older.projectSettings, [], "a moat before 0.8.0 sends nothing, so nothing shows")
+    }
+
+    func test_securityChecks_projectSettingsNeedALook() throws {
+        let status = try Fixture.decode(StatusReport.self, "status-project-settings")
+        let checks = SecurityChecks.from(Snapshot(status: status, events: []))
+
+        let settings = try XCTUnwrap(checks.first { $0.id == "project-settings" })
+        XCTAssertEqual(settings.kind, .warning)
+        XCTAssertEqual(settings.title, "Project settings need a look")
+        XCTAssertEqual(settings.detail?.components(separatedBy: "\n").count, 2)
+        XCTAssertEqual(settings.fix, "openmoat doctor")
+        XCTAssertEqual(SecurityChecks.needingAttention(checks).map(\.id), ["project-settings"])
+    }
+
     func test_securityChecks_mcpChangesNeedALook() throws {
         let status = try Fixture.decode(StatusReport.self, "status-mcp")
         let checks = SecurityChecks.from(Snapshot(status: status, events: []))

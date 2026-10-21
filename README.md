@@ -49,6 +49,7 @@ copy into Terminal.
 - "Policy update available" when a newer default policy has changes, with `openmoat policy upgrade` to copy. It shows each change and asks first.
 - "OpenMoat's files changed" when a file OpenMoat pinned was changed or removed, with the list and `openmoat doctor`.
 - "MCP server changes wait for you" when an MCP server's definition or tools changed since you accepted them. OpenMoat refuses that server's tool calls until then; MoatBar lists the changes and gives `openmoat mcp accept <server>` to copy for each server.
+- "Project settings need a look" (OpenMoat 0.8.0 and later) when a project settings file could switch OpenMoat off or run a program, such as a `.claude/settings.json` with `hooks` or `env`. An agent loads it when a session starts, before any hook runs, so OpenMoat can only point at it; MoatBar lists each file with what it sets.
 
 **Rules explained.** A call's details say in one line why its rule exists, including the newer ones (a package name one typo from a popular one, a token or secret about to leave in a push or a request, a changed MCP server) and rules from a policy pack or a repository's own policy. A call decided while a pinned settings file had drifted in a harmless way gets a note saying so.
 

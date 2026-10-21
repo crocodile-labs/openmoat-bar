@@ -178,6 +178,16 @@ void TrayMenu::addProblems(QMenu &menu) const {
             addCopy(*mcp, commands.size() == 1 ? u"Copy the command"_s : u"Copy"_s, command);
         }
     }
+    // OpenMoat 0.8.0 and later: project settings files to review.
+    if (!status.projectSettings.isEmpty()) {
+        QMenu *settings = menu.addMenu(u"⚠ "_s + UpdateNotices::projectSettingsTitle());
+        for (const QString &line : status.projectSettings) {
+            addNote(*settings, elide(line, 80));
+        }
+        addNote(*settings, UpdateNotices::projectSettingsNote());
+        settings->addSeparator();
+        addCopy(*settings, u"Copy the check command"_s, CopyCommands::doctor());
+    }
 }
 
 // MARK: - Verdicts, lists and decisions

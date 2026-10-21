@@ -14,7 +14,7 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`).
 | Agents, sessions, security checks | Yes | Yes |
 | Refresh | Row with a spinner, menu stays open | The same, in the Quick View |
 | What you allowed, Secrets, Checks | The Details window, from the menu; one tab each | Three Quick View pages, from the overview or the tray menu |
-| Policy update, changed files, MCP server changes | A card in the menu with the command to copy (`openmoat mcp accept <server>` per server); also in Security checks | The same, in the Quick View and the tray menu |
+| Policy update, changed files, MCP server changes, project settings | A card in the menu with the command to copy (`openmoat mcp accept <server>` per server); also in Security checks | The same, in the Quick View and the tray menu |
 | Checks page | Grouped by status, checks about the same thing kept together with a topic label; one-line explanations for the newer checks; the accept command on MCP lines | The same |
 | Rule explanations | One line per rule in a call's details, the same table on both (`RuleText.swift`, `Text.cpp`); a note for settings drift | The same, in the Quick View and the tray menu |
 | Older moat | A note per screen: needs OpenMoat 0.5.5 (0.5.7 for the update notices) | The same |
