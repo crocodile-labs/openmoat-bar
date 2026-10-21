@@ -68,7 +68,7 @@ public enum RuleText {
         "placeholder-egress": "A brokered secret's placeholder was about to go to a host that secret isn't for.",
         "mcp-server-changed":
             "This MCP server's definition changed since a person accepted it, "
-                + "so its tools wait for openmoat mcp accept.",
+            + "so its tools wait for openmoat mcp accept.",
         "mcp-tool-held": "This MCP tool's description or inputs changed, so it stays hidden until a person accepts it.",
         "settings-drift":
             "A settings file OpenMoat pinned changed in a way that changes no decision, so calls are decided as usual.",
