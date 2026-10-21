@@ -25,13 +25,18 @@ enum AppResources {
     private static var agentIcons: [String: NSImage] = [:]
 
     /// The agent's icon as a template image, or `nil` for an agent without one.
-    /// Icons: CodexBar's provider icons (MIT), see Resources/ICONS.md.
+    /// Icons: CodexBar's provider icons and OpenClaw's lobster (MIT), see
+    /// Resources/ICONS.md.
     static func agentIcon(_ host: String) -> NSImage? {
         let name: String
         switch host {
         case "claude-code": name = "agent-claude"
         case "codex": name = "agent-codex"
         case "cursor": name = "agent-cursor"
+        case "openclaw": name = "agent-openclaw"
+        case "copilot-cli": name = "agent-copilot"
+        case "pi": name = "agent-pi"
+        case "gemini-cli": name = "agent-gemini"
         default: return nil
         }
         if let cached = self.agentIcons[name] {

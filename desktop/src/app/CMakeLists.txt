@@ -62,6 +62,10 @@ qt_add_resources(moatbar_ui "shared_images"
         "${MOATBAR_SHARED_RESOURCES}/agent-claude@3x.png"
         "${MOATBAR_SHARED_RESOURCES}/agent-codex@3x.png"
         "${MOATBAR_SHARED_RESOURCES}/agent-cursor@3x.png"
+        "${MOATBAR_SHARED_RESOURCES}/agent-openclaw@3x.png"
+        "${MOATBAR_SHARED_RESOURCES}/agent-copilot@3x.png"
+        "${MOATBAR_SHARED_RESOURCES}/agent-pi@3x.png"
+        "${MOATBAR_SHARED_RESOURCES}/agent-gemini@3x.png"
 )
 
 qt_add_executable(moatbar_app WIN32 main.cpp)

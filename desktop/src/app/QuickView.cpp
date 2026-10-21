@@ -24,6 +24,18 @@ QString agentResource(QStringView host) {
     if (host == u"cursor") {
         return u":/agent-cursor@3x.png"_s;
     }
+    if (host == u"openclaw") {
+        return u":/agent-openclaw@3x.png"_s;
+    }
+    if (host == u"copilot-cli") {
+        return u":/agent-copilot@3x.png"_s;
+    }
+    if (host == u"pi") {
+        return u":/agent-pi@3x.png"_s;
+    }
+    if (host == u"gemini-cli") {
+        return u":/agent-gemini@3x.png"_s;
+    }
     return {};
 }
 

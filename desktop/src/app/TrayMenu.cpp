@@ -67,6 +67,14 @@ QIcon agentIcon(const QString &host) {
         resource = u":/agent-codex@3x.png"_s;
     } else if (host == u"cursor") {
         resource = u":/agent-cursor@3x.png"_s;
+    } else if (host == u"openclaw") {
+        resource = u":/agent-openclaw@3x.png"_s;
+    } else if (host == u"copilot-cli") {
+        resource = u":/agent-copilot@3x.png"_s;
+    } else if (host == u"pi") {
+        resource = u":/agent-pi@3x.png"_s;
+    } else if (host == u"gemini-cli") {
+        resource = u":/agent-gemini@3x.png"_s;
     } else {
         return {};
     }
