@@ -71,7 +71,7 @@ jobs:
           test -x "$HOME/Applications/OpenMoat Bar.app/Contents/MacOS/openmoat-bar"
           rm dist/SHA256SUMS
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-macos
           path: dist/*
@@ -137,7 +137,7 @@ jobs:
           grep -q "^Exec=$HOME/.local/share/openmoat-bar/usr/bin/openmoat-bar$" "$HOME/.local/share/applications/dev.openmoat.bar.desktop"
           rm dist/SHA256SUMS
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-linux
           path: dist/*
@@ -189,7 +189,7 @@ jobs:
           if (-not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OpenMoat Bar.lnk")) { throw 'no shortcut' }
           Remove-Item dist\SHA256SUMS
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-windows
           path: dist/*
