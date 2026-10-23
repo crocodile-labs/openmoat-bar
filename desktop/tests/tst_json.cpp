@@ -350,6 +350,41 @@ private slots:
         QVERIFY(!RuleText::why(u"my-team-rule").has_value());
     }
 
+    void ruleTextKnowsEveryDefaultAndBuiltInRule() {
+        // Every rule group in openmoat 0.9.0's default-v1.yaml, then the ids the guard,
+        // openmoat run and the proxy add themselves; the same lists as TextTests.swift.
+        const QStringList rules{
+            u"secrets-paths"_s,     u"build-credentials"_s, u"env-secrets"_s,      u"env-dump"_s,
+            u"env-poison"_s,        u"pipe-to-shell"_s,     u"destructive"_s,      u"kernel-self"_s,
+            u"shell-rc"_s,          u"cloud-metadata"_s,    u"token-egress"_s,     u"placeholder-egress"_s,
+            u"project-fs"_s,        u"agent-temp"_s,        u"dev-shell"_s,        u"dev-readonly"_s,
+            u"shell-locals"_s,      u"dev-tools"_s,         u"text-tools"_s,       u"registries"_s,
+            u"safe-mcp"_s,          u"git-internals"_s,     u"runs-later"_s,       u"persistence"_s,
+            u"home-sweep"_s,        u"other-home"_s,        u"secret-names"_s,     u"opaque-code"_s,
+            u"package-near-miss"_s, u"docker-secrets"_s,    u"local-net"_s,        u"kernel-integrity"_s,
+            u"kernel-error"_s,      u"unparseable"_s,       u"ungoverned"_s,       u"settings-drift"_s,
+            u"config-change"_s,     u"session-taint"_s,     u"approved-session"_s, u"run-session"_s,
+            u"run-guard-token"_s,   u"project-settings"_s,  u"executables"_s,      u"push-secret"_s,
+            u"push-runs-later"_s,   u"push-unchecked"_s,    u"mcp-server-changed"_s, u"mcp-tool-held"_s,
+            u"mcp-proxy"_s,         u"proxy-address"_s,     u"proxy-sni"_s,        u"proxy-request"_s,
+            u"proxy-upstream"_s,    u"proxy-secret"_s,      u"proxy-session"_s,    u"proxy-audit"_s,
+            u"moat.cloud-metadata"_s, u"default"_s,
+        };
+        for (const QString &rule : rules) {
+            const auto why = RuleText::why(rule);
+            QVERIFY2(why.has_value(), qPrintable(rule));
+            QVERIFY2(!why->contains(u'\n'), qPrintable(rule));
+        }
+        QCOMPARE(RuleText::why(u"default.fs.read").value_or(QString{}),
+                 u"No rule names this, so the policy's default for reading files decided."_s);
+        QCOMPARE(RuleText::why(u"default.mcp").value_or(QString{}),
+                 u"No rule names this, so the policy's default for MCP tools decided."_s);
+        QCOMPARE(RuleText::why(u"default.net").value_or(QString{}),
+                 u"The agent tried to reach a site that isn't on the allowed list."_s);
+        QCOMPARE(RuleText::why(u"default.something-new").value_or(QString{}),
+                 u"No rule names this, so the policy's default for this kind of call decided."_s);
+    }
+
     void ruleTextNotesSettingsDriftBesideAnotherRule() {
         const auto events = json::parseEvents(fixture(u"show-new-rules"_s));
         QVERIFY(events.ok());

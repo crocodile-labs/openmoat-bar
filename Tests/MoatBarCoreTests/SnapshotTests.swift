@@ -16,6 +16,24 @@ final class SnapshotTests: XCTestCase {
         )
     }
 
+    func test_agentName_namesEveryAgentAndOpenMoatsOwnHosts() throws {
+        let snapshot = try Snapshot(
+            status: Fixture.decode(StatusReport.self, "status-hosts"),
+            events: Fixture.decode([Event].self, "show-hosts")
+        )
+
+        XCTAssertEqual(snapshot.events.map { snapshot.agentName($0.host) }, [
+            "Gemini CLI", "Network proxy", "MCP proxy", "openmoat run",
+        ])
+        XCTAssertEqual(snapshot.unprotected.map(\.host), ["gemini-cli"])
+        XCTAssertEqual(snapshot.agent("gemini-cli")?.reason?.hasPrefix("hook turned off by"), true)
+        XCTAssertEqual(
+            snapshot.installedAgents.map(\.host),
+            ["claude-code", "codex", "openclaw", "copilot-cli", "gemini-cli"]
+        )
+        XCTAssertEqual(snapshot.protectedCount, 3)
+    }
+
     func test_counts_coverEveryVerdict() throws {
         let counts = try self.snapshot().counts()
 

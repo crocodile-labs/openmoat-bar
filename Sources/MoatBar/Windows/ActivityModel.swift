@@ -75,6 +75,6 @@ final class ActivityModel: ObservableObject {
     }
 
     func agentName(_ host: String) -> String {
-        self.snapshot?.agent(host)?.name ?? host
+        self.snapshot?.agentName(host) ?? HostText.name(forOther: host)
     }
 }

@@ -1,0 +1,57 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code",
+      "reason": null
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "codex",
+      "level": "hook-only",
+      "name": "Codex",
+      "reason": "the sandbox profile is older than the policy"
+    },
+    {
+      "gaps": "",
+      "host": "cursor",
+      "level": "not-found",
+      "name": "Cursor",
+      "reason": null
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "openclaw",
+      "level": "hook-only",
+      "name": "OpenClaw",
+      "reason": "no OS sandbox for OpenClaw"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "copilot-cli",
+      "level": "not-set-up",
+      "name": "GitHub Copilot CLI",
+      "reason": null
+    },
+    {
+      "gaps": "",
+      "host": "pi",
+      "level": "not-found",
+      "name": "pi",
+      "reason": null
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "gemini-cli",
+      "level": "not-protected",
+      "name": "Gemini CLI",
+      "reason": "hook turned off by /Users/you/.gemini/settings.json: hooksConfig.enabled = false"
+    }
+  ],
+  "policy_update": null,
+  "lock_drift": [],
+  "mcp_changes": [],
+  "project_settings": []
+}

@@ -8,7 +8,7 @@
   See what <a href="https://github.com/crocodile-labs/openmoat">OpenMoat</a> does for your coding agents, from the menu bar.
 </p>
 
-MoatBar shows which of your agents (Claude Code, Codex, Cursor) are protected, what OpenMoat
+MoatBar shows which of your agents (Claude Code, Codex, Cursor, OpenClaw, GitHub Copilot CLI, pi, Gemini CLI) are protected, what OpenMoat
 blocked today and why, and tells you when protection drops.
 
 It is read-only. MoatBar never allows anything or changes a rule; every fix is a command you
@@ -51,7 +51,7 @@ copy into Terminal.
 - "MCP server changes wait for you" when an MCP server's definition or tools changed since you accepted them. OpenMoat refuses that server's tool calls until then; MoatBar lists the changes and gives `openmoat mcp accept <server>` to copy for each server.
 - "Project settings need a look" (OpenMoat 0.8.0 and later) when a project settings file could switch OpenMoat off or run a program, such as a `.claude/settings.json` with `hooks` or `env`. An agent loads it when a session starts, before any hook runs, so OpenMoat can only point at it; MoatBar lists each file with what it sets.
 
-**Rules explained.** A call's details say in one line why its rule exists, including the newer ones (a package name one typo from a popular one, a token or secret about to leave in a push or a request, a changed MCP server) and rules from a policy pack or a repository's own policy. A call decided while a pinned settings file had drifted in a harmless way gets a note saying so.
+**Rules explained.** A call's details say in one line why its rule exists: every rule group in OpenMoat's default policy (as of 0.9.0), the rules OpenMoat's guard, `openmoat run` and its network proxy add themselves (a tainted session, a changed project settings file, a program that isn't the pinned one, a refused connection, ...), the policy's default for a kind of call, and rules from a policy pack or a repository's own policy. A call decided while a pinned settings file had drifted in a harmless way gets a note saying so.
 
 **The Details window** (from the menu, OpenMoat 0.5.5 and later):
 - What you allowed: permanent rules, session grants with when they end, and trusted repositories, each with the command that takes it back.

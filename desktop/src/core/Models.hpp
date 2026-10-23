@@ -40,7 +40,7 @@ enum class Level : std::uint8_t {
 
 /// One agent's protection: `agents[]` in `openmoat status --format json`.
 struct Protection {
-    QString host; ///< `claude-code`, `codex`, `cursor`
+    QString host; ///< `claude-code`, `codex`, `cursor`, `openclaw`, `copilot-cli`, `pi`, `gemini-cli`
     QString name; ///< `Claude Code`
     Level level = Level::Unknown;
     std::optional<QString> reason;

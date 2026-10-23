@@ -86,8 +86,7 @@ void QuickViewModel::setSelectedHost(const QString &host) {
 }
 
 QString QuickViewModel::agentName(const QString &host) const {
-    const Protection *agent = m_snapshot ? m_snapshot->agent(host) : nullptr;
-    return agent ? agent->name : host;
+    return m_snapshot ? m_snapshot->agentName(host) : HostText::otherName(host);
 }
 
 // MARK: - Unavailable, tabs, header, problems
@@ -127,7 +126,7 @@ QVariantList QuickViewModel::tabs() const {
     for (const Protection &agent : m_snapshot->status.agents) {
         out << QVariantMap{
             {u"host"_s, agent.host},
-            {u"name"_s, agent.name},
+            {u"name"_s, HostText::shortName(agent.name)},
             {u"tone"_s, levelTone(agent.level)},
             {u"installed"_s, agent.level != Level::NotFound},
         };

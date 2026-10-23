@@ -130,8 +130,7 @@ void ActivityModel::selectFirstIfGone() {
 }
 
 QString ActivityModel::agentName(const QString &host) const {
-    const Protection *agent = m_snapshot.agent(host);
-    return agent ? agent->name : host;
+    return m_snapshot.agentName(host);
 }
 
 // MARK: - What the window shows

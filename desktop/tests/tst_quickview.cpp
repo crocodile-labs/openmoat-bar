@@ -53,7 +53,7 @@ private slots:
 
         QVERIFY(model.available());
         QVERIFY(model.unavailable().isEmpty());
-        QCOMPARE(column(model.tabs(), u"name"_s), (QStringList{u"All"_s, u"Claude Code"_s, u"Codex"_s, u"Cursor"_s}));
+        QCOMPARE(column(model.tabs(), u"name"_s), (QStringList{u"All"_s, u"Claude"_s, u"Codex"_s, u"Cursor"_s}));
         QCOMPARE(byKey(model.tabs(), u"host"_s, u"cursor"_s).value(u"installed"_s).toBool(), false);
         QCOMPARE(model.header().value(u"title"_s).toString(), u"All agents"_s);
         QCOMPARE(model.header().value(u"detail"_s).toString(), u"2 of 2 protected"_s);
@@ -184,6 +184,17 @@ private slots:
     }
 
     // MARK: - Update notices and the detail pages
+
+    void tabsNameTheNewerHostsShort() {
+        QuickViewModel model;
+        model.setData(makeSnapshot(u"status-hosts"_s), std::nullopt, kNow);
+        const QStringList tabs{u"All"_s,      u"Claude"_s,  u"Codex"_s, u"Cursor"_s,
+                               u"OpenClaw"_s, u"Copilot"_s, u"pi"_s,    u"Gemini"_s};
+        QCOMPARE(column(model.tabs(), u"name"_s), tabs);
+        QCOMPARE(byKey(model.tabs(), u"host"_s, u"pi"_s).value(u"installed"_s).toBool(), false);
+        QCOMPARE(column(model.problems(), u"title"_s), QStringList{u"Gemini CLI is not protected"_s});
+        QVERIFY(model.problems()[0].toMap().value(u"text"_s).toString().contains(u"hook turned off by"_s));
+    }
 
     void noticesShowAPolicyUpdateAndChangedFiles() {
         QuickViewModel model;

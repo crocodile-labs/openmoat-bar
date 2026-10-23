@@ -46,6 +46,12 @@ public struct Snapshot: Equatable {
         self.status.agents.first { $0.host == host }
     }
 
+    /// The agent's display name, or for a host `openmoat status` doesn't list
+    /// (OpenMoat's proxy, `openmoat run`) its name from `HostText`.
+    public func agentName(_ host: String) -> String {
+        self.agent(host)?.name ?? HostText.name(forOther: host)
+    }
+
     // MARK: - Events
 
     /// Events, for one agent (host id) or all of them.

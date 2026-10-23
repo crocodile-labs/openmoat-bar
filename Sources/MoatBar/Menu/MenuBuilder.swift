@@ -61,7 +61,7 @@ struct MenuBuilder {
         return [all] + agents.map { agent in
             AgentTabBar.Tab(
                 host: agent.host,
-                title: agent.name == "Claude Code" ? "Claude" : agent.name,
+                title: HostText.short(agent.name),
                 lineColor: agent.level.nsColor,
                 faded: agent.level == .notFound
             )
@@ -416,6 +416,6 @@ struct MenuBuilder {
     }
 
     private func agentName(_ host: String, _ snapshot: Snapshot) -> String {
-        snapshot.agent(host)?.name ?? host
+        snapshot.agentName(host)
     }
 }
