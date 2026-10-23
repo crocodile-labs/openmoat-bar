@@ -1,6 +1,6 @@
 import Foundation
 
-/// Commands MoatBar offers to copy. MoatBar never runs these; the person pastes
+/// Commands OpenMoat Bar offers to copy. OpenMoat Bar never runs these; the person pastes
 /// them into Terminal.
 public enum CopyCommands {
     /// Set up or repair protection: `openmoat` alone shows the change and asks first.

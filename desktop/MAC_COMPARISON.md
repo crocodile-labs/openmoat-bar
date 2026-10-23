@@ -22,8 +22,8 @@ fixtures (`Tests/MoatBarCoreTests/Fixtures`).
 | Welcome window | Once, on the first launch | The same |
 | Settings | Open at login (macOS 13 and later), block notifications, where moat is | Start at login (XDG autostart on Linux, the per-user Run key on Windows), block notifications, where moat is |
 | Notifications | Lost protection always; blocks opt-in, one per rule per 10 minutes, never the command | The same. Without a tray they go to the freedesktop service on D-Bus |
-| Without a tray | n/a | GNOME without the AppIndicator extension: open MoatBar from the app menu and it shows as a window |
-| One instance, command line | n/a | One per user. `moatbar`, `--activity`, `--settings`, `--background`, `--quit` hand the request to the running one |
+| Without a tray | n/a | GNOME without the AppIndicator extension: open OpenMoat Bar from the app menu and it shows as a window |
+| One instance, command line | n/a | One per user. `openmoat-bar`, `--activity`, `--settings`, `--background`, `--quit` hand the request to the running one |
 | Light and dark | Follows macOS | Follows the desktop's palette |
 | Install | `make app` | CMake from source, or the release installer |
 | Shown in CI | Screenshots rendered from the app's views | Every window drawn offscreen on Linux (Qt 6.7 and Ubuntu's Qt 6.4) and Windows; images on the `ci-shots/*` branches; any QML warning fails the build |

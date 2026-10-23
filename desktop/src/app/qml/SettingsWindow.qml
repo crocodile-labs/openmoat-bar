@@ -4,12 +4,12 @@ import QtQuick.Layouts
 import QtQuick.Window
 import "."
 
-// Settings: the few things MoatBar itself decides. Nothing here changes
+// Settings: the few things OpenMoat Bar itself decides. Nothing here changes
 // OpenMoat. Data from `prefs` (Preferences); docs through `moatbar`.
 ApplicationWindow {
     id: root
 
-    title: "MoatBar Settings"
+    title: "OpenMoat Bar Settings"
     width: 480
     height: content.implicitHeight + 40
     minimumWidth: 420
@@ -41,7 +41,7 @@ ApplicationWindow {
         Heading { text: "General" }
         CheckBox {
             visible: prefs.canStartAtLogin
-            text: "Start MoatBar when I log in"
+            text: "Start OpenMoat Bar when I log in"
             checked: prefs.startAtLogin
             onToggled: prefs.startAtLogin = checked
         }
@@ -57,7 +57,7 @@ ApplicationWindow {
             checked: true
             enabled: false
         }
-        Note { text: "Always on: the one thing MoatBar must never miss." }
+        Note { text: "Always on: the one thing OpenMoat Bar must never miss." }
         CheckBox {
             text: "Each blocked call"
             checked: prefs.notifyBlocks
@@ -75,7 +75,7 @@ ApplicationWindow {
             Layout.fillWidth: true
         }
         Label {
-            text: "MoatBar reads OpenMoat's status and audit log. It never writes to them."
+            text: "OpenMoat Bar reads OpenMoat's status and audit log. It never writes to them."
             color: Theme.secondary
             font.pixelSize: 12
             wrapMode: Text.WordWrap

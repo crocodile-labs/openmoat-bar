@@ -238,7 +238,7 @@ void ActivityModel::apply(Result<Snapshot> result, int generation) {
 
 void ActivityModel::exportRows() {
     const auto calls = matches();
-    const QString suggested = QDir::home().filePath(u"moatbar-activity-%1.jsonl"_s.arg(timeWindowWire(m_window)));
+    const QString suggested = QDir::home().filePath(u"openmoat-bar-activity-%1.jsonl"_s.arg(timeWindowWire(m_window)));
     const QString path =
         QFileDialog::getSaveFileName(nullptr, u"Export calls"_s, suggested, u"JSON lines (*.jsonl);;All files (*)"_s);
     if (path.isEmpty()) {

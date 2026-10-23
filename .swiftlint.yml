@@ -1,4 +1,4 @@
-# SwiftLint configuration for MoatBar. CI runs `swiftlint --strict`.
+# SwiftLint configuration for OpenMoat Bar. CI runs `swiftlint --strict`.
 
 included:
   - Sources

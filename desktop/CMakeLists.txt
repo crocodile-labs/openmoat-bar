@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(MoatBarDesktop
-    VERSION 0.2.0
-    DESCRIPTION "MoatBar for Linux and Windows: what OpenMoat does for your coding agents"
+    VERSION 0.3.0
+    DESCRIPTION "OpenMoat Bar for Linux and Windows: what OpenMoat does for your coding agents"
     LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)

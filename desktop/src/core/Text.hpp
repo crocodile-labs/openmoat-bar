@@ -34,7 +34,7 @@ namespace HostText {
 [[nodiscard]] QString shortName(const QString &name);
 /// What to call an event's host when `openmoat status` lists no agent for it:
 /// OpenMoat's own parts write events too (`proxy`, `mcp-proxy`, `moat-run`). A
-/// host MoatBar doesn't know shows as its id.
+/// host OpenMoat Bar doesn't know shows as its id.
 [[nodiscard]] QString otherName(const QString &host);
 } // namespace HostText
 
@@ -53,7 +53,7 @@ enum class Shell : std::uint8_t {
 #endif
 }
 
-/// Commands MoatBar offers to copy. MoatBar never runs these; the person
+/// Commands OpenMoat Bar offers to copy. OpenMoat Bar never runs these; the person
 /// pastes them into a terminal.
 namespace CopyCommands {
 [[nodiscard]] QString setUp();

@@ -101,7 +101,7 @@ void TrayMenu::fill(QMenu &menu) const {
     // Desktops where a click on the icon opens this menu (GNOME's AppIndicator)
     // still reach the Quick View from here.
     if (m_actions.open) {
-        QAction *open = menu.addAction(appIcon(), u"Open MoatBar"_s);
+        QAction *open = menu.addAction(appIcon(), u"Open OpenMoat Bar"_s);
         QFont bold = open->font();
         bold.setBold(true);
         open->setFont(bold);
@@ -132,7 +132,7 @@ void TrayMenu::addHeader(QMenu &menu) const {
     const auto installed = m_snapshot->installedAgents();
     const auto setUp = std::ranges::count_if(installed, [](const Protection &a) { return a.level != Level::NotSetUp; });
     const int total = std::max(static_cast<int>(setUp), m_snapshot->protectedCount());
-    addNote(menu, u"MoatBar · %1 of %2 agents protected"_s.arg(m_snapshot->protectedCount()).arg(total))
+    addNote(menu, u"OpenMoat Bar · %1 of %2 agents protected"_s.arg(m_snapshot->protectedCount()).arg(total))
         ->setIcon(appIcon());
     QString updated = m_error ? u"Last good data %1 · %2"_s.arg(clock(m_snapshot->takenAt), m_error->message())
                               : u"Updated %1"_s.arg(clock(m_snapshot->takenAt));
@@ -348,8 +348,8 @@ void TrayMenu::addFooter(QMenu &menu) const {
     if (m_actions.settings) {
         QObject::connect(menu.addAction(u"Settings…"_s), &QAction::triggered, m_actions.settings);
     }
-    QObject::connect(menu.addAction(u"About MoatBar"_s), &QAction::triggered, m_actions.about);
-    QObject::connect(menu.addAction(u"Quit MoatBar"_s), &QAction::triggered, m_actions.quit);
+    QObject::connect(menu.addAction(u"About OpenMoat Bar"_s), &QAction::triggered, m_actions.about);
+    QObject::connect(menu.addAction(u"Quit OpenMoat Bar"_s), &QAction::triggered, m_actions.quit);
 }
 
 } // namespace moatbar

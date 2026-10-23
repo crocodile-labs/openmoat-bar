@@ -1,0 +1,36 @@
+name: Feature request
+description: Something OpenMoat Bar should show, or show differently.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        OpenMoat Bar is read-only: it shows what OpenMoat reports and offers commands to copy.
+        A change to what OpenMoat decides or records belongs in OpenMoat's issues.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to see or do, and what happens today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the app show, and where? Sketches and screenshots are welcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: [macOS, Linux, Windows]
+    validations:
+      required: true
+  - type: textarea
+    id: openmoat
+    attributes:
+      label: OpenMoat output it needs
+      description: The `openmoat … --format json` command and field it would read, if you know them.

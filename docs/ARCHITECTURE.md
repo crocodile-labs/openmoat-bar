@@ -1,6 +1,6 @@
 # Architecture
 
-MoatBar shows what OpenMoat already knows. It reads moat; it never writes to it.
+OpenMoat Bar shows what OpenMoat already knows. It reads moat; it never writes to it.
 
 ## Data flow
 

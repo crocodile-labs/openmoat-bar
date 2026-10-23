@@ -1,6 +1,6 @@
 import Foundation
 
-/// moat's own state directory: `$MOAT_HOME`, else `~/.moat`. MoatBar only
+/// moat's own state directory: `$MOAT_HOME`, else `~/.moat`. OpenMoat Bar only
 /// watches it for changes; it never writes there.
 public enum MoatHome {
     public static func directory(environment: [String: String] = ProcessInfo.processInfo.environment) -> URL {

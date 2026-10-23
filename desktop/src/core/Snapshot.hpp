@@ -38,7 +38,7 @@ struct Session {
     VerdictCounts counts;
 };
 
-/// Everything MoatBar knows at one moment, read from moat. Menus and windows
+/// Everything OpenMoat Bar knows at one moment, read from moat. Menus and windows
 /// are drawn from a snapshot; nothing in it is ever written back.
 struct Snapshot {
     StatusReport status;
@@ -78,15 +78,15 @@ struct Snapshot {
 };
 
 /// Agents not protected now that were before. On the first read (`previous`
-/// null) every unprotected agent counts, so a drop that happened while MoatBar
+/// null) every unprotected agent counts, so a drop that happened while OpenMoat Bar
 /// wasn't running is still reported once.
 [[nodiscard]] std::vector<Protection> newlyUnprotected(const Snapshot *previous, const Snapshot &current);
 
 /// Blocked calls in `current` that `previous` didn't have. Nothing on the first
-/// read (`previous` null): blocks from before MoatBar started are not news.
+/// read (`previous` null): blocks from before OpenMoat Bar started are not news.
 [[nodiscard]] std::vector<Event> newBlocks(const Snapshot *previous, const Snapshot &current);
 
-/// Where moat keeps its state: `$MOAT_HOME`, else `~/.moat`. MoatBar only
+/// Where moat keeps its state: `$MOAT_HOME`, else `~/.moat`. OpenMoat Bar only
 /// watches it; it never writes there.
 [[nodiscard]] QString moatHome(const QString &moatHomeVariable, const QString &homeDirectory);
 

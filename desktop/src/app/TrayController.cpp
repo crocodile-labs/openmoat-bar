@@ -64,7 +64,7 @@ TrayController::TrayController(SnapshotStore &store, QObject *parent)
 }
 
 void TrayController::show() {
-    // Without a tray (GNOME without its extension) MoatBar is its windows and
+    // Without a tray (GNOME without its extension) OpenMoat Bar is its windows and
     // its notifications; launching it again opens the Quick View.
     if (QSystemTrayIcon::isSystemTrayAvailable()) {
         m_tray.show();
@@ -134,7 +134,7 @@ void TrayController::snapshotRead(const std::optional<Snapshot> &previous, const
     for (const Protection &agent : newlyUnprotected(previous ? &*previous : nullptr, current)) {
         const QString why = agent.reason ? u"OpenMoat says: %1. "_s.arg(*agent.reason) : QString{};
         notify(m_tray, u"%1 is not protected"_s.arg(agent.name),
-               why + u"Its calls are not being checked. Open MoatBar for the fix."_s, true);
+               why + u"Its calls are not being checked. Open OpenMoat Bar for the fix."_s, true);
     }
     if (!m_preferences.notifyBlocks()) {
         return;
@@ -148,7 +148,7 @@ void TrayController::snapshotRead(const std::optional<Snapshot> &previous, const
         }
         const Protection *agent = current.agent(event.host);
         notify(m_tray, u"Blocked by %1"_s.arg(rule),
-               u"%1 was stopped. Open MoatBar to see what and why."_s.arg(agent ? agent->name : event.host), false);
+               u"%1 was stopped. Open OpenMoat Bar to see what and why."_s.arg(agent ? agent->name : event.host), false);
     }
 }
 
@@ -196,9 +196,9 @@ void TrayController::menuClosed() {
 
 void TrayController::showAbout() {
     QMessageBox box;
-    box.setWindowTitle(u"About MoatBar"_s);
+    box.setWindowTitle(u"About OpenMoat Bar"_s);
     box.setIconPixmap(appIcon().pixmap(64, 64));
-    box.setText(u"<b>MoatBar</b> %1"_s.arg(QApplication::applicationVersion()));
+    box.setText(u"<b>OpenMoat Bar</b> %1"_s.arg(QApplication::applicationVersion()));
     box.setInformativeText(u"Shows what OpenMoat does for your coding agents. "
                            u"Read-only: it never changes a rule.<br><br>"
                            u"<a href=\"https://openmoat.dev\">openmoat.dev</a>"_s);

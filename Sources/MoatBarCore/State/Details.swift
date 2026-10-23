@@ -1,6 +1,6 @@
 import Foundation
 
-/// The OpenMoat versions MoatBar's newer screens need, and the note shown on
+/// The OpenMoat versions OpenMoat Bar's newer screens need, and the note shown on
 /// an older one instead of an error.
 public enum MoatRequirement {
     /// `openmoat allowed`, `openmoat secret list` and `openmoat doctor` with `--format json`.

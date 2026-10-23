@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import "."
 
 // Copies a command to paste into a terminal and says "Copied ✓" for a moment.
-// MoatBar never runs the command itself.
+// OpenMoat Bar never runs the command itself.
 ItemDelegate {
     id: row
 

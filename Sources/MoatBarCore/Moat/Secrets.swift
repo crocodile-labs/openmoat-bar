@@ -104,7 +104,7 @@ public enum SecretSource: Decodable, Equatable {
         case let .env(name): return "the variable \(name)"
         case let .file(path): return "the file \(path)"
         case let .keychain(service, account): return "the keychain item \(service) (\(account))"
-        case .unknown: return "a source this MoatBar doesn't know"
+        case .unknown: return "a source this version of OpenMoat Bar doesn't know"
         }
     }
 }

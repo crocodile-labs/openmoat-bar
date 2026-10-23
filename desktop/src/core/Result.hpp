@@ -9,13 +9,13 @@
 
 namespace moatbar {
 
-/// Why MoatBar could not read moat.
+/// Why OpenMoat Bar could not read moat.
 struct MoatError {
     enum class Kind {
         NotInstalled, ///< No moat binary was found.
         TimedOut,     ///< moat ran past the time limit.
         Failed,       ///< moat exited non-zero; `detail` is the first line it printed.
-        Unreadable,   ///< moat printed something MoatBar could not decode.
+        Unreadable,   ///< moat printed something OpenMoat Bar could not decode.
     };
 
     Kind kind;

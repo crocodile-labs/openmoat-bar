@@ -17,9 +17,9 @@ format:
 
 check: lint build test
 
-# MoatBar.app in the repository root.
+# "OpenMoat Bar.app" in the repository root.
 app:
 	./Scripts/package_app.sh
 
 clean:
-	rm -rf .build MoatBar.app
+	rm -rf .build "OpenMoat Bar.app" MoatBar.app

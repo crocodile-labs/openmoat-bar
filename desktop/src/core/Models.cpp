@@ -14,7 +14,7 @@ QString MoatError::message() const {
     case Kind::Failed:
         return u"openmoat %1: %2"_s.arg(command, detail);
     case Kind::Unreadable:
-        return u"openmoat %1 gave output MoatBar can't read. Update OpenMoat."_s.arg(command);
+        return u"openmoat %1 gave output OpenMoat Bar can't read. Update OpenMoat."_s.arg(command);
     }
     return {};
 }

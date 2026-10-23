@@ -1,10 +1,11 @@
-# Working on MoatBar
+# Working on OpenMoat Bar
 
-MoatBar is a read-only menu bar app for OpenMoat. Read this before changing anything.
+OpenMoat Bar (formerly MoatBar) is a read-only menu bar app for OpenMoat. In the code it is
+still called MoatBar: the targets `MoatBar` and `MoatBarCore`, the C++ namespace `moatbar`. Read this before changing anything.
 
 ## The one rule
 
-MoatBar never changes OpenMoat. It runs only the read-only openmoat commands listed in
+OpenMoat Bar never changes OpenMoat. It runs only the read-only openmoat commands listed in
 `MoatClient.allowedCommands` (the `openmoat` binary, or `moat` from an install before the
 rename), whole command lines word for word (`status`, `show`, `report`,
 `proxy status`, `--version`, `allowed`, `secret list`, `doctor`, each with `--format json`

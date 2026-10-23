@@ -372,7 +372,7 @@ int main(int argc, char *argv[]) {
     }
 
     bool ok = true;
-    // No "Open MoatBar": the menu as it looks where a click opens the Quick View.
+    // No "Open OpenMoat Bar": the menu as it looks where a click opens the Quick View.
     const TrayActions actions{
         .open = {},
         .activity = {},

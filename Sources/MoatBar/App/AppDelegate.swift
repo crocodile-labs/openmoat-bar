@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             onQuit: { NSApp.terminate(nil) }
         )
-        self.welcomeWindow.show(title: "Welcome to MoatBar", size: NSSize(width: 460, height: 520), content: view)
+        self.welcomeWindow.show(title: "Welcome to OpenMoat Bar", size: NSSize(width: 460, height: 520), content: view)
     }
 
     /// Open the Activity window, filtered to `verdict` (`nil` for everything).
@@ -64,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.activity.selectedID = nil
         self.activity.load()
         self.activityWindow.show(
-            title: "MoatBar Activity",
+            title: "OpenMoat Bar Activity",
             size: NSSize(width: 1040, height: 640),
             content: ActivityView(model: self.activity),
             resizable: true
@@ -83,7 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         self.details.load()
         self.detailsWindow.show(
-            title: "MoatBar Details",
+            title: "OpenMoat Bar Details",
             size: NSSize(width: 620, height: 600),
             content: DetailsView(model: self.details),
             resizable: true
@@ -96,6 +96,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             moatPath: MoatClient.locate()?.path,
             moatVersion: self.store.snapshot?.moatVersion
         )
-        self.settingsWindow.show(title: "MoatBar Settings", size: NSSize(width: 460, height: 420), content: view)
+        self.settingsWindow.show(title: "OpenMoat Bar Settings", size: NSSize(width: 460, height: 420), content: view)
     }
 }

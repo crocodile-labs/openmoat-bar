@@ -1,6 +1,6 @@
 import AppKit
 
-/// The only things MoatBar does besides showing: copy text and open a link.
+/// The only things OpenMoat Bar does besides showing: copy text and open a link.
 enum Actions {
     static func copy(_ text: String) {
         let pasteboard = NSPasteboard.general
@@ -12,7 +12,7 @@ enum Actions {
         NSWorkspace.shared.open(url)
     }
 
-    /// The standard About panel with the MoatBar icon and one line on what it is.
+    /// The standard About panel with the OpenMoat Bar icon and one line on what it is.
     static func showAbout() {
         var options: [NSApplication.AboutPanelOptionKey: Any] = [
             .credits: NSAttributedString(
@@ -27,7 +27,7 @@ enum Actions {
             options[.applicationIcon] = icon
         }
         if Bundle.main.object(forInfoDictionaryKey: "CFBundleName") == nil {
-            options[.applicationName] = "MoatBar"
+            options[.applicationName] = "OpenMoat Bar"
         }
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: options)

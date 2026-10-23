@@ -23,7 +23,7 @@ permissions:
 jobs:
   macos:
     name: build · test · lint
-    # One macOS job only: this repo is private and macOS minutes are expensive.
+    # One macOS job: SwiftPM build, tests and lint in one pass.
     runs-on: macos-14
     timeout-minutes: 20
     steps:

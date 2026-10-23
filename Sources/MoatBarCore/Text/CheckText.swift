@@ -3,7 +3,7 @@ import Foundation
 /// Words for `openmoat doctor` lines on the Checks screen: a plain name, one line
 /// on what a check means, and the command to copy when one helps. The lines
 /// come from openmoat `crates/openmoat-cli/src/commands/doctor.rs` (and
-/// `doctor/mcp.rs`, `repo.rs`); a line MoatBar doesn't know shows as moat
+/// `doctor/mcp.rs`, `repo.rs`); a line OpenMoat Bar doesn't know shows as moat
 /// wrote it. The desktop app has the same words in `desktop/src/core/Details.cpp`.
 public enum CheckText {
     /// moat's left column in plain words: `repo policy` → `Repository policy`.

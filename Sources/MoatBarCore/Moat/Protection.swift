@@ -66,7 +66,7 @@ public struct StatusReport: Codable, Equatable {
     /// Files OpenMoat pinned that changed since: `… was modified`, `… is missing`.
     public var lockDrift: [String]
     /// Whether moat sent `policy_update` and `lock_drift` at all. moat before
-    /// 0.5.7 does not, so MoatBar can't say whether there is anything to show.
+    /// 0.5.7 does not, so OpenMoat Bar can't say whether there is anything to show.
     public var hasUpdateNotices: Bool
     /// MCP server definitions and held tools that wait for `openmoat mcp accept`,
     /// one line each: ``MCP server `gh` in /path changed``. Empty when nothing

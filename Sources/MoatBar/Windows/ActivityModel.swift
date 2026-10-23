@@ -17,7 +17,7 @@ final class ActivityModel: ObservableObject {
     /// Most rows the list shows; counts still cover every event.
     static let rowLimit = 500
 
-    private let queue = DispatchQueue(label: "dev.openmoat.moatbar.activity", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "dev.openmoat.bar.activity", qos: .userInitiated)
 
     var rows: [Event] {
         Array(self.filter.apply(self.snapshot?.events ?? []).prefix(Self.rowLimit))

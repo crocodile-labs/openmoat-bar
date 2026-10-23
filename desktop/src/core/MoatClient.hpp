@@ -50,12 +50,12 @@ public:
 };
 
 /// Reads moat. Runs only the read-only commands in `allowedCommands()` and
-/// decodes their JSON; MoatBar never runs a moat command that changes anything.
+/// decodes their JSON; OpenMoat Bar never runs a moat command that changes anything.
 class MoatClient {
 public:
     using IsExecutable = std::function<bool(const QString &path)>;
 
-    /// The only moat command lines MoatBar ever runs, word for word; `*` is one
+    /// The only moat command lines OpenMoat Bar ever runs, word for word; `*` is one
     /// `--since` value. Whole lines, not just the first word: `doctor` re-pins
     /// with `--accept`, `secret add` edits the policy, `proxy` alone runs the proxy.
     [[nodiscard]] static const QList<QStringList> &allowedCommands();

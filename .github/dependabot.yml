@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # The Swift package and the Qt app have no third-party dependencies to update;
+  # only the actions the workflows use.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
