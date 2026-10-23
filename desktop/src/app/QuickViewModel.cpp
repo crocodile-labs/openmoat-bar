@@ -114,6 +114,8 @@ QVariantMap QuickViewModel::unavailable() const {
         {u"tone"_s, u"warn"_s},
         {u"commandTitle"_s, u"Copy the check command"_s},
         {u"command"_s, CopyCommands::doctor()},
+        {u"docs"_s, u"troubleshooting"_s},
+        {u"docsTitle"_s, u"Troubleshooting"_s},
     };
 }
 
@@ -168,12 +170,14 @@ QVariantList QuickViewModel::problems() const {
             continue;
         }
         const QString why = agent.reason ? u"OpenMoat says: %1. "_s.arg(*agent.reason) : QString{};
+        const auto file = hookTurnedOffBy(agent.reason);
         out << QVariantMap{
             {u"title"_s, u"%1 is not protected"_s.arg(agent.name)},
             {u"text"_s, QString(why + u"Its calls are not being checked."_s)},
-            {u"note"_s, u"Run openmoat in a terminal. It shows the change and asks first. "
-                        u"This goes away on the next check."_s},
-            {u"command"_s, CopyCommands::setUp()},
+            {u"note"_s, file ? turnedOffAdvice(*file)
+                             : u"Run openmoat in a terminal. It shows the change and asks first. "
+                               u"This goes away on the next check."_s},
+            {u"command"_s, protectionFix(agent)},
         };
     }
     return out;
@@ -216,6 +220,8 @@ QVariantList QuickViewModel::notices() const {
             {u"commandTitle"_s, commands.size() == 1 ? u"Copy the command"_s : u"Copy"_s},
             {u"command"_s, commands.first()},
             {u"moreCommands"_s, QStringList(commands.mid(1))},
+            {u"docs"_s, u"mcp-servers"_s},
+            {u"docsTitle"_s, u"About MCP servers"_s},
         };
     }
     if (!status.projectSettings.isEmpty()) {
@@ -444,6 +450,16 @@ void QuickViewModel::openDocs(const QString &page) {
         url = DocsLink::limits();
     } else if (page == u"turn-off") {
         url = DocsLink::turnOff();
+    } else if (page == u"how-it-decides") {
+        url = DocsLink::howItDecides();
+    } else if (page == u"troubleshooting") {
+        url = DocsLink::troubleshooting();
+    } else if (page == u"mcp-servers") {
+        url = DocsLink::mcpServers();
+    } else if (page == u"allow-reference") {
+        url = DocsLink::allowReference();
+    } else if (page == u"keep-tokens-safe") {
+        url = DocsLink::keepTokensSafe();
     } else {
         url = DocsLink::home();
     }

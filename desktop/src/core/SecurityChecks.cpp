@@ -22,6 +22,13 @@ std::optional<SecurityCheck> agentCheck(const Protection &agent) {
         return SecurityCheck{id, Kind::Info, agent.name + u": calls checked, no OS sandbox"_s, agent.reason,
                              CopyCommands::setUp()};
     case Level::NotProtected:
+        // The agent's own settings file turns the hook off: running openmoat again
+        // doesn't change that file, so say which file to edit.
+        if (const auto file = hookTurnedOffBy(agent.reason)) {
+            return SecurityCheck{id, Kind::Problem, agent.name + u" is not protected"_s,
+                                 agent.reason.value_or(QString{}) + u". "_s + turnedOffAdvice(*file),
+                                 CopyCommands::doctor()};
+        }
         return SecurityCheck{id, Kind::Problem, agent.name + u" is not protected"_s, agent.reason,
                              CopyCommands::setUp()};
     case Level::NotSetUp:
@@ -95,6 +102,29 @@ std::vector<SecurityCheck> securityChecks(const Snapshot &snapshot) {
     // Worst first; within a kind, moat's order.
     std::ranges::stable_sort(checks, std::ranges::greater{}, &SecurityCheck::kind);
     return checks;
+}
+
+std::optional<QString> hookTurnedOffBy(const std::optional<QString> &reason) {
+    constexpr QStringView prefix = u"hook turned off by ";
+    if (!reason || !reason->startsWith(prefix)) {
+        return std::nullopt;
+    }
+    const QString rest = reason->mid(prefix.size());
+    // The file, then `: ` and what it sets; a path itself may hold a colon.
+    const qsizetype end = rest.indexOf(u": "_s);
+    const QString file = end < 0 ? rest : rest.left(end);
+    if (file.isEmpty()) {
+        return std::nullopt;
+    }
+    return file;
+}
+
+QString turnedOffAdvice(const QString &file) {
+    return u"Edit %1 to remove what turns the hook off, then run openmoat doctor to check."_s.arg(file);
+}
+
+QString protectionFix(const Protection &agent) {
+    return hookTurnedOffBy(agent.reason) ? CopyCommands::doctor() : CopyCommands::setUp();
 }
 
 std::vector<SecurityCheck> needingAttention(const std::vector<SecurityCheck> &checks) {

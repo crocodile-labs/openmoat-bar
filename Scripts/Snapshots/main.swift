@@ -35,7 +35,11 @@ func png(_ view: NSView, scale: CGFloat = 2) -> Data {
         bitsPerPixel: 0
     )!
     rep.size = size
+    // The tab bars' labels are drawn once, by drawLayers: drawn twice, a long
+    // name the label truncates (OpenClaw) doubles.
+    setTabLabelsHidden(in: view, true)
     view.cacheDisplay(in: view.bounds, to: rep)
+    setTabLabelsHidden(in: view, false)
     // Layer-only content (the tab bar's pill and lines) is drawn on top.
     if let context = NSGraphicsContext(bitmapImageRep: rep) {
         NSGraphicsContext.saveGraphicsState()
@@ -44,6 +48,19 @@ func png(_ view: NSView, scale: CGFloat = 2) -> Data {
         NSGraphicsContext.restoreGraphicsState()
     }
     return rep.representation(using: .png, properties: [:])!
+}
+
+/// Hide or show the tab bars' text labels under `view`.
+func setTabLabelsHidden(in view: NSView, _ hidden: Bool) {
+    for sub in view.subviews {
+        if let bar = sub as? AgentTabBar {
+            for case let label as NSTextField in bar.subviews {
+                label.isHidden = hidden
+            }
+        } else {
+            setTabLabelsHidden(in: sub, hidden)
+        }
+    }
 }
 
 /// Draw the tab bars' layers, which `cacheDisplay` skips.
@@ -77,6 +94,8 @@ func drawLayers(of view: NSView, in context: CGContext, origin: CGPoint) {
                 if let label = child as? NSTextField {
                     let style = NSMutableParagraphStyle()
                     style.alignment = .center
+                    // As the label truncates: a long name (OpenClaw) is drawn once, not twice.
+                    style.lineBreakMode = .byTruncatingTail
                     let text = NSAttributedString(string: label.stringValue, attributes: [
                         .font: label.font ?? NSFont.systemFont(ofSize: 11),
                         .foregroundColor: label.textColor ?? NSColor.labelColor,
@@ -284,5 +303,16 @@ let activityRoot = ActivityView(model: activity).background(Color(nsColor: .wind
 let activityView = NSHostingView(rootView: activityRoot)
 activityView.frame = NSRect(x: 0, y: 0, width: 1040, height: 600)
 try png(activityView).write(to: outDir.appendingPathComponent("activity.png"))
+
+// MARK: - Details: Checks
+
+let details = DetailsModel()
+details.show(Sample.details(now: now))
+details.tab = .checks
+details.agentNames = Dictionary(uniqueKeysWithValues: snapshot.status.agents.map { ($0.host, $0.name) })
+let detailsRoot = DetailsView(model: details, now: now).background(Color(nsColor: .windowBackgroundColor))
+let detailsView = NSHostingView(rootView: detailsRoot)
+detailsView.frame = NSRect(x: 0, y: 0, width: 620, height: 720)
+try png(detailsView).write(to: outDir.appendingPathComponent("details-checks.png"))
 
 print("wrote", outDir.path)

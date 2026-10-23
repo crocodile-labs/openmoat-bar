@@ -121,6 +121,57 @@ final class TextTests: XCTestCase {
         XCTAssertEqual(HostText.name(forOther: "a-host-from-the-future"), "a-host-from-the-future")
     }
 
+    /// `rule-ids.json` lists every rule id of OpenMoat 0.10.0's default policy
+    /// (`default-v1.yaml`) and the ones OpenMoat adds itself.
+    func test_ruleText_explainsEveryRuleOfOpenMoat010() throws {
+        struct RuleIds: Decodable {
+            var defaultPolicy: [String]
+            var addedByOpenmoat: [String]
+        }
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let ids = try decoder.decode(RuleIds.self, from: Fixture.data("rule-ids"))
+
+        XCTAssertEqual(ids.defaultPolicy.count, 33)
+        for rule in ids.defaultPolicy + ids.addedByOpenmoat {
+            let why = RuleText.why(rule)
+            XCTAssertNotNil(why, rule)
+            XCTAssertEqual(why?.contains("\n"), false, "one line: \(rule)")
+        }
+        XCTAssertEqual(RuleText.why("push-unchecked"), "OpenMoat couldn't check what this push publishes, so it asks.")
+    }
+
+    func test_policyCheck_ofAnUncheckedCall_checksWhatItShows() {
+        let typed = Action.unchecked(action: .shell(command: "npm test"), reason: "typed into a running shell")
+
+        XCTAssertEqual(CopyCommands.policyCheck(typed), "openmoat policy check 'npm test'")
+        XCTAssertEqual(typed.shellCommand, "npm test")
+        XCTAssertEqual(typed.display, "npm test")
+        XCTAssertEqual(
+            CopyCommands.policyCheck(.unchecked(action: .fsRead(path: "/p/a"), reason: "a glob")),
+            "openmoat policy check '/p/a' --kind fs-read"
+        )
+        XCTAssertNil(CopyCommands.policyCheck(.unchecked(action: .readFiles(paths: ["a", "b"]), reason: "")))
+    }
+
+    func test_hostText_namesTheContinueCli() {
+        XCTAssertEqual(HostText.name(forOther: "continue"), "Continue CLI")
+    }
+
+    func test_docsLinks_pointAtTheDocsPages() {
+        let pages = [
+            DocsLink.blocked, DocsLink.checkACommand, DocsLink.quickstart, DocsLink.troubleshooting,
+            DocsLink.limits, DocsLink.howItDecides, DocsLink.mcpServers, DocsLink.allowReference,
+            DocsLink.keepTokensSafe, DocsLink.turnOff,
+        ]
+        // The pages of openmoat.dev's docs as of OpenMoat 0.10.0.
+        XCTAssertEqual(pages.map { $0.absoluteString.replacingOccurrences(of: "https://openmoat.dev", with: "") }, [
+            "/docs/blocked/", "/docs/check-a-command/", "/docs/quickstart/", "/docs/troubleshooting/",
+            "/docs/limits/", "/docs/how-it-decides/", "/docs/mcp-servers/", "/docs/allow-reference/",
+            "/docs/keep-tokens-safe/", "/docs/turn-off/",
+        ])
+    }
+
     func test_reportLink_carriesOnlyTheRule() {
         let url = DocsLink.reportWrongBlock(rule: "secrets-paths")
 

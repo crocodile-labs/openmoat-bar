@@ -165,12 +165,14 @@ struct MenuBuilder {
     private func addProblems(_ snapshot: Snapshot, to menu: NSMenu) {
         for agent in snapshot.unprotected where self.selectedHost == nil || self.selectedHost == agent.host {
             let why = agent.reason.map { "OpenMoat says: \($0). " } ?? ""
+            let note = SecurityChecks.hookTurnedOffBy(agent.reason).map(SecurityChecks.turnedOffAdvice)
+                ?? "Run openmoat in Terminal. It shows the change and asks first. This goes away on the next check."
             menu.addItem(hostedItem(ProblemCard(
                 title: "\(agent.name) is not protected",
                 text: "\(why)Its calls are not being checked.",
-                note: "Run openmoat in Terminal. It shows the change and asks first. This goes away on the next check."
+                note: note
             )))
-            menu.addItem(copyItem("Copy the fix", command: CopyCommands.setUp))
+            menu.addItem(copyItem("Copy the fix", command: SecurityChecks.fix(for: agent)))
         }
         self.addNotices(snapshot.status, to: menu)
     }
@@ -208,6 +210,7 @@ struct MenuBuilder {
             for command in commands {
                 menu.addItem(copyItem(commands.count == 1 ? "Copy the command" : "Copy", command: command))
             }
+            menu.addItem(ClosureMenuItem("About MCP servers ↗") { Actions.open(DocsLink.mcpServers) })
         }
         if !status.projectSettings.isEmpty {
             menu.addItem(hostedItem(ProblemCard(
@@ -284,7 +287,7 @@ struct MenuBuilder {
                 Actions.open(DocsLink.reportWrongBlock(rule: event.rule))
             })
         } else {
-            menu.addItem(ClosureMenuItem("How OpenMoat decides ↗") { Actions.open(DocsLink.checkACommand) })
+            menu.addItem(ClosureMenuItem("How OpenMoat decides ↗") { Actions.open(DocsLink.howItDecides) })
         }
         menu.addItem(ClosureMenuItem("Show in Activity…") { self.onActivity(event.verdict) })
     }
@@ -389,6 +392,7 @@ struct MenuBuilder {
                 tint: Color(nsColor: .systemOrange)
             )))
             menu.addItem(copyItem("Copy the check command", command: CopyCommands.doctor))
+            menu.addItem(ClosureMenuItem("Troubleshooting ↗") { Actions.open(DocsLink.troubleshooting) })
         }
     }
 

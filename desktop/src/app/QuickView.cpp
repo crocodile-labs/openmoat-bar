@@ -36,6 +36,7 @@ QString agentResource(QStringView host) {
     if (host == u"gemini-cli") {
         return u":/agent-gemini@3x.png"_s;
     }
+    // The Continue CLI (`continue`) and OpenMoat's own hosts: the generic icon.
     return {};
 }
 

@@ -1,0 +1,53 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "hook-and-os-sandbox",
+      "name": "Claude Code"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "codex",
+      "level": "hook-and-os-sandbox",
+      "name": "Codex"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "cursor",
+      "level": "hook-and-os-sandbox",
+      "name": "Cursor"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "openclaw",
+      "level": "hook-only",
+      "name": "OpenClaw",
+      "reason": "no OS sandbox from OpenMoat"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "copilot-cli",
+      "level": "hook-only",
+      "name": "GitHub Copilot CLI",
+      "reason": "no OS sandbox from OpenMoat"
+    },
+    {
+      "gaps": "",
+      "host": "pi",
+      "level": "not-set-up",
+      "name": "pi"
+    },
+    {
+      "gaps": "calls run unchecked if the hook binary is missing or crashes",
+      "host": "gemini-cli",
+      "level": "hook-only",
+      "name": "Gemini CLI",
+      "reason": "no OS sandbox from OpenMoat"
+    }
+  ],
+  "policy_update": null,
+  "lock_drift": [],
+  "mcp_changes": [],
+  "project_settings": []
+}

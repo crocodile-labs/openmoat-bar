@@ -1,0 +1,60 @@
+[
+  {
+    "id": "3a",
+    "ts_ms": 1792057200000,
+    "host": "copilot-cli",
+    "session_id": "s-copilot",
+    "cwd": "/Users/you/code/site",
+    "tool": "write_bash",
+    "action": {"unchecked": {"action": {"shell": {"command": "npm test"}}, "reason": "input typed into a running shell joins what was typed before, which this call does not show"}},
+    "verdict": "ask",
+    "rules": ["unchecked"],
+    "reasons": ["input typed into a running shell joins what was typed before, which this call does not show"]
+  },
+  {
+    "id": "3b",
+    "ts_ms": 1792057800000,
+    "host": "gemini-cli",
+    "session_id": "s-gemini",
+    "cwd": "/Users/you/code/api",
+    "tool": "read_many_files",
+    "action": {"unchecked": {"action": {"read_files": {"paths": ["/Users/you/code/api/src", "/Users/you/code/api/docs"]}}, "reason": "without a `dir_path` Gemini CLI searches every workspace directory, and the hook names only the working directory"}},
+    "verdict": "ask",
+    "rules": ["unchecked"],
+    "reasons": ["without a `dir_path` Gemini CLI searches every workspace directory, and the hook names only the working directory"]
+  },
+  {
+    "id": "3c",
+    "ts_ms": 1792058400000,
+    "host": "continue",
+    "session_id": "s-continue",
+    "cwd": "/Users/you/code/site",
+    "tool": "Read",
+    "action": {"unchecked": {"action": {"fs_read": {"path": "/Users/you/code/site/README.md"}}, "reason": "the glob pattern `{a,b}/**` holds a brace or bracket group that may reach further than OpenMoat can work out"}},
+    "verdict": "ask",
+    "rules": ["unchecked"],
+    "reasons": ["the glob pattern `{a,b}/**` holds a brace or bracket group that may reach further than OpenMoat can work out"]
+  },
+  {
+    "id": "3d",
+    "ts_ms": 1792059000000,
+    "host": "proxy",
+    "session_id": "s-proxy",
+    "tool": "proxy",
+    "action": {"net": {"url": "https://api.example.com:8443/v1"}},
+    "verdict": "deny",
+    "rules": ["proxy-port"],
+    "reasons": ["api.example.com is allowed on ports 443 and 80 only, not 8443; a `net` rule `api.example.com:8443` allows this port"]
+  },
+  {
+    "id": "3e",
+    "ts_ms": 1792059600000,
+    "host": "copilot-cli",
+    "session_id": "s-copilot",
+    "tool": "write_bash",
+    "action": {"unchecked": {"reason": "an action from a newer OpenMoat"}},
+    "verdict": "ask",
+    "rules": ["unchecked"],
+    "reasons": ["an action from a newer OpenMoat"]
+  }
+]

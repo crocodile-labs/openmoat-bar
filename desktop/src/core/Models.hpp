@@ -92,6 +92,10 @@ struct Action {
     QString qualifier;   ///< the foreign shell's name, the unknown tool's host
     QStringList targets; ///< files a patch writes or a call reads
     QString wireKind;    ///< the tag as moat wrote it, for kinds OpenMoat Bar doesn't know
+    /// Set for a call the hook payload shows only in part (`{"unchecked": {"action":
+    /// …, "reason": …}}`, OpenMoat 0.10.0): the fields above are the action it
+    /// shows, and this is what it doesn't (openmoat crates/openmoat-core/src/action.rs).
+    std::optional<QString> uncheckedReason;
 
     /// One line a person can read.
     [[nodiscard]] QString display() const;

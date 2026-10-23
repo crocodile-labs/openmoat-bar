@@ -26,6 +26,19 @@ you used it: macOS ties that switch to the old app.
 - Every host OpenMoat reports is named, including OpenClaw, GitHub Copilot CLI, pi and Gemini CLI with their icons, and events from OpenMoat's network proxy, MCP proxy and `openmoat run` ([#30](https://github.com/crocodile-labs/openmoat-bar/pull/30)).
 - One line explaining every rule in OpenMoat 0.9.0's default policy, the rules the guard, `openmoat run` and the network proxy add, and `default.<kind>` ([#30](https://github.com/crocodile-labs/openmoat-bar/pull/30)).
 - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` and this changelog.
+- OpenMoat 0.10.0: explanations for `agent-folders`, `stops-openmoat`, `unchecked`, `proxy-port` and `proxy-capacity`, so every rule of its default policy and every rule it adds itself has one; a test lists them all.
+- OpenMoat 0.10.0: a call the agent's hook shows only in part (`unchecked`) shows the command or file it names and what OpenMoat couldn't see, with the same `openmoat policy check` to copy; it was shown as "unchecked" alone.
+- OpenMoat 0.10.0: session grants say the project they apply in, and a grant an older OpenMoat wrote without one is shown as applying nowhere until you approve it again, not as active.
+- OpenMoat 0.10.0: a plain-HTTP secret shows the port it is sent on.
+- Events from the Continue CLI are named "Continue CLI", with the generic agent icon.
+- Docs links for MCP server changes, What you allowed, Secrets, Checks and "Couldn't read OpenMoat" (troubleshooting), on macOS, Linux and Windows.
+- The README screenshots show all seven agents, and the Details window's Checks screen is drawn too; the Linux and Windows screenshots use a seven-agent fixture.
+
+### Fixed
+- `push-unchecked` now says "OpenMoat couldn't check what this push publishes, so it asks": since OpenMoat 0.9.0 it also asks when no `git` with an absolute path was recorded, not only when the check ran out of time.
+- An agent whose own settings file turns OpenMoat's hook off (`hook turned off by <file>`) gets a security check that names the file to edit and copies `openmoat doctor`; running `openmoat` again does not change that file.
+- `openmoat doctor`'s project settings warnings are grouped under Agents, not Other.
+- "How OpenMoat decides" opens the how-it-decides page, and the installers point at the quickstart on openmoat.dev instead of OpenMoat's README.
 
 ## [0.2.0] - 2026-10-17
 

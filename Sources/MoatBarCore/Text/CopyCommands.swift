@@ -45,9 +45,10 @@ public enum CopyCommands {
 
     /// `openmoat policy check` for this action, so the person can see the verdict
     /// and rule again without running anything. `nil` for kinds it can't check.
+    /// An `unchecked` call is checked as the action it shows.
     public static func policyCheck(_ action: Action) -> String? {
         let (subject, kind): (String, String?)
-        switch action {
+        switch action.shown {
         case let .shell(command): (subject, kind) = (command, nil)
         case let .fsRead(path): (subject, kind) = (path, "fs-read")
         case let .fsWrite(path): (subject, kind) = (path, "fs-write")
@@ -77,6 +78,11 @@ public enum DocsLink {
     public static let quickstart = URL(string: "https://openmoat.dev/docs/quickstart/")!
     public static let troubleshooting = URL(string: "https://openmoat.dev/docs/troubleshooting/")!
     public static let limits = URL(string: "https://openmoat.dev/docs/limits/")!
+    public static let howItDecides = URL(string: "https://openmoat.dev/docs/how-it-decides/")!
+    public static let mcpServers = URL(string: "https://openmoat.dev/docs/mcp-servers/")!
+    public static let allowReference = URL(string: "https://openmoat.dev/docs/allow-reference/")!
+    public static let keepTokensSafe = URL(string: "https://openmoat.dev/docs/keep-tokens-safe/")!
+    public static let turnOff = URL(string: "https://openmoat.dev/docs/turn-off/")!
 
     /// A new OpenMoat issue for a wrong block. Only the rule id goes in the
     /// title; the person adds the command themselves if they want to share it.

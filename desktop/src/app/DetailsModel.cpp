@@ -128,12 +128,10 @@ QVariantMap DetailsModel::allowed() const {
     }
     QVariantList grants;
     for (const SessionGrant &grant : report.sessionGrants) {
-        const QString agent = m_agentNames.value(grant.host, grant.host);
+        const QString agent = m_agentNames.value(grant.host, HostText::otherName(grant.host));
         grants << QVariantMap{
             {u"title"_s, grant.what},
-            {u"detail"_s, u"%1 · session %2 · %3"_s.arg(agent, grant.sessionId.left(8),
-                                                         DetailsText::endsIn(grant.expiresAtMs,
-                                                                             m_now.toMSecsSinceEpoch()))},
+            {u"detail"_s, DetailsText::grantLine(grant, agent, m_now.toMSecsSinceEpoch())},
         };
     }
     QVariantList repos;
@@ -170,7 +168,7 @@ QVariantMap DetailsModel::secrets() const {
         exposed += secret.sourceExposed ? 1 : 0;
         QString hint = secret.sourceExposed ? DetailsText::exposedHint() : DetailsText::coveredHint();
         if (secret.plainHttp) {
-            hint += u" "_s + DetailsText::plainHttpHint();
+            hint += u" "_s + DetailsText::plainHttpHint(secret);
         }
         items << QVariantMap{
             {u"id"_s, secret.id},

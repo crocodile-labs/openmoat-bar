@@ -2,7 +2,8 @@ import Foundation
 
 /// Plain words for OpenMoat's rule ids, for the decision view. The rule ids
 /// are the default policy's (openmoat `crates/openmoat-core/policies/default-v1.yaml`)
-/// and the ones moat's guard adds itself (`push.rs`, `mcp.rs`, `guard/drift.rs`);
+/// and the ones moat's guard, engine and proxy add themselves (`push.rs`, `mcp.rs`,
+/// `guard/drift.rs`, `action.rs`, `crates/openmoat-proxy`);
 /// a rule from a custom policy falls back to the reason moat gave the agent.
 /// The desktop app has the same table in `desktop/src/core/Text.cpp`.
 public enum RuleText {
@@ -80,7 +81,7 @@ public enum RuleText {
         "push-secret": "The push would publish a token or a brokered secret's value in a commit.",
         "push-runs-later":
             "After reading untrusted content, the agent pushes a change to a file CI runs with your secrets.",
-        "push-unchecked": "OpenMoat couldn't check what this push publishes in time, so it asks.",
+        "push-unchecked": "OpenMoat couldn't check what this push publishes, so it asks.",
         "token-egress": "A known kind of token was about to go to a host that isn't its own service.",
         "placeholder-egress": "A brokered secret's placeholder was about to go to a host that secret isn't for.",
         "mcp-server-changed":
@@ -89,7 +90,9 @@ public enum RuleText {
         "mcp-tool-held": "This MCP tool's description or inputs changed, so it stays hidden until a person accepts it.",
         "settings-drift":
             "A settings file OpenMoat pinned changed in a way that changes no decision, so calls are decided as usual.",
-        // The rest of the default policy (openmoat 0.9.0).
+        // The rest of the default policy (openmoat 0.10.0).
+        "agent-folders": "Renaming or removing this folder would move agent settings that OpenMoat protects.",
+        "stops-openmoat": "This would stop a running OpenMoat process, such as its network proxy.",
         "build-credentials":
             "Maven and Gradle settings files hold registry passwords. Agents never read them; builds still can.",
         "env-poison": "This changes how later commands find programs or load code, so it could run something else.",
@@ -118,6 +121,7 @@ public enum RuleText {
         "config-change": "The agent changed its own host's settings, which OpenMoat records and checks.",
         "kernel-error": "OpenMoat hit an error while deciding, so it stopped the call rather than let it through.",
         "unparseable": "OpenMoat couldn't read this command well enough to judge it, so it asks.",
+        "unchecked": "OpenMoat couldn't see all of this call, like input typed into a running shell, so it asks.",
         "ungoverned": "OpenMoat has no rules for this tool, so the agent's own permission flow decided.",
         "approved-session": "You allowed this call again for the rest of its session with openmoat allow.",
         "run-session": "This session runs under openmoat run, which links its calls to the proxy.",
@@ -131,6 +135,8 @@ public enum RuleText {
         "proxy-secret": "The proxy stopped a brokered secret from going where it isn't meant to.",
         "proxy-session": "The proxy didn't know the session this request claims to come from.",
         "proxy-audit": "The proxy couldn't record the request in the audit log, so it refused it.",
+        "proxy-port": "The site is allowed on the usual web ports, 443 and 80, but not on the port this asked for.",
+        "proxy-capacity": "The proxy already had as many connections open as it allows, so it refused new ones.",
         "moat.cloud-metadata": "Cloud metadata services hand out the machine's cloud credentials; never fetched.",
     ]
 }

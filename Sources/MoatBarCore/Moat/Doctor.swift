@@ -187,8 +187,10 @@ public enum DoctorTopic: Int, CaseIterable, Comparable {
         "sandbox": .sandbox, "service": .proxy, "audit": .audit,
     ]
 
-    /// How the notes about one agent start (`Claude Code      protection: …`).
-    private static let agentLines = ["protection:", "known gaps:", "host not found", "not set up"]
+    /// How the notes about one agent start (`Claude Code      protection: …`), and
+    /// the warning about a project settings file that agent loads (`Claude Code
+    /// project settings /path: …`; openmoat `commands/doctor.rs`, OpenMoat 0.8.0 and later).
+    private static let agentLines = ["protection:", "known gaps:", "host not found", "not set up", "project settings "]
 
     /// The left column of rows without an area. `command`, `binary` and
     /// `openmoat run` are the rows about the `moat` name and `openmoat run`

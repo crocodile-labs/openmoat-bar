@@ -119,17 +119,34 @@ public struct SessionGrant: Decodable, Equatable, Identifiable {
     public var what: String
     public var grantedAtMs: Int64
     public var expiresAtMs: Int64
+    /// The project the grant applies in (OpenMoat 0.10.0 and later); `nil` for a
+    /// file grant, which needs none, and from an older moat.
+    public var project: String?
+    /// `false` for a grant an earlier OpenMoat wrote without the project it
+    /// needs: it applies nowhere until it is approved again. An older moat
+    /// doesn't send it; its grants apply.
+    public var applies: Bool
 
     public var id: String {
         "\(self.host)/\(self.sessionId)/\(self.grantedAtMs)/\(self.what)"
     }
 
-    public init(host: String, sessionId: String, what: String, grantedAtMs: Int64, expiresAtMs: Int64) {
+    public init(
+        host: String,
+        sessionId: String,
+        what: String,
+        grantedAtMs: Int64,
+        expiresAtMs: Int64,
+        project: String? = nil,
+        applies: Bool = true
+    ) {
         self.host = host
         self.sessionId = sessionId
         self.what = what
         self.grantedAtMs = grantedAtMs
         self.expiresAtMs = expiresAtMs
+        self.project = project
+        self.applies = applies
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -138,6 +155,18 @@ public struct SessionGrant: Decodable, Equatable, Identifiable {
         case what
         case grantedAtMs = "granted_at_ms"
         case expiresAtMs = "expires_at_ms"
+        case project, applies
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.host = try c.decode(String.self, forKey: .host)
+        self.sessionId = try c.decode(String.self, forKey: .sessionId)
+        self.what = try c.decode(String.self, forKey: .what)
+        self.grantedAtMs = try c.decode(Int64.self, forKey: .grantedAtMs)
+        self.expiresAtMs = try c.decode(Int64.self, forKey: .expiresAtMs)
+        self.project = try? c.decodeIfPresent(String.self, forKey: .project)
+        self.applies = (try? c.decodeIfPresent(Bool.self, forKey: .applies)) ?? true
     }
 }
 

@@ -29,6 +29,9 @@ public struct BrokeredSecret: Decodable, Equatable, Identifiable {
     public var source: SecretSource
     /// Also added to plain-HTTP requests, where it travels unencrypted.
     public var plainHttp: Bool
+    /// The port of the plain-HTTP requests that get the value; `nil` means 80.
+    /// Only with `plainHttp` (OpenMoat 0.10.0 and later).
+    public var port: Int?
     /// No deny rule covers where the value is read from, so the agent could
     /// read it there.
     public var sourceExposed: Bool
@@ -39,6 +42,7 @@ public struct BrokeredSecret: Decodable, Equatable, Identifiable {
         header: String,
         source: SecretSource,
         plainHttp: Bool = false,
+        port: Int? = nil,
         sourceExposed: Bool
     ) {
         self.id = id
@@ -46,11 +50,17 @@ public struct BrokeredSecret: Decodable, Equatable, Identifiable {
         self.header = header
         self.source = source
         self.plainHttp = plainHttp
+        self.port = port
         self.sourceExposed = sourceExposed
     }
 
+    /// The port plain-HTTP requests get the value on: 80 unless OpenMoat names one.
+    public var plainHttpPort: Int {
+        self.port ?? 80
+    }
+
     private enum CodingKeys: String, CodingKey {
-        case id, host, header, source
+        case id, host, header, source, port
         case plainHttp = "plain_http"
         case sourceExposed = "source_exposed"
     }
@@ -62,6 +72,7 @@ public struct BrokeredSecret: Decodable, Equatable, Identifiable {
         self.header = try c.decodeIfPresent(String.self, forKey: .header) ?? ""
         self.source = (try? c.decode(SecretSource.self, forKey: .source)) ?? .unknown
         self.plainHttp = try c.decodeIfPresent(Bool.self, forKey: .plainHttp) ?? false
+        self.port = try? c.decodeIfPresent(Int.self, forKey: .port)
         // Missing means a moat that didn't check: say the agent may read it.
         self.sourceExposed = try c.decodeIfPresent(Bool.self, forKey: .sourceExposed) ?? true
     }

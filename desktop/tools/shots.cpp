@@ -122,10 +122,10 @@ QPixmap iconStrip() {
     return strip;
 }
 
-std::optional<Snapshot> fixtureSnapshot(const QString &status) {
+std::optional<Snapshot> fixtureSnapshot(const QString &status, const QString &show = u"show-today"_s) {
     auto runner = std::make_shared<test::StubRunner>();
     runner->stub(u"status"_s, test::fixture(status));
-    runner->stub(u"show"_s, test::fixture(u"show-today"_s));
+    runner->stub(u"show"_s, test::fixture(show));
     runner->stub(u"proxy"_s, test::fixture(u"proxy-running"_s));
     runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n"));
     // A fixed "now" just after the fixture's calls, so the times read the same on every run.
@@ -365,7 +365,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const auto protectedSnapshot = fixtureSnapshot(u"status"_s);
+    // All seven agents OpenMoat 0.10.0 lists, with calls from each, the proxy and the Continue CLI.
+    const auto protectedSnapshot = fixtureSnapshot(u"status-agents"_s, u"show-agents"_s);
     const auto unprotectedSnapshot = fixtureSnapshot(u"status-unprotected"_s);
     if (!protectedSnapshot || !unprotectedSnapshot) {
         return 1;

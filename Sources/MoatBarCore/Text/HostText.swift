@@ -15,7 +15,8 @@ public enum HostText {
 
     /// What to call an event's host when `openmoat status` lists no agent for
     /// it: OpenMoat's own parts write events too (`proxy`, `mcp-proxy`,
-    /// `moat-run`; openmoat `crates/openmoat-audit/src/store.rs`). A host
+    /// `moat-run`; openmoat `crates/openmoat-audit/src/store.rs`), and so does
+    /// the Continue CLI (`continue`), which shares Claude Code's hook. A host
     /// OpenMoat Bar doesn't know shows as its id.
     public static func name(forOther host: String) -> String {
         self.otherNames[host] ?? host
@@ -31,5 +32,8 @@ public enum HostText {
         "proxy": "Network proxy",
         "mcp-proxy": "MCP proxy",
         "moat-run": "openmoat run",
+        // The Continue CLI (`cn`) runs Claude Code's hook; `openmoat status` lists
+        // no agent for it (openmoat `crates/openmoat-hosts/src/host/continue_cli.rs`).
+        "continue": "Continue CLI",
     ]
 }

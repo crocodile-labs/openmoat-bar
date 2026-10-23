@@ -26,6 +26,31 @@ final class SecurityChecksTests: XCTestCase {
         XCTAssertFalse(checks.contains { $0.id == "agent-cursor" }, "an unknown level is not listed as a check")
     }
 
+    func test_hookTurnedOffBySettings_saysWhichFileToEdit_andCopiesDoctor() throws {
+        let snapshot = try self.snapshot("status-hook-off", proxy: nil)
+        let checks = SecurityChecks.from(snapshot)
+        let claude = try XCTUnwrap(checks.first { $0.id == "agent-claude-code" })
+        let codex = try XCTUnwrap(checks.first { $0.id == "agent-codex" })
+
+        XCTAssertEqual(claude.kind, .problem)
+        XCTAssertEqual(claude.fix, "openmoat doctor")
+        XCTAssertEqual(
+            claude.detail?.hasSuffix(
+                "Edit /Users/you/.claude/settings.json to remove what turns the hook off, "
+                    + "then run openmoat doctor to check."
+            ),
+            true
+        )
+        XCTAssertEqual(codex.fix, "openmoat", "a missing hook is fixed by running openmoat")
+        XCTAssertEqual(SecurityChecks.fix(for: snapshot.status.agents[0]), "openmoat doctor")
+        XCTAssertEqual(
+            SecurityChecks.hookTurnedOffBy(snapshot.status.agents[0].reason),
+            "/Users/you/.claude/settings.json"
+        )
+        XCTAssertNil(SecurityChecks.hookTurnedOffBy("hook missing"))
+        XCTAssertNil(SecurityChecks.hookTurnedOffBy(nil))
+    }
+
     func test_attention_isWarningsAndProblems() throws {
         let fine = try SecurityChecks.from(self.snapshot("status", proxy: .running))
         XCTAssertEqual(SecurityChecks.needingAttention(fine), [], "hook only is shown but does not turn the icon amber")

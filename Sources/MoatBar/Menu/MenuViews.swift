@@ -216,6 +216,9 @@ struct DecisionView: View {
                 .padding(7)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor)))
+            if let unseen = self.event.action?.uncheckedReason {
+                self.row("Couldn't see", unseen)
+            }
             if let cwd = self.event.cwd {
                 self.row("Folder", cwd)
             }

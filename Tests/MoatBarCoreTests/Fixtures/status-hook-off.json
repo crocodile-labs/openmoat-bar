@@ -1,0 +1,22 @@
+{
+  "agents": [
+    {
+      "gaps": "file tools, WebFetch and MCP servers run outside the OS sandbox; calls run unchecked if the hook binary is missing or crashes",
+      "host": "claude-code",
+      "level": "not-protected",
+      "name": "Claude Code",
+      "reason": "hook turned off by /Users/you/.claude/settings.json: `disableAllHooks` turns off every hook, OpenMoat's included"
+    },
+    {
+      "gaps": "",
+      "host": "codex",
+      "level": "not-protected",
+      "name": "Codex",
+      "reason": "hook missing"
+    }
+  ],
+  "policy_update": null,
+  "lock_drift": [],
+  "mcp_changes": [],
+  "project_settings": []
+}

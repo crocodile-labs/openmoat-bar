@@ -167,9 +167,12 @@ DoctorTopic DoctorCheck::topic() const {
         // rename `Claude Code      hook runs the old `moat` name…`.
         return DoctorTopic::Hooks;
     }
-    // How the notes about one agent start (`Claude Code      protection: …`).
+    // How the notes about one agent start (`Claude Code      protection: …`), and
+    // the warning about a project settings file that agent loads (`Claude Code
+    // project settings /path: …`; openmoat commands/doctor.rs).
     constexpr std::array agentLines{QStringView{u"protection:"}, QStringView{u"known gaps:"},
-                                    QStringView{u"host not found"}, QStringView{u"not set up"}};
+                                    QStringView{u"host not found"}, QStringView{u"not set up"},
+                                    QStringView{u"project settings "}};
     if (!lower.isEmpty() &&
         std::ranges::any_of(agentLines, [this](QStringView start) { return detail.startsWith(start); })) {
         return DoctorTopic::Agents;
@@ -383,8 +386,26 @@ QString DetailsText::coveredHint() {
     return u"The agent can't read the value where OpenMoat reads it."_s;
 }
 
-QString DetailsText::plainHttpHint() {
-    return u"Also added to plain-HTTP requests, where it travels unencrypted."_s;
+QString DetailsText::plainHttpHint(const BrokeredSecret &secret) {
+    return u"Also added to plain-HTTP requests on port %1, where it travels unencrypted."_s.arg(
+        secret.port.value_or(80));
+}
+
+QString DetailsText::grantAppliesNowhere() {
+    return u"Names no project, so it applies nowhere: approve it again"_s;
+}
+
+QString DetailsText::grantLine(const SessionGrant &grant, const QString &agent, std::int64_t nowMs) {
+    QStringList parts{agent, u"session "_s + grant.sessionId.left(8)};
+    if (!grant.applies) {
+        parts << grantAppliesNowhere();
+        return parts.join(u" · "_s);
+    }
+    if (grant.project && !grant.project->isEmpty()) {
+        parts << u"in "_s + *grant.project;
+    }
+    parts << endsIn(grant.expiresAtMs, nowMs);
+    return parts.join(u" · "_s);
 }
 
 QString DetailsText::lint() {

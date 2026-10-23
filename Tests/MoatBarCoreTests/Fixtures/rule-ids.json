@@ -1,0 +1,18 @@
+{
+  "openmoat": "0.10.0",
+  "default_policy": [
+    "secrets-paths", "build-credentials", "env-secrets", "env-dump", "env-poison", "pipe-to-shell",
+    "destructive", "kernel-self", "agent-folders", "shell-rc", "cloud-metadata", "token-egress",
+    "placeholder-egress", "project-fs", "agent-temp", "dev-shell", "dev-readonly", "shell-locals",
+    "dev-tools", "text-tools", "registries", "safe-mcp", "git-internals", "runs-later", "persistence",
+    "stops-openmoat", "home-sweep", "other-home", "secret-names", "opaque-code", "package-near-miss",
+    "docker-secrets", "local-net"
+  ],
+  "added_by_openmoat": [
+    "ungoverned", "kernel-error", "approved-session", "config-change", "settings-drift", "mcp-proxy",
+    "mcp-tool-held", "run-guard-token", "kernel-integrity", "mcp-server-changed", "project-settings",
+    "push-secret", "push-runs-later", "push-unchecked", "default.net", "run-session", "unchecked",
+    "session-taint", "moat.cloud-metadata", "executables", "proxy-secret", "proxy-address", "proxy-sni",
+    "proxy-request", "proxy-upstream", "proxy-audit", "proxy-port", "proxy-capacity", "proxy-session"
+  ]
+}
