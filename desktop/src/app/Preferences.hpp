@@ -7,9 +7,9 @@
 
 namespace moatbar {
 
-/// MoatBar's own settings, the only things it ever saves. Nothing here
+/// OpenMoat Bar's own settings, the only things it ever saves. Nothing here
 /// touches OpenMoat or ~/.moat.
-///   - block notifications: off by default (MoatBar is quiet)
+///   - block notifications: off by default (OpenMoat Bar is quiet)
 ///   - the welcome window was shown
 ///   - start at login: an XDG autostart entry on Linux, the per-user Run key
 ///     on Windows; off until the person turns it on
@@ -47,6 +47,17 @@ public:
 
     /// The autostart entry's path (Linux).
     [[nodiscard]] QString autostartFile() const;
+    /// The autostart entry the app wrote when it was called MoatBar (Linux).
+    [[nodiscard]] QString legacyAutostartFile() const;
+
+    /// The app was called MoatBar until 0.3.0. Copies the old settings in
+    /// `old` once, only keys these settings do not have yet, and swaps an old
+    /// start-at-login entry (Linux autostart file, Windows Run value) for this
+    /// app's own, so the old name does not start as well.
+    void migrateFromMoatBar(const QSettings &old);
+    /// The two halves of migrateFromMoatBar, apart for tests.
+    void migrateSettings(const QSettings &old);
+    void migrateStartAtLogin();
 
 signals:
     void changed();

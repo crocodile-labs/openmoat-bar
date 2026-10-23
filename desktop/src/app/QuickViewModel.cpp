@@ -98,8 +98,8 @@ QVariantMap QuickViewModel::unavailable() const {
     if (!m_error || m_error->kind == MoatError::Kind::NotInstalled) {
         return {
             {u"title"_s, u"OpenMoat isn't installed"_s},
-            {u"text"_s, u"MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts."_s},
-            {u"note"_s, u"MoatBar looks for openmoat again every minute."_s},
+            {u"text"_s, u"OpenMoat Bar shows what OpenMoat does. Without it, your agents run with only their own prompts."_s},
+            {u"note"_s, u"OpenMoat Bar looks for openmoat again every minute."_s},
             {u"tone"_s, u"muted"_s},
             {u"commandTitle"_s, u"Copy the install command"_s},
             {u"command"_s, CopyCommands::install()},

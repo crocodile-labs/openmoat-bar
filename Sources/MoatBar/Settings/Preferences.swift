@@ -1,7 +1,8 @@
 import Foundation
+import MoatBarCore
 import ServiceManagement
 
-/// MoatBar's own settings. These are the only things MoatBar ever saves.
+/// OpenMoat Bar's own settings. These are the only things OpenMoat Bar ever saves.
 final class Preferences: ObservableObject {
     static let shared = Preferences()
 
@@ -16,7 +17,22 @@ final class Preferences: ObservableObject {
         self.defaults = defaults
     }
 
-    /// Send a notification for blocked calls. Off by default: MoatBar is quiet.
+    /// Copies the settings saved under the old name, MoatBar, once. Runs
+    /// before anything reads a setting.
+    static func migrateFromMoatBar(defaults: UserDefaults = .standard) {
+        guard let domain = Bundle.main.bundleIdentifier, domain != SettingsMigration.oldDomain else {
+            return
+        }
+        let values = SettingsMigration.values(
+            old: defaults.persistentDomain(forName: SettingsMigration.oldDomain),
+            current: defaults.persistentDomain(forName: domain) ?? [:]
+        )
+        for (key, value) in values {
+            defaults.set(value, forKey: key)
+        }
+    }
+
+    /// Send a notification for blocked calls. Off by default: OpenMoat Bar is quiet.
     var notifyBlocks: Bool {
         get { self.defaults.bool(forKey: Key.notifyBlocks) }
         set {
@@ -60,7 +76,7 @@ final class Preferences: ObservableObject {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                NSLog("MoatBar: open at login: \(error.localizedDescription)")
+                NSLog("OpenMoat Bar: open at login: \(error.localizedDescription)")
             }
         }
     }

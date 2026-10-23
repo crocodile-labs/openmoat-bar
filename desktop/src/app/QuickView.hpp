@@ -21,7 +21,7 @@ public:
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 };
 
-/// A QML engine for one window: MoatBar's images, objects exposed to QML by
+/// A QML engine for one window: OpenMoat Bar's images, objects exposed to QML by
 /// name, and a count of QML warnings (the screenshot tool fails on any).
 class QmlHost final : public QObject {
     Q_OBJECT

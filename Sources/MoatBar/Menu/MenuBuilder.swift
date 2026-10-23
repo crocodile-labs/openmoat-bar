@@ -375,8 +375,8 @@ struct MenuBuilder {
         if self.error == nil || self.error == .notInstalled {
             menu.addItem(hostedItem(ProblemCard(
                 title: "OpenMoat isn't installed",
-                text: "MoatBar shows what OpenMoat does. Without it, your agents run with only their own prompts.",
-                note: "MoatBar looks for openmoat again every minute.",
+                text: "OpenMoat Bar shows what OpenMoat does. Without it, your agents run with only their own prompts.",
+                note: "OpenMoat Bar looks for openmoat again every minute.",
                 tint: Color(nsColor: .secondaryLabelColor)
             )))
             menu.addItem(copyItem("Copy the install command", command: CopyCommands.install))
@@ -411,8 +411,8 @@ struct MenuBuilder {
         menu.addItem(ClosureMenuItem("OpenMoat docs ↗") { Actions.open(DocsLink.home) })
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Settings…", key: ",") { self.onSettings() })
-        menu.addItem(ClosureMenuItem("About MoatBar") { Actions.showAbout() })
-        menu.addItem(ClosureMenuItem("Quit MoatBar", key: "q") { NSApp.terminate(nil) })
+        menu.addItem(ClosureMenuItem("About OpenMoat Bar") { Actions.showAbout() })
+        menu.addItem(ClosureMenuItem("Quit OpenMoat Bar", key: "q") { NSApp.terminate(nil) })
     }
 
     private func agentName(_ host: String, _ snapshot: Snapshot) -> String {

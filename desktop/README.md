@@ -1,6 +1,6 @@
-# MoatBar for Linux and Windows
+# OpenMoat Bar for Linux and Windows
 
-The same MoatBar as on macOS, for Linux and Windows: a tray croc and a small window that show
+The same OpenMoat Bar as on macOS, for Linux and Windows: a tray croc and a small window that show
 which coding agents OpenMoat protects, what it blocked and why, and a notification when
 protection drops. Read-only, like the Mac app. What differs from macOS:
 [MAC_COMPARISON.md](MAC_COMPARISON.md).
@@ -25,7 +25,7 @@ the same order. Agent tabs on top, then who is protected, problems, Today, Block
 Left to your agent / Allowed (click one for its calls, click a call for the whole story),
 agents and security checks, then Refresh, docs, About and Quit. On Windows it is a flyout
 beside the taskbar that closes when you click elsewhere; on Linux a normal window. A right
-click on the icon still opens the plain tray menu, which also has "Open MoatBar" for desktops
+click on the icon still opens the plain tray menu, which also has "Open OpenMoat Bar" for desktops
 where a click opens the menu (GNOME's AppIndicator). Colours follow the desktop's palette, light
 or dark. Keys: Ctrl+R refresh, Ctrl+A Activity, Esc back or close, Ctrl+Q quit.
 
@@ -39,31 +39,31 @@ Activity…"), and from the tray menu.
 ## Welcome, Settings and notifications
 
 The first launch shows a welcome window once. Settings (Ctrl+, in the Quick View, or the tray
-menu) has the few things MoatBar decides itself:
+menu) has the few things OpenMoat Bar decides itself:
 
-- Start at login: an XDG autostart entry (`~/.config/autostart/dev.openmoat.moatbar.desktop`)
+- Start at login: an XDG autostart entry (`~/.config/autostart/dev.openmoat.bar.desktop`)
   on Linux, the per-user Run key on Windows. Off until you turn it on.
 - Notifications: an agent that stops being protected always notifies. Blocked calls notify
   only if you turn it on, at most one per rule every 10 minutes, naming the rule and the agent
   but never the command.
 
-MoatBar's settings are its own (Qt's per-user settings); it never writes to OpenMoat or `~/.moat`.
+OpenMoat Bar's settings are its own (Qt's per-user settings); it never writes to OpenMoat or `~/.moat`.
 
-## One MoatBar, with or without a tray
+## One OpenMoat Bar, with or without a tray
 
-Only one MoatBar runs per user. Starting it again (from the app menu, the Start menu or a
+Only one OpenMoat Bar runs per user. Starting it again (from the app menu, the Start menu or a
 terminal) hands the request to the one that is running, over a local socket only that user
 can open, and exits:
 
 | Command | Does |
 | --- | --- |
-| `moatbar` | Opens the Quick View |
-| `moatbar --activity` | Opens the Activity window |
-| `moatbar --settings` | Opens Settings |
-| `moatbar --background` | Starts without opening a window (what start at login uses) |
-| `moatbar --quit` | Quits the MoatBar that is running |
+| `openmoat-bar` | Opens the Quick View |
+| `openmoat-bar --activity` | Opens the Activity window |
+| `openmoat-bar --settings` | Opens Settings |
+| `openmoat-bar --background` | Starts without opening a window (what start at login uses) |
+| `openmoat-bar --quit` | Quits the OpenMoat Bar that is running |
 
-Without a tray (GNOME without the AppIndicator extension), MoatBar still runs. Start it from the
+Without a tray (GNOME without the AppIndicator extension), OpenMoat Bar still runs. Start it from the
 app menu to open the Quick View as a window; notifications go to GNOME's own notification
 service.
 
@@ -89,16 +89,16 @@ system are in the [main README](../README.md#install-and-run).
 cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ctest --test-dir build --build-config Release --output-on-failure
-./build/src/app/moatbar
+./build/src/app/openmoat-bar
 ```
 
 On GNOME, the tray icon needs the "AppIndicator and KStatusNotifierItem Support" extension;
-without it MoatBar runs from the app menu (see above).
+without it OpenMoat Bar runs from the app menu (see above).
 
 ## Rules
 
 The same as the Mac app (see `../AGENTS.md`):
-- MoatBar runs only `openmoat status`, `show`, `report`, `proxy status` and `--version`.
+- OpenMoat Bar runs only `openmoat status`, `show`, `report`, `proxy status` and `--version`.
 - It never writes under `~/.moat`.
 - Fixes are commands the person copies into a terminal.
 

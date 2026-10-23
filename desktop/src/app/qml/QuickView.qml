@@ -16,7 +16,7 @@ ApplicationWindow {
     // Linux: a normal window the desktop places (Wayland allows nothing else).
     readonly property bool flyout: Qt.platform.os === "windows"
 
-    title: "MoatBar"
+    title: "OpenMoat Bar"
     width: 380
     height: 720
     minimumWidth: 340

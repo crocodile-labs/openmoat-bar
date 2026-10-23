@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The first-launch window: what MoatBar is, in three lines, then the menu.
+/// The first-launch window: what OpenMoat Bar is, in three lines, then the menu.
 struct WelcomeView: View {
     @ObservedObject var preferences: Preferences
     let onOpenMenu: () -> Void
@@ -16,7 +16,7 @@ struct WelcomeView: View {
                     .frame(width: 200)
                     .accessibilityLabel("OpenMoat")
             }
-            Text("Welcome to MoatBar").font(.system(size: 22, weight: .bold))
+            Text("Welcome to OpenMoat Bar").font(.system(size: 22, weight: .bold))
             Text("See what OpenMoat does for your coding agents.")
                 .foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 14) {
@@ -36,12 +36,12 @@ struct WelcomeView: View {
                     "eye",
                     color: .blue,
                     title: "Read-only",
-                    text: "MoatBar never allows anything or changes a rule. Fixes are commands you copy."
+                    text: "OpenMoat Bar never allows anything or changes a rule. Fixes are commands you copy."
                 )
             }
             .padding(.vertical, 12)
             if self.preferences.canOpenAtLogin {
-                Toggle("Open MoatBar at login", isOn: Binding(
+                Toggle("Open OpenMoat Bar at login", isOn: Binding(
                     get: { self.preferences.openAtLogin },
                     set: { self.preferences.openAtLogin = $0 }
                 ))

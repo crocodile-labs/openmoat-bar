@@ -6,10 +6,10 @@
 
 namespace moatbar {
 
-/// One MoatBar per user. The first to start listens on a local socket only
+/// One OpenMoat Bar per user. The first to start listens on a local socket only
 /// that user can open; a later start hands its request ("show", "activity",
 /// "settings", "quit") to it and exits. A request only opens or closes
-/// MoatBar's own windows: nothing on the socket reads data or changes anything.
+/// OpenMoat Bar's own windows: nothing on the socket reads data or changes anything.
 class SingleInstance final : public QObject {
     Q_OBJECT
 
@@ -17,12 +17,14 @@ public:
     /// `name`: the socket, per user by default (tests pass their own).
     explicit SingleInstance(QString name = defaultName(), QObject *parent = nullptr);
 
-    /// Hand `request` to a MoatBar that is already running. True if one took it.
+    /// Hand `request` to an OpenMoat Bar that is already running. True if one took it.
     [[nodiscard]] bool sendToRunning(const QString &request, int timeoutMs = 1000) const;
-    /// Become the running MoatBar. False if another one is listening already.
+    /// Become the running OpenMoat Bar. False if another one is listening already.
     bool listen();
 
     [[nodiscard]] static QString defaultName();
+    /// The socket of the same app under its old name, MoatBar (0.2 and earlier).
+    [[nodiscard]] static QString legacyName();
     /// The requests a later start may send.
     [[nodiscard]] static bool isRequest(const QString &text);
 

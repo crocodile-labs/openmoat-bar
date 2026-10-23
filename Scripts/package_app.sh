@@ -1,11 +1,14 @@
 #!/bin/bash
-# Build MoatBar.app from the Swift package: release build, app bundle with the
-# resource bundle and Info.plist, ad-hoc signature. Output: ./MoatBar.app
+# Build "OpenMoat Bar.app" from the Swift package: release build, app bundle
+# with the images and Info.plist, ad-hoc signature. Output: "./OpenMoat Bar.app"
+# (the app is called MoatBar inside the code: targets MoatBar and MoatBarCore).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-VERSION="${MOATBAR_VERSION:-0.2.0}"
-APP="MoatBar.app"
+VERSION="${MOATBAR_VERSION:-0.3.0}"
+APP="OpenMoat Bar.app"
+# The binary inside the bundle: no space, so pkill and scripts stay simple.
+EXE="openmoat-bar"
 
 # Build with swiftc directly, without SwiftPM. Used when `swift build` can't
 # read Package.swift: a Command Line Tools install whose compiler and SDK
@@ -46,7 +49,7 @@ fi
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN/MoatBar" "$APP/Contents/MacOS/MoatBar"
+cp "$BIN/MoatBar" "$APP/Contents/MacOS/$EXE"
 # Images go straight into Contents/Resources, where AppResources finds them.
 cp Sources/MoatBar/Resources/*.png Sources/MoatBar/Resources/AppIcon.icns "$APP/Contents/Resources/"
 
@@ -55,10 +58,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>MoatBar</string>
-  <key>CFBundleDisplayName</key><string>MoatBar</string>
-  <key>CFBundleIdentifier</key><string>dev.openmoat.moatbar</string>
-  <key>CFBundleExecutable</key><string>MoatBar</string>
+  <key>CFBundleName</key><string>OpenMoat Bar</string>
+  <key>CFBundleDisplayName</key><string>OpenMoat Bar</string>
+  <key>CFBundleIdentifier</key><string>dev.openmoat.bar</string>
+  <key>CFBundleExecutable</key><string>${EXE}</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
@@ -71,4 +74,4 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 PLIST
 
 codesign --force --deep --sign - "$APP"
-echo "Built $APP ($VERSION). Open it with: open $APP"
+echo "Built $APP ($VERSION). Open it with: open \"$APP\""

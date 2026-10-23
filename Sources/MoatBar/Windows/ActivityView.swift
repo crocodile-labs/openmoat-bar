@@ -182,7 +182,7 @@ struct ActivityView: View {
     /// Save the rows shown, one JSON object per line, to a file the person picks.
     private func export() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "moatbar-activity-\(self.model.window.rawValue).jsonl"
+        panel.nameFieldStringValue = "openmoat-bar-activity-\(self.model.window.rawValue).jsonl"
         guard panel.runModal() == .OK, let url = panel.url else {
             return
         }

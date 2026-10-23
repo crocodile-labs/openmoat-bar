@@ -79,11 +79,11 @@ ColumnLayout {
         onClicked: moatbar.openSettings()
     }
     LinkRow {
-        title: "About MoatBar"
+        title: "About OpenMoat Bar"
         onClicked: moatbar.about()
     }
     LinkRow {
-        title: "Quit MoatBar"
+        title: "Quit OpenMoat Bar"
         shortcut: "Ctrl+Q"
         onClicked: moatbar.quit()
     }

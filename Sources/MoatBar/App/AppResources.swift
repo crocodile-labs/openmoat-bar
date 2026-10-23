@@ -1,6 +1,6 @@
 import AppKit
 
-/// Finds the app's images. In `MoatBar.app` they sit in `Contents/Resources`
+/// Finds the app's images. In `OpenMoat Bar.app` they sit in `Contents/Resources`
 /// (`Scripts/package_app.sh` copies them there); under `swift run` they are in
 /// the SwiftPM resource bundle next to the binary. SwiftPM's own `Bundle.module`
 /// is not used because it stops the app when the bundle is not where it expects.

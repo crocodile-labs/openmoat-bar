@@ -31,7 +31,7 @@ public struct SecurityCheck: Equatable, Identifiable {
 }
 
 /// Checks built from what moat already reports (status, proxy status,
-/// version). `openmoat doctor` checks more; MoatBar shows those once moat can
+/// version). `openmoat doctor` checks more; OpenMoat Bar shows those once moat can
 /// print them as JSON.
 public enum SecurityChecks {
     public static func from(_ snapshot: Snapshot) -> [SecurityCheck] {

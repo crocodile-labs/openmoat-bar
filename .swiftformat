@@ -1,4 +1,4 @@
-# SwiftFormat configuration for MoatBar. Run `make format`; CI runs `make lint`.
+# SwiftFormat configuration for OpenMoat Bar. Run `make format`; CI runs `make lint`.
 
 --swiftversion 5.7
 

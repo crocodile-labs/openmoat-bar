@@ -1,9 +1,9 @@
 import Foundation
 
 /// Reads moat. Runs only the read-only command lines in `allowedCommands` and
-/// decodes their JSON; MoatBar never runs a moat command that changes anything.
+/// decodes their JSON; OpenMoat Bar never runs a moat command that changes anything.
 public struct MoatClient {
-    /// The only moat command lines MoatBar ever runs, word for word; `*` is
+    /// The only moat command lines OpenMoat Bar ever runs, word for word; `*` is
     /// one `--since` value. Whole lines, not just the first word: `doctor`
     /// re-pins with `--accept`, `secret add` edits the policy, and `proxy`
     /// alone runs the proxy.
@@ -156,7 +156,7 @@ public struct MoatClient {
 
     func run(_ arguments: [String], okExitCodes: Set<Int32> = [0]) throws -> Data {
         guard Self.isAllowed(arguments) else {
-            preconditionFailure("MoatBar only runs read-only openmoat commands")
+            preconditionFailure("OpenMoat Bar only runs read-only openmoat commands")
         }
         if okExitCodes == [0] {
             return try self.runner.run(self.binary, arguments: arguments, timeout: self.timeout)

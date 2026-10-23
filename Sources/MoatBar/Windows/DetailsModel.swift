@@ -22,7 +22,7 @@ enum DetailsTab: String, CaseIterable, Identifiable {
 
 /// Loads what you allowed, the brokered secrets and every `openmoat doctor` check
 /// for the Details window. Reads run off the main thread; results land on the
-/// main thread. Read-only like the rest of MoatBar.
+/// main thread. Read-only like the rest of OpenMoat Bar.
 final class DetailsModel: ObservableObject {
     @Published var tab: DetailsTab = .allowed
     @Published private(set) var details: Details?
@@ -37,7 +37,7 @@ final class DetailsModel: ObservableObject {
     /// Whether the window reads moat when it appears; off for previews.
     private(set) var readsOnAppear = true
 
-    private let queue = DispatchQueue(label: "dev.openmoat.moatbar.details", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "dev.openmoat.bar.details", qos: .userInitiated)
 
     /// Show details without reading moat (README screenshots).
     func show(_ details: Details) {

@@ -13,7 +13,7 @@ using namespace moatbar;
 
 namespace {
 
-/// A socket name of the test's own, never the real MoatBar's.
+/// A socket name of the test's own, never the real OpenMoat Bar's.
 QString scratchName() {
     return u"moatbar-test-"_s + QUuid::createUuid().toString(QUuid::Id128).left(12);
 }
@@ -74,8 +74,11 @@ private slots:
     }
 
     void theSocketNameIsPerUser() {
-        QVERIFY(SingleInstance::defaultName().startsWith(u"dev.openmoat.moatbar-"_s));
+        QVERIFY(SingleInstance::defaultName().startsWith(u"dev.openmoat.bar-"_s));
         QVERIFY(!SingleInstance::defaultName().contains(u'/'));
+        // The old name's socket, asked to quit when the renamed app starts.
+        QVERIFY(SingleInstance::legacyName().startsWith(u"dev.openmoat.moatbar-"_s));
+        QCOMPARE(SingleInstance::legacyName().mid(21), SingleInstance::defaultName().mid(17));
     }
 };
 

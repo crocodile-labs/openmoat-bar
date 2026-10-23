@@ -292,7 +292,7 @@ private slots:
         const DoctorCheck &alias = groups[1].checks[0];
         QCOMPARE(alias.title(), u"Command name"_s);
         QVERIFY(alias.subtitle().startsWith(u"`moat` is the old name of `openmoat`"_s));
-        // The newer wording of lines MoatBar matches on.
+        // The newer wording of lines OpenMoat Bar matches on.
         QCOMPARE(CheckText::hint(groups[1].checks[1]).value_or(QString{}),
                  u"Changed since you trusted it, so only its deny and ask rules apply."_s);
         QCOMPARE(CheckText::fix(groups[1].checks[2]).value_or(QString{}), u"openmoat mcp accept"_s);

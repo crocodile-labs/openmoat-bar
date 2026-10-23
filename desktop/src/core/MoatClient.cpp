@@ -122,7 +122,7 @@ MoatClient::MoatClient(QString binary, std::shared_ptr<CommandRunner> runner, st
     : m_binary(std::move(binary)), m_runner(std::move(runner)), m_timeout(timeout) {}
 
 Result<QByteArray> MoatClient::run(const QStringList &arguments, const QList<int> &okExitCodes) const {
-    // A programming error, not a runtime one: MoatBar must never run anything else.
+    // A programming error, not a runtime one: OpenMoat Bar must never run anything else.
     Q_ASSERT(isAllowed(arguments));
     if (!isAllowed(arguments)) {
         return MoatError{MoatError::Kind::Failed, arguments.value(0), u"not a read-only command"_s};

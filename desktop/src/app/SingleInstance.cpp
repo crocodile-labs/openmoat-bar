@@ -34,10 +34,22 @@ SingleInstance::SingleInstance(QString name, QObject *parent) : QObject(parent),
     });
 }
 
-QString SingleInstance::defaultName() {
-    // Per user: the home folder's hash, so the name stays short and has no path in it.
+namespace {
+
+/// Per user: the home folder's hash, so the name stays short and has no path in it.
+QString perUser(const QString &prefix) {
     const QByteArray hash = QCryptographicHash::hash(QDir::homePath().toUtf8(), QCryptographicHash::Sha256).toHex();
-    return u"dev.openmoat.moatbar-"_s + QString::fromLatin1(hash.left(16));
+    return prefix + QString::fromLatin1(hash.left(16));
+}
+
+} // namespace
+
+QString SingleInstance::defaultName() {
+    return perUser(u"dev.openmoat.bar-"_s);
+}
+
+QString SingleInstance::legacyName() {
+    return perUser(u"dev.openmoat.moatbar-"_s);
 }
 
 bool SingleInstance::isRequest(const QString &text) {
@@ -55,7 +67,7 @@ bool SingleInstance::sendToRunning(const QString &request, int timeoutMs) const 
 }
 
 bool SingleInstance::listen() {
-    // Someone answering means a MoatBar is running. Asked first, because
+    // Someone answering means an OpenMoat Bar is running. Asked first, because
     // Windows lets two servers share a pipe name.
     QLocalSocket probe;
     probe.connectToServer(m_name);
@@ -67,7 +79,7 @@ bool SingleInstance::listen() {
     if (m_server.listen(m_name)) {
         return true;
     }
-    // A socket file left behind by a MoatBar that crashed: it exists, but the
+    // A socket file left behind by an OpenMoat Bar that crashed: it exists, but the
     // connection is refused. A slow answer is not a reason to take it over.
     if (m_server.serverError() == QAbstractSocket::AddressInUseError && refused) {
         QLocalServer::removeServer(m_name);

@@ -1,0 +1,9 @@
+# Default owner for everything.
+*                               @iamdotk
+
+# What the app may run, the installers and CI.
+/Sources/MoatBarCore/Moat/      @iamdotk
+/desktop/src/core/MoatClient.*  @iamdotk
+/Scripts/                       @iamdotk
+/SECURITY.md                    @iamdotk
+/.github/workflows/             @iamdotk

@@ -2,7 +2,7 @@ import AppKit
 import MoatBarCore
 import SwiftUI
 
-/// Settings: the few things MoatBar itself decides. Nothing here changes OpenMoat.
+/// Settings: the few things OpenMoat Bar itself decides. Nothing here changes OpenMoat.
 struct SettingsView: View {
     @ObservedObject var preferences: Preferences
     let moatPath: String?
@@ -17,7 +17,7 @@ struct SettingsView: View {
                         set: { self.preferences.openAtLogin = $0 }
                     ))
                 } else {
-                    Text("Open at login: add MoatBar in System Settings → General → Login Items.")
+                    Text("Open at login: add OpenMoat Bar in System Settings → General → Login Items.")
                         .foregroundColor(.secondary)
                 }
             } header: {
@@ -27,7 +27,7 @@ struct SettingsView: View {
             Section {
                 Toggle("An agent is not protected", isOn: .constant(true))
                     .disabled(true)
-                Text("Always on: the one thing MoatBar must never miss.")
+                Text("Always on: the one thing OpenMoat Bar must never miss.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Toggle("Each blocked call", isOn: Binding(
@@ -44,7 +44,7 @@ struct SettingsView: View {
             Section {
                 Text("openmoat: \(self.moatPath ?? "not found")\(self.moatVersion.map { " · \($0)" } ?? "")")
                     .textSelection(.enabled)
-                Text("MoatBar reads OpenMoat's status and audit log. It never writes to them.")
+                Text("OpenMoat Bar reads OpenMoat's status and audit log. It never writes to them.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Button("How to turn OpenMoat off ↗") {

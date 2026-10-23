@@ -1,6 +1,6 @@
 import Foundation
 
-/// Everything MoatBar knows at one moment, read from moat. Menus and windows
+/// Everything OpenMoat Bar knows at one moment, read from moat. Menus and windows
 /// are drawn from a snapshot; nothing in it is ever written back.
 public struct Snapshot: Equatable {
     public var status: StatusReport

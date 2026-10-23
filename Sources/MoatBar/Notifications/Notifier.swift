@@ -30,7 +30,7 @@ final class Notifier {
             self.post(
                 id: "unprotected-\(agent.host)",
                 title: "\(agent.name) is not protected",
-                body: "\(why)Its calls are not being checked. Open MoatBar for the fix.",
+                body: "\(why)Its calls are not being checked. Open OpenMoat Bar for the fix.",
                 sound: true
             )
         }
@@ -46,7 +46,7 @@ final class Notifier {
             self.post(
                 id: "block-\(event.id)",
                 title: "Blocked by \(rule)",
-                body: "\(agent) was stopped. Open MoatBar to see what and why.",
+                body: "\(agent) was stopped. Open OpenMoat Bar to see what and why.",
                 sound: false
             )
         }

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/crocodile-labs/openmoat-bar/security/advisories/new
+    about: Report privately. Anything that makes OpenMoat Bar write state, approve a call, run a command or leak a secret.
+  - name: A problem with the openmoat command
+    url: https://github.com/crocodile-labs/openmoat/issues/new/choose
+    about: Decisions, policy, hooks, install and the CLI belong in OpenMoat's issues.

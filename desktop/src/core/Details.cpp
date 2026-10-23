@@ -50,9 +50,9 @@ QString SecretSource::label() const {
     case Kind::Env: return u"the variable %1"_s.arg(value);
     case Kind::File: return u"the file %1"_s.arg(value);
     case Kind::Keychain: return u"the keychain item %1 (%2)"_s.arg(value, account);
-    case Kind::Unknown: return u"a source this MoatBar doesn't know"_s;
+    case Kind::Unknown: return u"a source this version of OpenMoat Bar doesn't know"_s;
     }
-    return u"a source this MoatBar doesn't know"_s;
+    return u"a source this version of OpenMoat Bar doesn't know"_s;
 }
 
 QString BrokeredSecret::line() const {

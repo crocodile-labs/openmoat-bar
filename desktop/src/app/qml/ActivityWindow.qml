@@ -10,7 +10,7 @@ import "."
 ApplicationWindow {
     id: root
 
-    title: "MoatBar Activity"
+    title: "OpenMoat Bar Activity"
     width: 1040
     height: 620
     minimumWidth: 820

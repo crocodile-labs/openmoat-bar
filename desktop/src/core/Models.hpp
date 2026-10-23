@@ -91,7 +91,7 @@ struct Action {
     QString target;      ///< command, path, url, query, tool or MCP name
     QString qualifier;   ///< the foreign shell's name, the unknown tool's host
     QStringList targets; ///< files a patch writes or a call reads
-    QString wireKind;    ///< the tag as moat wrote it, for kinds MoatBar doesn't know
+    QString wireKind;    ///< the tag as moat wrote it, for kinds OpenMoat Bar doesn't know
 
     /// One line a person can read.
     [[nodiscard]] QString display() const;
@@ -112,7 +112,7 @@ struct Event {
     QStringList rules;
     QStringList reasons;
     /// The event exactly as moat printed it (moat has already redacted it),
-    /// so an export keeps every field, including ones MoatBar doesn't read.
+    /// so an export keeps every field, including ones OpenMoat Bar doesn't read.
     QJsonObject raw;
 
     [[nodiscard]] QDateTime time() const { return QDateTime::fromMSecsSinceEpoch(tsMs); }

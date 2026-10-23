@@ -13,11 +13,16 @@ namespace {
 
 const QString kNotifyBlocks = u"notifyBlocks"_s;
 const QString kWelcomed = u"welcomed"_s;
-const QString kEntryName = u"dev.openmoat.moatbar.desktop"_s;
+const QString kEntryName = u"dev.openmoat.bar.desktop"_s;
+/// Set once the old name's settings were copied over.
+const QString kMigrated = u"migratedFromMoatBar"_s;
+/// The app was called MoatBar until 0.3.0; these are its old places.
+const QString kLegacyEntryName = u"dev.openmoat.moatbar.desktop"_s;
 
 #ifdef Q_OS_WIN
 const QString kRunKey = u"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"_s;
-const QString kRunValue = u"MoatBar"_s;
+const QString kRunValue = u"OpenMoat Bar"_s;
+const QString kLegacyRunValue = u"MoatBar"_s;
 #else
 /// A desktop-entry Exec value: the path in double quotes, with `"`, `` ` ``,
 /// `$` and `\` escaped as the spec asks.
@@ -90,6 +95,10 @@ QString Preferences::autostartFile() const {
     return QDir(m_autostartDir).filePath(kEntryName);
 }
 
+QString Preferences::legacyAutostartFile() const {
+    return QDir(m_autostartDir).filePath(kLegacyEntryName);
+}
+
 bool Preferences::startAtLogin() const {
 #ifdef Q_OS_WIN
     return QSettings(kRunKey, QSettings::NativeFormat).contains(kRunValue);
@@ -119,10 +128,10 @@ void Preferences::setStartAtLogin(bool on) {
         QSaveFile entry(autostartFile());
         const QByteArray text = u"[Desktop Entry]\n"
                                 u"Type=Application\n"
-                                u"Name=MoatBar\n"
+                                u"Name=OpenMoat Bar\n"
                                 u"Comment=See what OpenMoat does for your coding agents. Read-only.\n"
                                 u"Exec=%1 --background\n"
-                                u"Icon=dev.openmoat.moatbar\n"
+                                u"Icon=dev.openmoat.bar\n"
                                 u"Terminal=false\n"
                                 u"X-GNOME-Autostart-enabled=true\n"_s.arg(execQuoted(m_executable))
                                     .toUtf8();
@@ -135,6 +144,44 @@ void Preferences::setStartAtLogin(bool on) {
     }
 #endif
     emit changed();
+}
+
+// MARK: - From the old name
+
+void Preferences::migrateFromMoatBar(const QSettings &old) {
+    migrateSettings(old);
+    migrateStartAtLogin();
+}
+
+void Preferences::migrateSettings(const QSettings &old) {
+    if (m_settings->value(kMigrated, false).toBool()) {
+        return;
+    }
+    const QStringList keys = old.allKeys();
+    for (const QString &key : keys) {
+        if (!m_settings->contains(key)) {
+            m_settings->setValue(key, old.value(key));
+        }
+    }
+    m_settings->setValue(kMigrated, true);
+    m_settings->sync();
+}
+
+void Preferences::migrateStartAtLogin() {
+    // Every start, not once: an old entry left in place would start the old app too.
+#ifdef Q_OS_WIN
+    QSettings run(kRunKey, QSettings::NativeFormat);
+    if (!run.contains(kLegacyRunValue)) {
+        return;
+    }
+    run.remove(kLegacyRunValue);
+    run.sync();
+#else
+    if (!QFile::exists(legacyAutostartFile()) || !QFile::remove(legacyAutostartFile())) {
+        return;
+    }
+#endif
+    setStartAtLogin(true);
 }
 
 } // namespace moatbar

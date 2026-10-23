@@ -69,7 +69,7 @@ qt_add_resources(moatbar_ui "shared_images"
 )
 
 qt_add_executable(moatbar_app WIN32 main.cpp)
-set_target_properties(moatbar_app PROPERTIES OUTPUT_NAME "moatbar")
+set_target_properties(moatbar_app PROPERTIES OUTPUT_NAME "openmoat-bar")
 target_compile_definitions(moatbar_app PRIVATE MOATBAR_VERSION="${PROJECT_VERSION}")
 target_link_libraries(moatbar_app PRIVATE moatbar_ui)
 moatbar_warnings(moatbar_app)
@@ -77,8 +77,8 @@ moatbar_warnings(moatbar_app)
 install(TARGETS moatbar_app RUNTIME DESTINATION bin)
 if(UNIX AND NOT APPLE)
     # The app menu entry and its icon, also what the AppImage is built from.
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../packaging/dev.openmoat.moatbar.desktop"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../packaging/dev.openmoat.bar.desktop"
         DESTINATION share/applications)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../../docs/images/app-icon.png"
-        DESTINATION share/icons/hicolor/256x256/apps RENAME dev.openmoat.moatbar.png)
+        DESTINATION share/icons/hicolor/256x256/apps RENAME dev.openmoat.bar.png)
 endif()

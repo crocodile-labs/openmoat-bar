@@ -217,7 +217,7 @@ namespace DetailsText {
 
 /// Words for `openmoat doctor` lines on the Checks page, the same as the macOS
 /// app's CheckText.swift: a plain name, one line on what a check means, and the
-/// command to copy when one helps. A line MoatBar doesn't know shows as moat wrote it.
+/// command to copy when one helps. A line OpenMoat Bar doesn't know shows as moat wrote it.
 namespace CheckText {
 /// moat's left column in plain words: `repo policy` → `Repository policy`.
 [[nodiscard]] QString label(const QString &name);

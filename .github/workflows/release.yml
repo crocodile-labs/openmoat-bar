@@ -1,6 +1,6 @@
 name: release
 
-# Builds MoatBar for macOS, Linux and Windows, installs each build with its
+# Builds OpenMoat Bar for macOS, Linux and Windows, installs each build with its
 # installer script, and on a v* tag puts everything in a DRAFT pre-release.
 # Nothing is published until someone presses Publish on that draft.
 on:
@@ -12,7 +12,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "Scripts/package_app.sh"
-      - "Scripts/moatbar-installer.*"
+      - "Scripts/openmoat-bar-installer.*"
       - "desktop/packaging/**"
 
 concurrency:
@@ -53,22 +53,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build MoatBar.app (Apple silicon and Intel)
+      - name: Build OpenMoat Bar.app (Apple silicon and Intel)
         env:
           MOATBAR_VERSION: ${{ needs.version.outputs.version }}
           MOATBAR_UNIVERSAL: "1"
         run: |
           ./Scripts/package_app.sh
-          lipo -archs MoatBar.app/Contents/MacOS/MoatBar | tee /dev/stderr | grep -q 'x86_64 arm64\|arm64 x86_64'
-          codesign --verify --deep --strict MoatBar.app
+          lipo -archs "OpenMoat Bar.app/Contents/MacOS/openmoat-bar" | tee /dev/stderr | grep -q 'x86_64 arm64\|arm64 x86_64'
+          codesign --verify --deep --strict "OpenMoat Bar.app"
           mkdir dist
-          ditto -c -k --keepParent MoatBar.app dist/MoatBar-macos.zip
+          ditto -c -k --keepParent "OpenMoat Bar.app" dist/openmoat-bar-macos.zip
 
       - name: Install with the installer script
         run: |
-          cd dist && shasum -a 256 MoatBar-macos.zip > SHA256SUMS && cd ..
-          MOATBAR_DIST_DIR="$PWD/dist" sh Scripts/moatbar-installer.sh
-          test -x "$HOME/Applications/MoatBar.app/Contents/MacOS/MoatBar"
+          cd dist && shasum -a 256 openmoat-bar-macos.zip > SHA256SUMS && cd ..
+          OPENMOAT_BAR_DIST_DIR="$PWD/dist" sh Scripts/openmoat-bar-installer.sh
+          test -x "$HOME/Applications/OpenMoat Bar.app/Contents/MacOS/openmoat-bar"
           rm dist/SHA256SUMS
 
       - uses: actions/upload-artifact@v4
@@ -104,7 +104,7 @@ jobs:
           cmake --build build --parallel
           DESTDIR="$PWD/AppDir" cmake --install build
 
-      # linuxdeploy copies Qt and every library moatbar needs into AppDir and
+      # linuxdeploy copies Qt and every library openmoat-bar needs into AppDir and
       # points the binary at them, so it runs without Qt installed.
       - name: Bundle Qt
         env:
@@ -122,19 +122,19 @@ jobs:
           export PATH="$PWD:$PATH"
           ./linuxdeploy --appdir AppDir --plugin qt
           # Without the Qt action's LD_LIBRARY_PATH, as on a user's machine.
-          env -u LD_LIBRARY_PATH ldd AppDir/usr/bin/moatbar | tee ldd.txt
+          env -u LD_LIBRARY_PATH ldd AppDir/usr/bin/openmoat-bar | tee ldd.txt
           if grep 'not found' ldd.txt; then exit 1; fi
           grep -q 'AppDir/usr/.*libQt6Core' ldd.txt
           test -d AppDir/usr/qml/QtQuick/Controls || { echo "QtQuick.Controls was not bundled"; exit 1; }
           mkdir dist
-          tar -czf dist/MoatBar-linux-x86_64.tar.gz -C AppDir usr
+          tar -czf dist/openmoat-bar-linux-x86_64.tar.gz -C AppDir usr
 
       - name: Install with the installer script
         run: |
-          (cd dist && sha256sum MoatBar-linux-x86_64.tar.gz > SHA256SUMS)
-          MOATBAR_DIST_DIR="$PWD/dist" sh Scripts/moatbar-installer.sh
-          test -x "$HOME/.local/bin/moatbar"
-          grep -q "^Exec=$HOME/.local/share/moatbar/usr/bin/moatbar$" "$HOME/.local/share/applications/dev.openmoat.moatbar.desktop"
+          (cd dist && sha256sum openmoat-bar-linux-x86_64.tar.gz > SHA256SUMS)
+          OPENMOAT_BAR_DIST_DIR="$PWD/dist" sh Scripts/openmoat-bar-installer.sh
+          test -x "$HOME/.local/bin/openmoat-bar"
+          grep -q "^Exec=$HOME/.local/share/openmoat-bar/usr/bin/openmoat-bar$" "$HOME/.local/share/applications/dev.openmoat.bar.desktop"
           rm dist/SHA256SUMS
 
       - uses: actions/upload-artifact@v4
@@ -162,31 +162,31 @@ jobs:
           cmake -S desktop -B build
           cmake --build build --config Release --parallel
 
-      # Qt's DLLs and the Visual C++ runtime next to moatbar.exe, so it runs on a
+      # Qt's DLLs and the Visual C++ runtime next to openmoat-bar.exe, so it runs on a
       # machine with nothing else installed.
       - name: Bundle Qt
         shell: pwsh
         run: |
-          cmake --install build --config Release --prefix MoatBar
-          $out = 'MoatBar\bin'
-          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler --no-opengl-sw --qmldir desktop\src\app\qml "$out\moatbar.exe"
+          cmake --install build --config Release --prefix openmoat-bar
+          $out = 'openmoat-bar\bin'
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler --no-opengl-sw --qmldir desktop\src\app\qml "$out\openmoat-bar.exe"
           if (-not (Test-Path "$out\qml\QtQuick\Controls")) { throw 'QtQuick.Controls was not bundled' }
           foreach ($dll in 'msvcp140.dll', 'msvcp140_1.dll', 'msvcp140_2.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
             if (-not (Test-Path "$out\$dll")) { Copy-Item "$env:WINDIR\System32\$dll" $out }
           }
           Get-ChildItem $out | Select-Object Name, Length
           New-Item -ItemType Directory dist | Out-Null
-          Compress-Archive -Path "$out\*" -DestinationPath dist\MoatBar-windows-x64.zip
+          Compress-Archive -Path "$out\*" -DestinationPath dist\openmoat-bar-windows-x64.zip
 
       - name: Install with the installer script
         shell: pwsh
         run: |
-          $hash = (Get-FileHash -Algorithm SHA256 dist\MoatBar-windows-x64.zip).Hash.ToLower()
-          "$hash  MoatBar-windows-x64.zip" | Set-Content dist\SHA256SUMS
-          $env:MOATBAR_DIST_DIR = "$PWD\dist"
-          ./Scripts/moatbar-installer.ps1
-          if (-not (Test-Path "$env:LOCALAPPDATA\Programs\MoatBar\Qt6Core.dll")) { throw 'Qt6Core.dll missing' }
-          if (-not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\MoatBar.lnk")) { throw 'no shortcut' }
+          $hash = (Get-FileHash -Algorithm SHA256 dist\openmoat-bar-windows-x64.zip).Hash.ToLower()
+          "$hash  openmoat-bar-windows-x64.zip" | Set-Content dist\SHA256SUMS
+          $env:OPENMOAT_BAR_DIST_DIR = "$PWD\dist"
+          ./Scripts/openmoat-bar-installer.ps1
+          if (-not (Test-Path "$env:LOCALAPPDATA\Programs\OpenMoat Bar\Qt6Core.dll")) { throw 'Qt6Core.dll missing' }
+          if (-not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OpenMoat Bar.lnk")) { throw 'no shortcut' }
           Remove-Item dist\SHA256SUMS
 
       - uses: actions/upload-artifact@v4
@@ -216,23 +216,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.version.outputs.version }}
         run: |
-          cp Scripts/moatbar-installer.sh Scripts/moatbar-installer.ps1 dist/
+          cp Scripts/openmoat-bar-installer.sh Scripts/openmoat-bar-installer.ps1 dist/
           (cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS)
           cat > notes.md <<'NOTES'
-          MoatBar shows what OpenMoat does for your coding agents: which agents are protected, what was blocked and why. Read-only.
+          OpenMoat Bar (formerly MoatBar) shows what OpenMoat does for your coding agents: which agents are protected, what was blocked and why. Read-only.
 
           **macOS and Linux**
 
           ```bash
-          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.sh | sh
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crocodile-labs/openmoat-bar/releases/latest/download/openmoat-bar-installer.sh | sh
           ```
 
           **Windows** (PowerShell)
 
           ```powershell
-          powershell -ExecutionPolicy Bypass -c "irm https://github.com/crocodile-labs/moatbar/releases/latest/download/moatbar-installer.ps1 | iex"
+          powershell -ExecutionPolicy Bypass -c "irm https://github.com/crocodile-labs/openmoat-bar/releases/latest/download/openmoat-bar-installer.ps1 | iex"
           ```
 
           The installers check every download against `SHA256SUMS`. You need OpenMoat installed too.
           NOTES
-          gh release create "v$VERSION" dist/* --draft --prerelease --title "MoatBar $VERSION" --notes-file notes.md
+          gh release create "v$VERSION" dist/* --draft --prerelease --title "OpenMoat Bar $VERSION" --notes-file notes.md

@@ -1,0 +1,57 @@
+name: Bug report
+description: OpenMoat Bar shows something wrong, misses something, or does not start.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For a way to make OpenMoat Bar write state, approve a call, run a command or leak a secret,
+        use the private security link instead of this form. A wrong decision by OpenMoat itself
+        belongs in OpenMoat's issues.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows]
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating system version
+      placeholder: macOS 15.1 / Ubuntu 24.04 with GNOME / Windows 11
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: OpenMoat Bar version
+      placeholder: from About OpenMoat Bar, or `openmoat-bar --version` on Linux and Windows
+    validations:
+      required: true
+  - type: input
+    id: openmoat-version
+    attributes:
+      label: openmoat version
+      placeholder: output of `openmoat --version`
+    validations:
+      required: true
+  - type: textarea
+    id: saw
+    attributes:
+      label: What you saw
+      description: Which menu, window or notification, and what it showed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: For a count or a status, what `openmoat status` or `openmoat show` says.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drag an image here. Check it shows no secrets, paths or commands you would not post.

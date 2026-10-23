@@ -1,6 +1,6 @@
 import Foundation
 
-/// Why MoatBar could not read moat.
+/// Why OpenMoat Bar could not read moat.
 public enum MoatError: Error, Equatable {
     /// No moat binary was found.
     case notInstalled
@@ -8,7 +8,7 @@ public enum MoatError: Error, Equatable {
     case timedOut(command: String)
     /// moat exited non-zero; `message` is the first line it printed.
     case failed(command: String, message: String)
-    /// moat printed something MoatBar could not decode, often an older moat
+    /// moat printed something OpenMoat Bar could not decode, often an older moat
     /// without `--format json` for that command.
     case unreadable(command: String)
 
@@ -22,7 +22,7 @@ public enum MoatError: Error, Equatable {
         case let .failed(command, message):
             return "openmoat \(command): \(message)"
         case let .unreadable(command):
-            return "openmoat \(command) gave output MoatBar can't read. Update OpenMoat."
+            return "openmoat \(command) gave output OpenMoat Bar can't read. Update OpenMoat."
         }
     }
 }

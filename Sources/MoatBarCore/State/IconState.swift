@@ -45,11 +45,11 @@ public enum IconState: Int, Comparable, CaseIterable {
     /// Words for VoiceOver and the icon's tooltip.
     public var accessibilityLabel: String {
         switch self {
-        case .unavailable: return "MoatBar: OpenMoat not found"
-        case .quiet: return "MoatBar: all protected"
-        case .newBlocks: return "MoatBar: new blocked calls"
-        case .attention: return "MoatBar: a security check needs a look"
-        case .unprotected: return "MoatBar: an agent is not protected"
+        case .unavailable: return "OpenMoat Bar: OpenMoat not found"
+        case .quiet: return "OpenMoat Bar: all protected"
+        case .newBlocks: return "OpenMoat Bar: new blocked calls"
+        case .attention: return "OpenMoat Bar: a security check needs a look"
+        case .unprotected: return "OpenMoat Bar: an agent is not protected"
         }
     }
 }

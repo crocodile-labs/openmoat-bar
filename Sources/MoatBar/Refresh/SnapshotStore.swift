@@ -22,7 +22,7 @@ final class SnapshotStore {
     /// Called on the main thread after every good read, with the read before it.
     var onSnapshot: ((_ old: Snapshot?, _ new: Snapshot) -> Void)?
 
-    private let queue = DispatchQueue(label: "dev.openmoat.moatbar.read", qos: .utility)
+    private let queue = DispatchQueue(label: "dev.openmoat.bar.read", qos: .utility)
     private var timer: Timer?
 
     /// The read in flight, if any.

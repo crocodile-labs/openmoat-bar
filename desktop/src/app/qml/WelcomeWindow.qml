@@ -4,13 +4,13 @@ import QtQuick.Layouts
 import QtQuick.Window
 import "."
 
-// The first-launch window: what MoatBar is, in three lines, then the Quick
+// The first-launch window: what OpenMoat Bar is, in three lines, then the Quick
 // View. Shown once. `prefs` for start at login; `welcome` (the window's
 // controller) for the two buttons.
 ApplicationWindow {
     id: root
 
-    title: "Welcome to MoatBar"
+    title: "Welcome to OpenMoat Bar"
     width: 480
     height: content.implicitHeight + 56
     minimumWidth: 420
@@ -74,7 +74,7 @@ ApplicationWindow {
         }
         Label {
             Layout.alignment: Qt.AlignHCenter
-            text: "Welcome to MoatBar"
+            text: "Welcome to OpenMoat Bar"
             color: Theme.text
             font.pixelSize: 22
             font.weight: Font.Bold
@@ -107,19 +107,19 @@ ApplicationWindow {
                 symbol: "i"
                 tint: Theme.blue
                 heading: "Read-only"
-                body: "MoatBar never allows anything or changes a rule. Fixes are commands you copy."
+                body: "OpenMoat Bar never allows anything or changes a rule. Fixes are commands you copy."
             }
         }
 
         CheckBox {
             visible: prefs.canStartAtLogin
-            text: "Start MoatBar when I log in"
+            text: "Start OpenMoat Bar when I log in"
             checked: prefs.startAtLogin
             onToggled: prefs.startAtLogin = checked
         }
 
         Label {
-            text: "MoatBar lives in the tray. Click its croc to see what OpenMoat did; right-click for the menu."
+            text: "OpenMoat Bar lives in the tray. Click its croc to see what OpenMoat did; right-click for the menu."
             color: Theme.secondary
             font.pixelSize: 12
             wrapMode: Text.WordWrap
@@ -135,7 +135,7 @@ ApplicationWindow {
                 onClicked: welcome.quit()
             }
             Button {
-                text: "Open MoatBar"
+                text: "Open OpenMoat Bar"
                 highlighted: true
                 onClicked: welcome.open()
                 Component.onCompleted: forceActiveFocus()

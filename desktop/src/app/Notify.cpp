@@ -23,8 +23,8 @@ void notify(QSystemTrayIcon &tray, const QString &title, const QString &body, bo
     }
     // urgency: 1 normal, 2 critical (stays until dismissed).
     const QVariantMap hints{{u"urgency"_s, QVariant::fromValue<uchar>(urgent ? 2 : 1)},
-                            {u"desktop-entry"_s, u"dev.openmoat.moatbar"_s}};
-    service.call(QDBus::NoBlock, u"Notify"_s, u"MoatBar"_s, 0U, u"dev.openmoat.moatbar"_s, title, body, QStringList{},
+                            {u"desktop-entry"_s, u"dev.openmoat.bar"_s}};
+    service.call(QDBus::NoBlock, u"Notify"_s, u"OpenMoat Bar"_s, 0U, u"dev.openmoat.bar"_s, title, body, QStringList{},
                  hints, -1);
 #endif
 }

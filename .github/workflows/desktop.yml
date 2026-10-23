@@ -1,6 +1,6 @@
 name: desktop
 
-# MoatBar for Linux and Windows (desktop/): build and test on both.
+# OpenMoat Bar for Linux and Windows (desktop/): build and test on both.
 on:
   pull_request:
     paths:
@@ -138,5 +138,5 @@ jobs:
           cmake -S desktop -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
-          test -x build/src/app/moatbar
+          test -x build/src/app/openmoat-bar
           build/tools/moatbar_shots screenshots
