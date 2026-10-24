@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: write # the ci-shots/* branches only
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Linux packages Qt needs
         if: runner.os == 'Linux'
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install what the README lists
         run: |
