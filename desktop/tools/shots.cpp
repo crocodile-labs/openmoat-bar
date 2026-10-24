@@ -127,7 +127,7 @@ std::optional<Snapshot> fixtureSnapshot(const QString &status, const QString &sh
     runner->stub(u"status"_s, test::fixture(status));
     runner->stub(u"show"_s, test::fixture(show));
     runner->stub(u"proxy"_s, test::fixture(u"proxy-running"_s));
-    runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.3 (OpenMoat)\n"));
+    runner->stub(u"--version"_s, QByteArrayLiteral("openmoat 0.10.0 (OpenMoat)\n"));
     // A fixed "now" just after the fixture's calls, so the times read the same on every run.
     auto snapshot = MoatClient(u"moat"_s, runner).snapshot(QDateTime::fromMSecsSinceEpoch(1792061000000));
     if (!snapshot.ok()) {
@@ -137,10 +137,10 @@ std::optional<Snapshot> fixtureSnapshot(const QString &status, const QString &sh
     return std::move(snapshot).value();
 }
 
-/// The detail pages from the fixtures, as a moat 0.5.6 prints them.
+/// The detail pages from the fixtures, as a current openmoat prints them.
 Details fixtureDetails() {
     auto runner = std::make_shared<test::StubRunner>();
-    runner->stub(u"--version"_s, QByteArrayLiteral("moat 0.5.6 (OpenMoat)\n"));
+    runner->stub(u"--version"_s, QByteArrayLiteral("openmoat 0.10.0 (OpenMoat)\n"));
     runner->stub(u"allowed"_s, test::fixture(u"allowed"_s));
     runner->stub(u"secret"_s, test::fixture(u"secret-list"_s));
     // The doctor lines newer moats add: signing state, MCP, the audit anchor.
