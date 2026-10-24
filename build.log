@@ -1,0 +1,114 @@
+MSBuild version 17.14.60+43b635718 for .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/app/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/app/CMakeLists.txt
+  qrc_shared_images_init.cpp
+  qrc_quick_view_init.cpp
+  moatbar_ui_resources_1.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\src\app\moatbar_ui_resources_1.dir\Release\moatbar_ui_resources_1.lib
+  moatbar_ui_resources_2.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\src\app\moatbar_ui_resources_2.dir\Release\moatbar_ui_resources_2.lib
+  Automatic MOC and UIC for target moatbar_core
+  Running qmlimportscanner for moatbar_shots
+  Running qmlimportscanner for moatbar_app
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tools/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/core/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/app/CMakeLists.txt
+  Models.cpp
+  Running qmlimportscanner for tst_activity
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Running qmlimportscanner for tst_quickview
+  Running qmlimportscanner for tst_settings
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Running qmlimportscanner for tst_singleinstance
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Json.cpp
+  Details.cpp
+  MoatClient.cpp
+  Snapshot.cpp
+  IconState.cpp
+  SecurityChecks.cpp
+  Text.cpp
+  Format.cpp
+  ActivityFilter.cpp
+  mocs_compilation_Release.cpp
+  Generating Code...
+  moatbar_core.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\src\core\Release\moatbar_core.lib
+  Automatic MOC and UIC for target tst_client
+  Automatic MOC and UIC for target tst_snapshot
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Automatic MOC and UIC for target tst_json
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Automatic MOC and UIC for target moatbar_ui
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  tst_json.cpp
+  tst_client.cpp
+  Running rcc for resource quick_view
+  Running rcc for resource shared_images
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/app/CMakeLists.txt
+  SnapshotStore.cpp
+  tst_snapshot.cpp
+  mocs_compilation_Release.cpp
+  Generating Code...
+  mocs_compilation_Release.cpp
+  Generating Code...
+  TrayIcon.cpp
+  mocs_compilation_Release.cpp
+  Generating Code...
+  tst_client.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_client.exe
+  tst_snapshot.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_snapshot.exe
+  tst_json.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_json.exe
+  TrayMenu.cpp
+  TrayController.cpp
+  QuickViewModel.cpp
+  DetailsModel.cpp
+  QuickView.cpp
+  EventViews.cpp
+  ActivityModel.cpp
+  ActivityWindow.cpp
+  Preferences.cpp
+  SettingsWindows.cpp
+  SingleInstance.cpp
+  Notify.cpp
+  qrc_quick_view.cpp
+  qrc_shared_images.cpp
+  mocs_compilation_Release.cpp
+  Generating Code...
+  moatbar_ui.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\src\app\Release\moatbar_ui.lib
+  Automatic MOC and UIC for target moatbar_shots
+  Automatic MOC and UIC for target tst_settings
+  Automatic MOC and UIC for target tst_quickview
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tools/CMakeLists.txt
+  Automatic MOC and UIC for target tst_singleinstance
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Automatic MOC and UIC for target moatbar_app
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/src/app/CMakeLists.txt
+  Automatic MOC and UIC for target tst_activity
+  tst_quickview.cpp
+  main.cpp
+  tst_settings.cpp
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/tests/CMakeLists.txt
+  tst_activity.cpp
+  tst_singleinstance.cpp
+  shots.cpp
+  mocs_compilation_Release.cpp
+  Generating Code...
+  mocs_compilation_Release.cpp
+  Generating Code...
+  mocs_compilation_Release.cpp
+  Generating Code...
+  mocs_compilation_Release.cpp
+  Generating Code...
+  moatbar_app.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\openmoat-bar.exe
+  tst_activity.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_activity.exe
+  mocs_compilation_Release.cpp
+  Generating Code...
+  tst_settings.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_settings.exe
+  tst_quickview.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_quickview.exe
+  tst_singleinstance.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\tst_singleinstance.exe
+  mocs_compilation_Release.cpp
+  Generating Code...
+  moatbar_shots.vcxproj -> D:\a\openmoat-bar\openmoat-bar\build\Release\moatbar_shots.exe
+  Building Custom Rule D:/a/openmoat-bar/openmoat-bar/desktop/CMakeLists.txt
