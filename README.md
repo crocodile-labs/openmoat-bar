@@ -123,6 +123,15 @@ one call; export as JSON lines.
 OpenMoat must be installed first ([quick start](https://openmoat.dev/docs/quickstart/)).
 
 ```bash
+# macOS, with Homebrew
+brew install --cask crocodile-labs/tap/openmoat-bar
+```
+
+The app is not signed by Apple: the first time, open it from Finder with right-click > Open.
+
+Or with the installer, which needs no extra step:
+
+```bash
 # macOS and Linux
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crocodile-labs/openmoat-bar/releases/latest/download/openmoat-bar-installer.sh | sh
 ```
