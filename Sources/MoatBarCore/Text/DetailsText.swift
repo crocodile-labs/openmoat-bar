@@ -76,6 +76,7 @@ public enum DetailsText {
         parts.append(self.endsIn(grant.expiresAtMs, nowMs: nowMs))
         return parts.joined(separator: " · ")
     }
+
     /// The command whose warning shows how to cover a source.
     public static let lint = "openmoat policy lint"
 
