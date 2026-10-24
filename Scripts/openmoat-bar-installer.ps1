@@ -60,7 +60,7 @@ try {
     Write-Host "openmoat-bar-installer: installed $dest"
     Write-Host 'openmoat-bar-installer: start it from the Start menu (OpenMoat Bar)'
     if (-not (Get-Command openmoat -ErrorAction SilentlyContinue) -and -not (Get-Command moat -ErrorAction SilentlyContinue)) {
-        Write-Host 'openmoat-bar-installer: OpenMoat Bar shows what OpenMoat does; install OpenMoat too: https://github.com/crocodile-labs/openmoat#install'
+        Write-Host 'openmoat-bar-installer: OpenMoat Bar shows what OpenMoat does; install OpenMoat too: https://openmoat.dev/docs/quickstart/'
     }
 } finally {
     Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue

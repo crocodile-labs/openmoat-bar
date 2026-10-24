@@ -55,8 +55,28 @@ public enum DetailsText {
     public static let exposedHint = "No deny rule covers its source: the agent can read the value there."
     /// What a covered source means.
     public static let coveredHint = "The agent can't read the value where OpenMoat reads it."
-    /// What a plain-HTTP secret means.
-    public static let plainHttpHint = "Also added to plain-HTTP requests, where it travels unencrypted."
+    /// What a plain-HTTP secret means, with the port its requests use.
+    public static func plainHttpHint(_ secret: BrokeredSecret) -> String {
+        "Also added to plain-HTTP requests on port \(secret.plainHttpPort), where it travels unencrypted."
+    }
+
+    /// What a grant that applies nowhere says instead of when it ends.
+    public static let grantAppliesNowhere = "Names no project, so it applies nowhere: approve it again"
+
+    /// `Claude Code · session 5b1c2d3e · in ~/code/app · Ends in 3 h`, or for a
+    /// grant that applies nowhere `… · Names no project, so it applies nowhere: …`.
+    public static func grantLine(_ grant: SessionGrant, agent: String, nowMs: Int64) -> String {
+        var parts = [agent, "session \(grant.sessionId.prefix(8))"]
+        guard grant.applies else {
+            return (parts + [self.grantAppliesNowhere]).joined(separator: " · ")
+        }
+        if let project = grant.project, !project.isEmpty {
+            parts.append("in \(project)")
+        }
+        parts.append(self.endsIn(grant.expiresAtMs, nowMs: nowMs))
+        return parts.joined(separator: " · ")
+    }
+
     /// The command whose warning shows how to cover a source.
     public static let lint = "openmoat policy lint"
 

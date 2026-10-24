@@ -94,6 +94,15 @@ ColumnLayout {
         }
 
         Label {
+            visible: (decision.d.unseen || "").length > 0
+            text: "<b>Couldn't see:</b> " + decision.html(decision.d.unseen || "")
+            textFormat: Text.StyledText
+            color: Theme.text
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+        }
+        Label {
             visible: (decision.d.told || "").length > 0
             text: "<b>Agent was told:</b> " + decision.html(decision.d.told || "")
             textFormat: Text.StyledText
@@ -147,6 +156,6 @@ ColumnLayout {
         visible: decision.d.blocked !== true
         title: "How OpenMoat decides"
         external: true
-        onClicked: moatbar.openDocs("check")
+        onClicked: moatbar.openDocs("how-it-decides")
     }
 }

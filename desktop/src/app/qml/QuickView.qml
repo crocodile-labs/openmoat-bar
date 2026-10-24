@@ -212,6 +212,12 @@ ApplicationWindow {
                                         command: modelData
                                     }
                                 }
+                                LinkRow {
+                                    visible: (notice.modelData.docs || "").length > 0
+                                    title: notice.modelData.docsTitle || ""
+                                    external: true
+                                    onClicked: moatbar.openDocs(notice.modelData.docs)
+                                }
                             }
                         }
 
@@ -621,6 +627,11 @@ ApplicationWindow {
                                 }
                             }
                         }
+                        LinkRow {
+                            title: "How allowing works"
+                            external: true
+                            onClicked: moatbar.openDocs("allow-reference")
+                        }
                     }
                 }
             }
@@ -691,6 +702,12 @@ ApplicationWindow {
                                 command: modelData.command
                             }
                         }
+                    }
+                    LinkRow {
+                        visible: page.s.state === "loaded"
+                        title: "Keeping tokens safe"
+                        external: true
+                        onClicked: moatbar.openDocs("keep-tokens-safe")
                     }
                 }
             }

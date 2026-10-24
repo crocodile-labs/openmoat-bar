@@ -106,5 +106,5 @@ Linux)
 esac
 
 if ! command -v openmoat >/dev/null 2>&1 && ! command -v moat >/dev/null 2>&1; then
-    say "OpenMoat Bar shows what OpenMoat does; install OpenMoat too: https://github.com/crocodile-labs/openmoat#install"
+    say "OpenMoat Bar shows what OpenMoat does; install OpenMoat too: https://openmoat.dev/docs/quickstart/"
 fi

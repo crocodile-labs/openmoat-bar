@@ -93,6 +93,14 @@ std::optional<Action> parseAction(const QJsonValue &value) {
     } else if (tag == u"mcp_tool") {
         action.kind = Action::Kind::McpTool;
         action.target = field(u"name");
+    } else if (tag == u"unchecked") {
+        // What the payload shows, decided as usual, and what it doesn't show.
+        // Without the action inside, nothing can be shown of it: the kind stays.
+        if (auto shown = parseAction(fields.value(u"action"))) {
+            shown->uncheckedReason = field(u"reason");
+            return shown;
+        }
+        action.kind = Action::Kind::Other;
     } else {
         action.kind = Action::Kind::Other;
     }
@@ -201,6 +209,9 @@ Result<AllowedReport> parseAllowed(const QByteArray &bytes) {
         out.what = grant.value(u"what").toString();
         out.grantedAtMs = grant.value(u"granted_at_ms").toInteger();
         out.expiresAtMs = grant.value(u"expires_at_ms").toInteger();
+        // OpenMoat 0.10.0 and later; an older moat sends neither, and its grants apply.
+        out.project = optionalString(grant, u"project");
+        out.applies = grant.value(u"applies").toBool(true);
         if (!out.what.isEmpty()) {
             report.sessionGrants.push_back(std::move(out));
         }
@@ -228,6 +239,10 @@ Result<SecretList> parseSecrets(const QByteArray &bytes) {
         secret.host = object.value(u"host").toString();
         secret.header = object.value(u"header").toString();
         secret.plainHttp = object.value(u"plain_http").toBool(false);
+        // OpenMoat 0.10.0 and later, only with `plain_http`; left out means 80.
+        if (object.value(u"port").isDouble()) {
+            secret.port = object.value(u"port").toInt();
+        }
         // Left out means a moat that didn't check: say the agent may read it.
         secret.sourceExposed = object.value(u"source_exposed").toBool(true);
         const QJsonObject source = object.value(u"source").toObject();

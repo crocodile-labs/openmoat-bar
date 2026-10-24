@@ -42,7 +42,7 @@ constexpr std::array kRuleWords{
     RuleWords{u"push-secret", u"The push would publish a token or a brokered secret's value in a commit."},
     RuleWords{u"push-runs-later",
               u"After reading untrusted content, the agent pushes a change to a file CI runs with your secrets."},
-    RuleWords{u"push-unchecked", u"OpenMoat couldn't check what this push publishes in time, so it asks."},
+    RuleWords{u"push-unchecked", u"OpenMoat couldn't check what this push publishes, so it asks."},
     RuleWords{u"token-egress", u"A known kind of token was about to go to a host that isn't its own service."},
     RuleWords{u"placeholder-egress",
               u"A brokered secret's placeholder was about to go to a host that secret isn't for."},
@@ -52,7 +52,10 @@ constexpr std::array kRuleWords{
               u"This MCP tool's description or inputs changed, so it stays hidden until a person accepts it."},
     RuleWords{u"settings-drift", u"A settings file OpenMoat pinned changed in a way that changes no decision, so "
                                  u"calls are decided as usual."},
-    // The rest of the default policy (openmoat 0.9.0).
+    // The rest of the default policy (openmoat 0.10.0).
+    RuleWords{u"agent-folders",
+              u"Renaming or removing this folder would move agent settings that OpenMoat protects."},
+    RuleWords{u"stops-openmoat", u"This would stop a running OpenMoat process, such as its network proxy."},
     RuleWords{u"build-credentials",
               u"Maven and Gradle settings files hold registry passwords. Agents never read them; builds still can."},
     RuleWords{u"env-poison",
@@ -82,6 +85,8 @@ constexpr std::array kRuleWords{
     RuleWords{u"kernel-error",
               u"OpenMoat hit an error while deciding, so it stopped the call rather than let it through."},
     RuleWords{u"unparseable", u"OpenMoat couldn't read this command well enough to judge it, so it asks."},
+    RuleWords{u"unchecked",
+              u"OpenMoat couldn't see all of this call, like input typed into a running shell, so it asks."},
     RuleWords{u"ungoverned", u"OpenMoat has no rules for this tool, so the agent's own permission flow decided."},
     RuleWords{u"approved-session", u"You allowed this call again for the rest of its session with openmoat allow."},
     RuleWords{u"run-session", u"This session runs under openmoat run, which links its calls to the proxy."},
@@ -97,6 +102,10 @@ constexpr std::array kRuleWords{
     RuleWords{u"proxy-secret", u"The proxy stopped a brokered secret from going where it isn't meant to."},
     RuleWords{u"proxy-session", u"The proxy didn't know the session this request claims to come from."},
     RuleWords{u"proxy-audit", u"The proxy couldn't record the request in the audit log, so it refused it."},
+    RuleWords{u"proxy-port",
+              u"The site is allowed on the usual web ports, 443 and 80, but not on the port this asked for."},
+    RuleWords{u"proxy-capacity",
+              u"The proxy already had as many connections open as it allows, so it refused new ones."},
     RuleWords{u"moat.cloud-metadata",
               u"Cloud metadata services hand out the machine's cloud credentials; never fetched."},
 };
@@ -180,6 +189,11 @@ QString HostText::otherName(const QString &host) {
     }
     if (host == u"moat-run") {
         return u"openmoat run"_s;
+    }
+    // The Continue CLI runs Claude Code's hook; `openmoat status` lists no agent
+    // for it (openmoat crates/openmoat-hosts/src/host/continue_cli.rs).
+    if (host == u"continue") {
+        return u"Continue CLI"_s;
     }
     return host;
 }
@@ -305,6 +319,11 @@ QUrl DocsLink::checkACommand() { return QUrl(u"https://openmoat.dev/docs/check-a
 QUrl DocsLink::quickstart() { return QUrl(u"https://openmoat.dev/docs/quickstart/"_s); }
 QUrl DocsLink::limits() { return QUrl(u"https://openmoat.dev/docs/limits/"_s); }
 QUrl DocsLink::turnOff() { return QUrl(u"https://openmoat.dev/docs/turn-off/"_s); }
+QUrl DocsLink::troubleshooting() { return QUrl(u"https://openmoat.dev/docs/troubleshooting/"_s); }
+QUrl DocsLink::howItDecides() { return QUrl(u"https://openmoat.dev/docs/how-it-decides/"_s); }
+QUrl DocsLink::mcpServers() { return QUrl(u"https://openmoat.dev/docs/mcp-servers/"_s); }
+QUrl DocsLink::allowReference() { return QUrl(u"https://openmoat.dev/docs/allow-reference/"_s); }
+QUrl DocsLink::keepTokensSafe() { return QUrl(u"https://openmoat.dev/docs/keep-tokens-safe/"_s); }
 
 QUrl DocsLink::reportWrongBlock(const std::optional<QString> &rule) {
     QUrl url(u"https://github.com/crocodile-labs/openmoat/issues/new"_s);

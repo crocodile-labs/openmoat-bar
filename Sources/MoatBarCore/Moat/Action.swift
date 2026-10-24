@@ -15,6 +15,11 @@ public enum Action: Equatable {
     case patch(writes: [String])
     case readFiles(paths: [String])
     case mcpTool(name: String)
+    /// A call the hook payload shows only in part (input typed into a running
+    /// shell, a search over folders it doesn't name): `action` is what it
+    /// shows, `reason` what it doesn't. OpenMoat decides it at least `ask`
+    /// (rule `unchecked`). OpenMoat 0.10.0 and later.
+    indirect case unchecked(action: Action, reason: String)
     /// A kind a newer moat added.
     case other(kind: String)
 
@@ -34,14 +39,31 @@ public enum Action: Equatable {
         case let .readFiles(paths):
             return paths.count == 1 ? "Read \(paths[0])" : "Read \(paths.count) files"
         case let .mcpTool(name): return name
+        case let .unchecked(action, _): return action.display
         case let .other(kind): return kind
         }
     }
 
     /// The command line, for actions `openmoat policy check` can check again.
     public var shellCommand: String? {
-        if case let .shell(command) = self {
+        if case let .shell(command) = self.shown {
             return command
+        }
+        return nil
+    }
+
+    /// The action without the `unchecked` wrapping around it (openmoat `Action::shown`).
+    public var shown: Action {
+        if case let .unchecked(action, _) = self {
+            return action.shown
+        }
+        return self
+    }
+
+    /// What the hook payload didn't show of the call, for an `unchecked` one.
+    public var uncheckedReason: String? {
+        if case let .unchecked(_, reason) = self {
+            return reason
         }
         return nil
     }
@@ -76,6 +98,8 @@ extension Action: Codable {
         var writes: [String]?
         var paths: [String]?
         var name: String?
+        var action: Action?
+        var reason: String?
     }
 
     public init(from decoder: Decoder) throws {
@@ -98,6 +122,13 @@ extension Action: Codable {
         case "patch": self = .patch(writes: f.writes ?? [])
         case "read_files": self = .readFiles(paths: f.paths ?? [])
         case "mcp_tool": self = .mcpTool(name: f.name ?? "")
+        case "unchecked":
+            // Without the action inside, nothing can be shown of it.
+            guard let action = f.action else {
+                self = .other(kind: key.stringValue)
+                return
+            }
+            self = .unchecked(action: action, reason: f.reason ?? "")
         default: self = .other(kind: key.stringValue)
         }
     }
@@ -118,6 +149,7 @@ extension Action: Codable {
         case let .patch(writes): key = "patch"; f.writes = writes
         case let .readFiles(paths): key = "read_files"; f.paths = paths
         case let .mcpTool(name): key = "mcp_tool"; f.name = name
+        case let .unchecked(action, reason): key = "unchecked"; f.action = action; f.reason = reason
         case let .other(kind): key = kind
         }
         try container.encode(f, forKey: Key(stringValue: key))

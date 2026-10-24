@@ -194,14 +194,37 @@ private slots:
         QVERIFY(needingAttention(securityChecks(makeSnapshot(u"status"_s))).empty());
     }
 
+    void hookTurnedOffBySettingsSaysWhichFileToEdit() {
+        const Snapshot snapshot = makeSnapshot(u"status-hook-off"_s);
+        const auto checks = securityChecks(snapshot);
+        const auto find = [&checks](const QString &id) {
+            return *std::ranges::find_if(checks, [&id](const SecurityCheck &check) { return check.id == id; });
+        };
+        const SecurityCheck claude = find(u"agent-claude-code"_s);
+        QVERIFY(claude.kind == SecurityCheck::Kind::Problem);
+        QCOMPARE(claude.fix.value_or(QString{}), u"openmoat doctor"_s);
+        QVERIFY(claude.detail.value_or(QString{}).endsWith(u"Edit /Users/you/.claude/settings.json to remove what "
+                                                           u"turns the hook off, then run openmoat doctor to check."_s));
+        QCOMPARE(find(u"agent-codex"_s).fix.value_or(QString{}), u"openmoat"_s);
+        QCOMPARE(protectionFix(snapshot.status.agents[0]), u"openmoat doctor"_s);
+        QCOMPARE(hookTurnedOffBy(snapshot.status.agents[0].reason).value_or(QString{}),
+                 u"/Users/you/.claude/settings.json"_s);
+        QVERIFY(!hookTurnedOffBy(u"hook missing"_s));
+        QVERIFY(!hookTurnedOffBy(std::nullopt));
+    }
+
     void copyCommandsQuoteForEachShell() {
-        const Action read{Action::Kind::FsRead, u"~/.ssh/id_ed25519"_s, {}, {}, u"fs_read"_s};
+        const Action read{Action::Kind::FsRead, u"~/.ssh/id_ed25519"_s, {}, {}, u"fs_read"_s, {}};
         QCOMPARE(CopyCommands::policyCheck(read, Shell::Posix).value_or(QString{}),
                  u"openmoat policy check '~/.ssh/id_ed25519' --kind fs-read"_s);
         QCOMPARE(CopyCommands::quote(u"it's"_s, Shell::Posix), u"'it'\\''s'"_s);
         QCOMPARE(CopyCommands::quote(u"it's"_s, Shell::PowerShell), u"'it''s'"_s);
-        const Action patch{Action::Kind::Patch, {}, {}, {u"a"_s}, u"patch"_s};
+        const Action patch{Action::Kind::Patch, {}, {}, {u"a"_s}, u"patch"_s, {}};
         QVERIFY(!CopyCommands::policyCheck(patch).has_value());
+        // An unchecked call is checked as the action it shows.
+        const Action typed{Action::Kind::Shell, u"npm test"_s, {}, {}, u"shell"_s, u"typed into a running shell"_s};
+        QCOMPARE(CopyCommands::policyCheck(typed, Shell::Posix).value_or(QString{}),
+                 u"openmoat policy check 'npm test'"_s);
     }
 
     void lostProtectionIsReportedOnce() {

@@ -1,0 +1,22 @@
+{
+  "healthy": true,
+  "problems": 0,
+  "checks": [
+    {
+      "status": "ok",
+      "area": "hook",
+      "name": "Claude Code",
+      "detail": "hook installed  /Users/you/.claude/settings.json"
+    },
+    {
+      "status": "warning",
+      "name": "Claude Code",
+      "detail": "project settings /Users/you/code/site/.claude/settings.json: `hooks` adds hooks that run commands. A Claude Code session started here loads it; review the file and remove what you did not add"
+    },
+    {
+      "status": "warning",
+      "name": "Gemini CLI",
+      "detail": "project settings /Users/you/code/site/.gemini/settings.json: `hooks` adds hooks that run commands. A Gemini CLI session started here loads it; review the file and remove what you did not add"
+    }
+  ]
+}

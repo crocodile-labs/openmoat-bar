@@ -48,7 +48,7 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Button("How to turn OpenMoat off ↗") {
-                    Actions.open(URL(string: "https://openmoat.dev/docs/turn-off/")!)
+                    Actions.open(DocsLink.turnOff)
                 }
                 .buttonStyle(.link)
             } header: {

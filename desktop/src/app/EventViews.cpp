@@ -78,6 +78,8 @@ QVariantMap decisionMap(const Event &event, const QString &agentName) {
         {u"told"_s, event.reason().value_or(QString{})},
         {u"why"_s, why.value_or(QString{})},
         {u"driftNote"_s, RuleText::driftNote(event.rules).value_or(QString{})},
+        // OpenMoat 0.10.0: what the hook payload didn't show of an `unchecked` call.
+        {u"unseen"_s, event.action ? event.action->uncheckedReason.value_or(QString{}) : QString{}},
         {u"checkCommand"_s, check.value_or(QString{})},
         {u"blocked"_s, event.verdict == Verdict::Deny || event.verdict == Verdict::Ask},
     };

@@ -76,6 +76,7 @@ QIcon agentIcon(const QString &host) {
     } else if (host == u"gemini-cli") {
         resource = u":/agent-gemini@3x.png"_s;
     } else {
+        // The Continue CLI (`continue`) and OpenMoat's own hosts: the generic icon.
         return {};
     }
     return tintedIcon(resource, QGuiApplication::palette().color(QPalette::WindowText));
@@ -149,9 +150,13 @@ void TrayMenu::addProblems(QMenu &menu) const {
             addNote(*problem, u"OpenMoat says: "_s + *agent.reason);
         }
         addNote(*problem, u"Its calls are not being checked."_s);
-        addNote(*problem, u"Run openmoat in a terminal. It shows the change and asks first."_s);
+        if (const auto file = hookTurnedOffBy(agent.reason)) {
+            addNote(*problem, turnedOffAdvice(*file));
+        } else {
+            addNote(*problem, u"Run openmoat in a terminal. It shows the change and asks first."_s);
+        }
         problem->addSeparator();
-        addCopy(*problem, u"Copy the fix"_s, CopyCommands::setUp());
+        addCopy(*problem, u"Copy the fix"_s, protectionFix(agent));
         addLink(*problem, u"Known limits"_s, DocsLink::limits());
     }
     // OpenMoat 0.5.7 and later: a newer default policy, pinned files that changed,
@@ -184,6 +189,7 @@ void TrayMenu::addProblems(QMenu &menu) const {
         for (const QString &command : commands) {
             addCopy(*mcp, commands.size() == 1 ? u"Copy the command"_s : u"Copy"_s, command);
         }
+        addLink(*mcp, u"About MCP servers"_s, DocsLink::mcpServers());
     }
     // OpenMoat 0.8.0 and later: project settings files to review.
     if (!status.projectSettings.isEmpty()) {
@@ -229,6 +235,9 @@ void TrayMenu::addDecision(QMenu &menu, const Event &event) const {
     addNote(menu, u"%1 · %2"_s.arg(verdictTitle(event.verdict), event.rule().value_or(u"no rule"_s)));
     addNote(menu, u"%1 · %2 · %3"_s.arg(agentName(event.host), clock(event.time()), event.tool));
     addNote(menu, elide(event.display()));
+    if (event.action && event.action->uncheckedReason) {
+        addNote(menu, u"Couldn't see: "_s + elide(*event.action->uncheckedReason));
+    }
     if (event.cwd) {
         addNote(menu, u"Folder: "_s + shortPath(*event.cwd));
     }
@@ -253,7 +262,7 @@ void TrayMenu::addDecision(QMenu &menu, const Event &event) const {
         addLink(menu, u"Why was this blocked?"_s, DocsLink::blocked());
         addLink(menu, u"Report a wrong block"_s, DocsLink::reportWrongBlock(event.rule()));
     } else {
-        addLink(menu, u"How OpenMoat decides"_s, DocsLink::checkACommand());
+        addLink(menu, u"How OpenMoat decides"_s, DocsLink::howItDecides());
     }
 }
 
@@ -326,6 +335,7 @@ void TrayMenu::addUnavailable(QMenu &menu) const {
         addNote(menu, u"Your agents are still checked; only this view is out of date."_s);
         menu.addSeparator();
         addCopy(menu, u"Copy the check command"_s, CopyCommands::doctor());
+        addLink(menu, u"Troubleshooting"_s, DocsLink::troubleshooting());
     }
 }
 

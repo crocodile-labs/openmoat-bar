@@ -48,6 +48,12 @@ struct SessionGrant {
     QString what; ///< in moat's words: `run "npm install"`
     std::int64_t grantedAtMs = 0;
     std::int64_t expiresAtMs = 0;
+    /// The project it applies in (OpenMoat 0.10.0); none for a file grant, which
+    /// needs none, and from an older moat.
+    std::optional<QString> project;
+    /// `false` for a grant an earlier OpenMoat wrote without the project it needs:
+    /// it applies nowhere until approved again. An older moat doesn't send it.
+    bool applies = true;
 };
 
 /// A repository whose `.moat/policy.yaml` was trusted with `openmoat trust`.
@@ -82,6 +88,9 @@ struct BrokeredSecret {
     QString header;
     SecretSource source;
     bool plainHttp = false;
+    /// The port of the plain-HTTP requests that get the value; none means 80.
+    /// Only with `plainHttp` (OpenMoat 0.10.0).
+    std::optional<int> port;
     /// No deny rule covers the source, so the agent could read the value there.
     /// A moat that leaves it out counts as exposed.
     bool sourceExposed = true;
@@ -206,7 +215,13 @@ namespace DetailsText {
 /// The hint `openmoat secret list` prints for a source no deny rule covers.
 [[nodiscard]] QString exposedHint();
 [[nodiscard]] QString coveredHint();
-[[nodiscard]] QString plainHttpHint();
+/// What a plain-HTTP secret means, with the port its requests use (80 unless set).
+[[nodiscard]] QString plainHttpHint(const BrokeredSecret &secret);
+/// What a grant that applies nowhere says instead of when it ends.
+[[nodiscard]] QString grantAppliesNowhere();
+/// `Claude Code · session 5b1c2d3e · in ~/code/app · Ends in 3 h`; a grant that
+/// applies nowhere says so instead of when it ends.
+[[nodiscard]] QString grantLine(const SessionGrant &grant, const QString &agent, std::int64_t nowMs);
 /// The command whose warning shows how to cover a source.
 [[nodiscard]] QString lint();
 /// `Ends in 3 h 20 min`, `Ends in 5 min`, `Ended`.

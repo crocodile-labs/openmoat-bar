@@ -97,6 +97,31 @@ public enum SecurityChecks {
         checks.filter { $0.kind >= .warning }
     }
 
+    /// The settings file a not-protected agent's reason names when the agent's
+    /// own settings turn OpenMoat's hook off: `hook turned off by <file>: <what>`
+    /// (openmoat `crates/openmoat-cli/src/protection.rs`, OpenMoat 0.10.0 and later).
+    public static func hookTurnedOffBy(_ reason: String?) -> String? {
+        let prefix = "hook turned off by "
+        guard let reason, reason.hasPrefix(prefix) else {
+            return nil
+        }
+        let rest = reason.dropFirst(prefix.count)
+        // The file, then `: ` and what it sets; a path itself may hold a colon.
+        let file = rest.range(of: ": ").map { String(rest[..<$0.lowerBound]) } ?? String(rest)
+        return file.isEmpty ? nil : file
+    }
+
+    /// What to do about a hook an agent's own settings file turns off.
+    public static func turnedOffAdvice(_ file: String) -> String {
+        "Edit \(file) to remove what turns the hook off, then run openmoat doctor to check."
+    }
+
+    /// The command to copy for a not-protected agent: `openmoat doctor` when its
+    /// own settings file turns the hook off, else `openmoat`.
+    public static func fix(for agent: Protection) -> String {
+        self.hookTurnedOffBy(agent.reason) == nil ? CopyCommands.setUp : CopyCommands.doctor
+    }
+
     private static func agentCheck(_ agent: Protection) -> SecurityCheck? {
         let id = "agent-\(agent.host)"
         switch agent.level {
@@ -113,6 +138,17 @@ public enum SecurityChecks {
                 fix: CopyCommands.setUp
             )
         case .notProtected:
+            // The agent's own settings file turns the hook off: running openmoat
+            // again doesn't change that file, so say which file to edit.
+            if let file = self.hookTurnedOffBy(agent.reason) {
+                return SecurityCheck(
+                    id: id,
+                    kind: .problem,
+                    title: "\(agent.name) is not protected",
+                    detail: "\(agent.reason ?? ""). \(self.turnedOffAdvice(file))",
+                    fix: CopyCommands.doctor
+                )
+            }
             return SecurityCheck(
                 id: id,
                 kind: .problem,

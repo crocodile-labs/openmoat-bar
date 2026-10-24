@@ -33,8 +33,8 @@ namespace HostText {
 /// tab fits in one row. `Claude Code` → `Claude`, `GitHub Copilot CLI` → `Copilot`.
 [[nodiscard]] QString shortName(const QString &name);
 /// What to call an event's host when `openmoat status` lists no agent for it:
-/// OpenMoat's own parts write events too (`proxy`, `mcp-proxy`, `moat-run`). A
-/// host OpenMoat Bar doesn't know shows as its id.
+/// OpenMoat's own parts write events too (`proxy`, `mcp-proxy`, `moat-run`), and so
+/// does the Continue CLI (`continue`). A host OpenMoat Bar doesn't know shows as its id.
 [[nodiscard]] QString otherName(const QString &host);
 } // namespace HostText
 
@@ -102,6 +102,11 @@ namespace DocsLink {
 [[nodiscard]] QUrl quickstart();
 [[nodiscard]] QUrl limits();
 [[nodiscard]] QUrl turnOff();
+[[nodiscard]] QUrl troubleshooting();
+[[nodiscard]] QUrl howItDecides();
+[[nodiscard]] QUrl mcpServers();
+[[nodiscard]] QUrl allowReference();
+[[nodiscard]] QUrl keepTokensSafe();
 /// A new OpenMoat issue for a wrong block. Only the rule id goes in the title.
 [[nodiscard]] QUrl reportWrongBlock(const std::optional<QString> &rule);
 } // namespace DocsLink

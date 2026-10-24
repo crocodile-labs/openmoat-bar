@@ -36,6 +36,7 @@ QString agentResource(QStringView host) {
     if (host == u"gemini-cli") {
         return u":/agent-gemini@3x.png"_s;
     }
+    // The Continue CLI (`continue`) and OpenMoat's own hosts: the generic icon.
     return {};
 }
 
@@ -83,6 +84,9 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
         const QColor color(u"#"_s + parts[2]);
         if (!resource.isEmpty() && color.isValid()) {
             pixmap = fitted(tintedIcon(resource, color).pixmap(256), want);
+        } else {
+            // No icon of its own (the Continue CLI, OpenMoat's proxy and run): the croc.
+            pixmap = fitted(appIcon().pixmap(256), want);
         }
     }
     if (size != nullptr) {

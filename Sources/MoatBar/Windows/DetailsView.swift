@@ -121,6 +121,7 @@ struct DetailsView: View {
                     }
                 }
             }
+            Button("How allowing works ↗") { Actions.open(DocsLink.allowReference) }
         }
     }
 
@@ -129,11 +130,9 @@ struct DetailsView: View {
     }
 
     private func grantLine(_ grant: SessionGrant) -> String {
-        let agent = self.model.agentNames[grant.host] ?? grant.host
-        let session = String(grant.sessionId.prefix(8))
+        let agent = self.model.agentNames[grant.host] ?? HostText.name(forOther: grant.host)
         let now = self.now ?? Date()
-        let ends = DetailsText.endsIn(grant.expiresAtMs, nowMs: Int64(now.timeIntervalSince1970 * 1000))
-        return "\(agent) · session \(session) · \(ends)"
+        return DetailsText.grantLine(grant, agent: agent, nowMs: Int64(now.timeIntervalSince1970 * 1000))
     }
 
     private func trustLine(_ repo: TrustedRepo) -> String {
@@ -143,6 +142,13 @@ struct DetailsView: View {
     // MARK: - Secrets
 
     private func secrets(_ list: SecretList) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            self.secretRows(list)
+            Button("Keeping tokens safe ↗") { Actions.open(DocsLink.keepTokensSafe) }
+        }
+    }
+
+    private func secretRows(_ list: SecretList) -> some View {
         DetailsSection(title: "Brokered secrets", count: list.secrets.count) {
             if list.secrets.isEmpty {
                 DetailsEmpty(
@@ -161,7 +167,7 @@ struct DetailsView: View {
                         .font(.system(size: 12))
                         .foregroundColor(secret.sourceExposed ? Color(nsColor: .systemOrange) : .secondary)
                     if secret.plainHttp {
-                        Text(DetailsText.plainHttpHint).font(.system(size: 12)).foregroundColor(.secondary)
+                        Text(DetailsText.plainHttpHint(secret)).font(.system(size: 12)).foregroundColor(.secondary)
                     }
                     if secret.sourceExposed {
                         CopyButton(title: "Copy the check command", command: DetailsText.lint)
@@ -210,6 +216,7 @@ struct DetailsView: View {
                 }
             }
             CopyButton(title: "Copy for every check", command: CopyCommands.doctor)
+            Button("Troubleshooting ↗") { Actions.open(DocsLink.troubleshooting) }
         }
     }
 }

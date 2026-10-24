@@ -51,6 +51,25 @@ final class DecodingTests: XCTestCase {
         XCTAssertEqual(events[1].action, .other(kind: "frobnicate"))
     }
 
+    func test_events_uncheckedAction_keepsWhatItShowsAndWhy() throws {
+        let events = try Fixture.decode([Event].self, "show-unchecked")
+
+        XCTAssertEqual(events[0].action, .unchecked(
+            action: .shell(command: "npm test"),
+            reason: "input typed into a running shell joins what was typed before, which this call does not show"
+        ))
+        XCTAssertEqual(events[0].display, "npm test")
+        XCTAssertEqual(events[0].action?.uncheckedReason?.hasPrefix("input typed"), true)
+        XCTAssertEqual(
+            events[1].action?.shown,
+            .readFiles(paths: ["/Users/you/code/api/src", "/Users/you/code/api/docs"])
+        )
+        XCTAssertEqual(events[1].display, "Read 2 files")
+        XCTAssertEqual(events[2].action?.shown, .fsRead(path: "/Users/you/code/site/README.md"))
+        XCTAssertNil(events[3].action?.uncheckedReason)
+        XCTAssertEqual(events[4].action, .other(kind: "unchecked"), "without the action inside, only the kind shows")
+    }
+
     func test_report_decodesRuleTuples() throws {
         let report = try Fixture.decode(Summary.self, "report-7d")
 
@@ -78,6 +97,7 @@ final class DecodingTests: XCTestCase {
             .webSearch(query: "swift"),
             .unknownTool(host: "cursor", tool: "Task"),
             .readFiles(paths: ["a", "b"]),
+            .unchecked(action: .shell(command: "make"), reason: "typed into a running shell"),
         ]
         for action in actions {
             let data = try JSONEncoder().encode(action)

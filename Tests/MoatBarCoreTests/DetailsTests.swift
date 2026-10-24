@@ -30,6 +30,54 @@ final class DetailsTests: XCTestCase {
         )])
     }
 
+    func test_allowed_grantsFromAnOlderMoat_applyAndNameNoProject() throws {
+        let allowed = try Fixture.decode(AllowedReport.self, "allowed")
+
+        XCTAssertNil(allowed.sessionGrants[0].project)
+        XCTAssertTrue(allowed.sessionGrants.allSatisfy(\.applies))
+    }
+
+    func test_allowed_grants_sayTheirProject_andWhenTheyApplyNowhere() throws {
+        let allowed = try Fixture.decode(AllowedReport.self, "allowed-projects")
+        let now: Int64 = 1_792_061_000_000
+
+        XCTAssertEqual(allowed.sessionGrants.map(\.project), ["/Users/you/code/app", nil, nil])
+        XCTAssertEqual(allowed.sessionGrants.map(\.applies), [true, true, false])
+        XCTAssertEqual(
+            DetailsText.grantLine(allowed.sessionGrants[0], agent: "Claude Code", nowMs: now),
+            "Claude Code · session 5b1c2d3e · in /Users/you/code/app · Ends in 3 h 10 min"
+        )
+        XCTAssertEqual(
+            DetailsText.grantLine(allowed.sessionGrants[1], agent: "Codex", nowMs: now),
+            "Codex · session 019a-cod · Ended"
+        )
+        let nowhere = DetailsText.grantLine(allowed.sessionGrants[2], agent: "Continue CLI", nowMs: now)
+        XCTAssertEqual(
+            nowhere,
+            "Continue CLI · session cn-0000- · Names no project, so it applies nowhere: approve it again"
+        )
+        XCTAssertFalse(nowhere.contains("Ends in"), "a grant that applies nowhere is not shown as active")
+    }
+
+    func test_secrets_plainHttp_sayTheirPort() throws {
+        let list = try Fixture.decode(SecretList.self, "secret-list-port")
+
+        XCTAssertEqual(list.secrets.map(\.port), [8080, nil])
+        XCTAssertEqual(
+            DetailsText.plainHttpHint(list.secrets[0]),
+            "Also added to plain-HTTP requests on port 8080, where it travels unencrypted."
+        )
+        XCTAssertEqual(list.secrets[1].plainHttpPort, 80, "OpenMoat's default plain-HTTP port")
+        XCTAssertNil(try Fixture.decode(SecretList.self, "secret-list").secrets[2].port)
+    }
+
+    func test_doctor_projectSettingsWarnings_areAboutAgents() throws {
+        let report = try Fixture.decode(DoctorReport.self, "doctor-project-settings")
+
+        XCTAssertEqual(report.checks.map(\.topic), [.hooks, .agents, .agents])
+        XCTAssertEqual(report.checks[1].topic.label, "Agents")
+    }
+
     func test_allowed_emptyDocument_isEmpty() throws {
         let allowed = try JSONDecoder().decode(
             AllowedReport.self,

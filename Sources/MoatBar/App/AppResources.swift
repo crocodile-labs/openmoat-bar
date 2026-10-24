@@ -37,6 +37,8 @@ enum AppResources {
         case "copilot-cli": name = "agent-copilot"
         case "pi": name = "agent-pi"
         case "gemini-cli": name = "agent-gemini"
+        // The Continue CLI has no icon of its own here: the generic one.
+        case "continue": return nil
         default: return nil
         }
         if let cached = self.agentIcons[name] {

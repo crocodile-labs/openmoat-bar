@@ -2,6 +2,10 @@
 #include "core/Json.hpp"
 #include "core/Text.hpp"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 #include <algorithm>
 
 using namespace Qt::StringLiterals;
@@ -394,6 +398,95 @@ private slots:
         QVERIFY(!RuleText::driftNote(QStringList{u"settings-drift"_s}));
         QVERIFY(!RuleText::driftNote(QStringList{u"dev-shell"_s}));
         QVERIFY(!RuleText::driftNote(events.value()[0].rules));
+    }
+
+    // MARK: - OpenMoat 0.10.0
+
+    /// `rule-ids.json` lists every rule id of OpenMoat 0.10.0's default policy
+    /// (`default-v1.yaml`) and the ones OpenMoat adds itself.
+    void ruleTextExplainsEveryRuleOfOpenMoat010() {
+        const QJsonObject ids = QJsonDocument::fromJson(fixture(u"rule-ids"_s)).object();
+        const QJsonArray policy = ids.value(u"default_policy").toArray();
+        QCOMPARE(policy.size(), qsizetype{33});
+        QJsonArray all = policy;
+        for (const QJsonValue &rule : ids.value(u"added_by_openmoat").toArray()) {
+            all.append(rule);
+        }
+        for (const QJsonValue &value : std::as_const(all)) {
+            const QString rule = value.toString();
+            const auto why = RuleText::why(rule);
+            QVERIFY2(why.has_value(), qPrintable(rule));
+            QVERIFY2(!why->contains(u'\n'), qPrintable(rule));
+        }
+        QCOMPARE(RuleText::why(u"push-unchecked").value_or(QString{}),
+                 u"OpenMoat couldn't check what this push publishes, so it asks."_s);
+    }
+
+    void uncheckedActionKeepsWhatItShowsAndWhy() {
+        const auto events = json::parseEvents(fixture(u"show-unchecked"_s));
+        QVERIFY(events.ok());
+        const auto &list = events.value();
+        QCOMPARE(list.size(), std::size_t{5});
+        QVERIFY(list[0].action->kind == Action::Kind::Shell);
+        QCOMPARE(list[0].display(), u"npm test"_s);
+        QCOMPARE(list[0].action->shellCommand().value_or(QString{}), u"npm test"_s);
+        QVERIFY(list[0].action->uncheckedReason.value_or(QString{}).startsWith(u"input typed"_s));
+        QCOMPARE(CopyCommands::policyCheck(*list[0].action, Shell::Posix).value_or(QString{}),
+                 u"openmoat policy check 'npm test'"_s);
+        QVERIFY(list[1].action->kind == Action::Kind::ReadFiles);
+        QCOMPARE(list[1].display(), u"Read 2 files"_s);
+        QVERIFY(list[2].action->kind == Action::Kind::FsRead);
+        QCOMPARE(CopyCommands::policyCheck(*list[2].action, Shell::Posix).value_or(QString{}),
+                 u"openmoat policy check '/Users/you/code/site/README.md' --kind fs-read"_s);
+        QVERIFY(!list[3].action->uncheckedReason.has_value());
+        QCOMPARE(list[3].rule().value_or(QString{}), u"proxy-port"_s);
+        // Without the action inside, only the kind shows.
+        QVERIFY(list[4].action->kind == Action::Kind::Other);
+        QCOMPARE(list[4].display(), u"unchecked"_s);
+        QCOMPARE(HostText::otherName(list[2].host), u"Continue CLI"_s);
+    }
+
+    void grantsSayTheirProjectAndWhenTheyApplyNowhere() {
+        const auto allowed = json::parseAllowed(fixture(u"allowed-projects"_s));
+        QVERIFY(allowed.ok());
+        const auto &grants = allowed.value().sessionGrants;
+        QCOMPARE(grants.size(), std::size_t{3});
+        QCOMPARE(grants[0].project.value_or(QString{}), u"/Users/you/code/app"_s);
+        QVERIFY(!grants[1].project.has_value());
+        QVERIFY(grants[0].applies && grants[1].applies && !grants[2].applies);
+        const std::int64_t now = 1792061000000;
+        QCOMPARE(DetailsText::grantLine(grants[0], u"Claude Code"_s, now),
+                 u"Claude Code · session 5b1c2d3e · in /Users/you/code/app · Ends in 3 h 10 min"_s);
+        QCOMPARE(DetailsText::grantLine(grants[1], u"Codex"_s, now), u"Codex · session 019a-cod · Ended"_s);
+        const QString nowhere = DetailsText::grantLine(grants[2], u"Continue CLI"_s, now);
+        QCOMPARE(nowhere,
+                 u"Continue CLI · session cn-0000- · Names no project, so it applies nowhere: approve it again"_s);
+        QVERIFY(!nowhere.contains(u"Ends in"_s)); // not shown as active
+
+        // An older moat sends neither field: its grants apply.
+        const auto older = json::parseAllowed(fixture(u"allowed"_s));
+        QVERIFY(older.value().sessionGrants[0].applies);
+        QVERIFY(!older.value().sessionGrants[0].project.has_value());
+    }
+
+    void plainHttpSecretsSayTheirPort() {
+        const auto list = json::parseSecrets(fixture(u"secret-list-port"_s));
+        QVERIFY(list.ok());
+        const auto &secrets = list.value().secrets;
+        QCOMPARE(secrets[0].port.value_or(0), 8080);
+        QVERIFY(!secrets[1].port.has_value());
+        QCOMPARE(DetailsText::plainHttpHint(secrets[0]),
+                 u"Also added to plain-HTTP requests on port 8080, where it travels unencrypted."_s);
+        QVERIFY(DetailsText::plainHttpHint(secrets[1]).contains(u"on port 80,"_s));
+    }
+
+    void doctorProjectSettingsWarningsAreAboutAgents() {
+        const auto report = json::parseDoctor(fixture(u"doctor-project-settings"_s));
+        QVERIFY(report.ok());
+        const auto &checks = report.value().checks;
+        QVERIFY(checks[0].topic() == DoctorTopic::Hooks);
+        QVERIFY(checks[1].topic() == DoctorTopic::Agents);
+        QVERIFY(checks[2].topic() == DoctorTopic::Agents);
     }
 
     void textInsteadOfJsonIsUnreadable() {
