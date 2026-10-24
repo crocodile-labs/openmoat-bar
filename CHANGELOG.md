@@ -7,7 +7,7 @@ request where there is one; each version links to its compare view at the end of
 
 ## [Unreleased]
 
-## [0.3.0] - Unreleased
+## [0.3.0] - 2026-10-23
 
 **Upgrading:** run the installer again. It replaces a MoatBar install, and the app copies
 MoatBar's settings on its first start. On macOS, turn "Open at login" on again in Settings if
@@ -62,7 +62,7 @@ you used it: macOS ties that switch to the old app.
 - The first Linux and Windows build (Qt 6, C++20), with screenshots drawn in CI ([#11](https://github.com/crocodile-labs/openmoat-bar/pull/11), [#13](https://github.com/crocodile-labs/openmoat-bar/pull/13)).
 - The release workflow and one-command installers for macOS, Linux and Windows ([#14](https://github.com/crocodile-labs/openmoat-bar/pull/14), [#15](https://github.com/crocodile-labs/openmoat-bar/pull/15)).
 
-[Unreleased]: https://github.com/crocodile-labs/openmoat-bar/compare/v0.2.0...HEAD
-[0.3.0]: https://github.com/crocodile-labs/openmoat-bar/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/crocodile-labs/openmoat-bar/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/crocodile-labs/openmoat-bar/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/crocodile-labs/openmoat-bar/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/crocodile-labs/openmoat-bar/releases/tag/v0.1.0
