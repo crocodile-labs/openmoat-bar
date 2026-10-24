@@ -1,0 +1,119 @@
+[  1%] Building CXX object src/app/CMakeFiles/moatbar_ui_resources_1.dir/.qt/rcc/qrc_quick_view_init.cpp.o
+[  2%] Building CXX object src/app/CMakeFiles/moatbar_ui_resources_2.dir/.qt/rcc/qrc_shared_images_init.cpp.o
+[  3%] Running qmlimportscanner for moatbar_app
+[  5%] Running qmlimportscanner for moatbar_shots
+[  5%] Built target moatbar_core_autogen_timestamp_deps
+[  7%] Running qmlimportscanner for tst_activity
+[  7%] Running qmlimportscanner for tst_quickview
+[  8%] Running qmlimportscanner for tst_settings
+[  8%] Built target moatbar_shots_qmlimportscan
+[ 10%] Automatic MOC and UIC for target moatbar_core
+[ 11%] Running qmlimportscanner for tst_singleinstance
+[ 11%] Built target tst_settings_qmlimportscan
+[ 11%] Built target tst_quickview_qmlimportscan
+[ 11%] Built target tst_activity_qmlimportscan
+[ 11%] Built target tst_singleinstance_qmlimportscan
+[ 11%] Built target moatbar_core_autogen
+[ 11%] Built target moatbar_app_qmlimportscan
+[ 12%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/moatbar_core_autogen/mocs_compilation.cpp.o
+[ 14%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Models.cpp.o
+[ 15%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Json.cpp.o
+[ 16%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/MoatClient.cpp.o
+[ 17%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Details.cpp.o
+[ 19%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/SecurityChecks.cpp.o
+[ 20%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Snapshot.cpp.o
+[ 21%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/IconState.cpp.o
+[ 23%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Text.cpp.o
+[ 24%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/ActivityFilter.cpp.o
+[ 25%] Building CXX object src/core/CMakeFiles/moatbar_core.dir/Format.cpp.o
+[ 25%] Built target moatbar_ui_resources_1
+[ 25%] Built target moatbar_ui_resources_2
+[ 26%] Linking CXX static library libmoatbar_core.a
+[ 26%] Built target moatbar_core
+[ 26%] Built target tst_json_autogen_timestamp_deps
+[ 26%] Built target moatbar_ui_autogen_timestamp_deps
+[ 26%] Built target tst_snapshot_autogen_timestamp_deps
+[ 26%] Built target tst_client_autogen_timestamp_deps
+[ 28%] Automatic MOC and UIC for target moatbar_ui
+[ 29%] Automatic MOC and UIC for target tst_json
+[ 30%] Automatic MOC and UIC for target tst_snapshot
+[ 32%] Automatic MOC and UIC for target tst_client
+[ 32%] Built target tst_client_autogen
+[ 32%] Built target tst_json_autogen
+[ 33%] Building CXX object tests/CMakeFiles/tst_client.dir/tst_client_autogen/mocs_compilation.cpp.o
+[ 34%] Building CXX object tests/CMakeFiles/tst_client.dir/tst_client.cpp.o
+[ 34%] Built target tst_snapshot_autogen
+[ 35%] Building CXX object tests/CMakeFiles/tst_json.dir/tst_json_autogen/mocs_compilation.cpp.o
+[ 37%] Building CXX object tests/CMakeFiles/tst_json.dir/tst_json.cpp.o
+[ 38%] Building CXX object tests/CMakeFiles/tst_snapshot.dir/tst_snapshot_autogen/mocs_compilation.cpp.o
+[ 39%] Building CXX object tests/CMakeFiles/tst_snapshot.dir/tst_snapshot.cpp.o
+[ 39%] Built target moatbar_ui_autogen
+[ 41%] Running rcc for resource shared_images
+[ 42%] Running rcc for resource quick_view
+[ 43%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/SnapshotStore.cpp.o
+[ 44%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/TrayIcon.cpp.o
+[ 46%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/moatbar_ui_autogen/mocs_compilation.cpp.o
+[ 47%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/TrayMenu.cpp.o
+[ 50%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/DetailsModel.cpp.o
+[ 50%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/QuickViewModel.cpp.o
+[ 51%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/TrayController.cpp.o
+[ 52%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/QuickView.cpp.o
+[ 55%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/ActivityModel.cpp.o
+[ 56%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/Preferences.cpp.o
+[ 57%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/ActivityWindow.cpp.o
+[ 58%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/SingleInstance.cpp.o
+[ 60%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/SettingsWindows.cpp.o
+[ 60%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/EventViews.cpp.o
+[ 61%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/Notify.cpp.o
+[ 62%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/.qt/rcc/qrc_quick_view.cpp.o
+[ 64%] Building CXX object src/app/CMakeFiles/moatbar_ui.dir/.qt/rcc/qrc_shared_images.cpp.o
+[ 65%] Linking CXX executable tst_snapshot
+[ 66%] Linking CXX executable tst_json
+[ 66%] Built target tst_snapshot
+[ 66%] Built target tst_json
+[ 67%] Linking CXX executable tst_client
+[ 67%] Built target tst_client
+[ 69%] Linking CXX static library libmoatbar_ui.a
+[ 69%] Built target moatbar_ui
+[ 69%] Built target moatbar_shots_autogen_timestamp_deps
+[ 69%] Built target tst_quickview_autogen_timestamp_deps
+[ 69%] Built target moatbar_app_autogen_timestamp_deps
+[ 69%] Built target tst_activity_autogen_timestamp_deps
+[ 69%] Built target tst_settings_autogen_timestamp_deps
+[ 69%] Built target tst_singleinstance_autogen_timestamp_deps
+[ 70%] Automatic MOC and UIC for target moatbar_shots
+[ 71%] Automatic MOC and UIC for target tst_settings
+[ 73%] Automatic MOC and UIC for target moatbar_app
+[ 74%] Automatic MOC and UIC for target tst_quickview
+[ 75%] Automatic MOC and UIC for target tst_activity
+[ 76%] Automatic MOC and UIC for target tst_singleinstance
+[ 76%] Built target moatbar_shots_autogen
+[ 76%] Built target moatbar_app_autogen
+[ 78%] Building CXX object tools/CMakeFiles/moatbar_shots.dir/moatbar_shots_autogen/mocs_compilation.cpp.o
+[ 79%] Building CXX object tools/CMakeFiles/moatbar_shots.dir/shots.cpp.o
+[ 80%] Building CXX object src/app/CMakeFiles/moatbar_app.dir/moatbar_app_autogen/mocs_compilation.cpp.o
+[ 82%] Building CXX object src/app/CMakeFiles/moatbar_app.dir/main.cpp.o
+[ 82%] Built target tst_singleinstance_autogen
+[ 82%] Built target tst_settings_autogen
+[ 83%] Building CXX object tests/CMakeFiles/tst_singleinstance.dir/tst_singleinstance_autogen/mocs_compilation.cpp.o
+[ 84%] Building CXX object tests/CMakeFiles/tst_singleinstance.dir/tst_singleinstance.cpp.o
+[ 85%] Building CXX object tests/CMakeFiles/tst_settings.dir/tst_settings_autogen/mocs_compilation.cpp.o
+[ 87%] Building CXX object tests/CMakeFiles/tst_settings.dir/tst_settings.cpp.o
+[ 87%] Built target tst_activity_autogen
+[ 88%] Building CXX object tests/CMakeFiles/tst_activity.dir/tst_activity_autogen/mocs_compilation.cpp.o
+[ 89%] Building CXX object tests/CMakeFiles/tst_activity.dir/tst_activity.cpp.o
+[ 89%] Built target tst_quickview_autogen
+[ 91%] Building CXX object tests/CMakeFiles/tst_quickview.dir/tst_quickview_autogen/mocs_compilation.cpp.o
+[ 92%] Building CXX object tests/CMakeFiles/tst_quickview.dir/tst_quickview.cpp.o
+[ 93%] Linking CXX executable openmoat-bar
+[ 93%] Built target moatbar_app
+[ 94%] Linking CXX executable tst_activity
+[ 96%] Linking CXX executable tst_settings
+[ 96%] Built target tst_activity
+[ 97%] Linking CXX executable moatbar_shots
+[ 97%] Built target tst_settings
+[ 98%] Linking CXX executable tst_singleinstance
+[ 98%] Built target moatbar_shots
+[ 98%] Built target tst_singleinstance
+[100%] Linking CXX executable tst_quickview
+[100%] Built target tst_quickview

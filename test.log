@@ -1,0 +1,20 @@
+Internal ctest changing into directory: /home/runner/work/openmoat-bar/openmoat-bar/build
+Test project /home/runner/work/openmoat-bar/openmoat-bar/build
+    Start 1: tst_json
+1/7 Test #1: tst_json .........................   Passed    0.01 sec
+    Start 2: tst_snapshot
+2/7 Test #2: tst_snapshot .....................   Passed    0.01 sec
+    Start 3: tst_client
+3/7 Test #3: tst_client .......................   Passed    0.01 sec
+    Start 4: tst_quickview
+4/7 Test #4: tst_quickview ....................   Passed    0.28 sec
+    Start 5: tst_activity
+5/7 Test #5: tst_activity .....................   Passed    0.02 sec
+    Start 6: tst_settings
+6/7 Test #6: tst_settings .....................   Passed    0.03 sec
+    Start 7: tst_singleinstance
+7/7 Test #7: tst_singleinstance ...............   Passed    0.54 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   0.95 sec
